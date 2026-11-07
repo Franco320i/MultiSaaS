@@ -15,8 +15,8 @@ Idioma: el usuario habla español rioplatense. Código, nombres de tablas y colu
 | Etapa | Contenido | Estado |
 | --- | --- | --- |
 | 0 | Preparación del entorno, repo, este archivo | Hecha |
-| 1 | Esqueleto Next.js + proxy por host (`*.localhost`) | Siguiente |
-| 2 | Migraciones del núcleo + RLS + seed Alfa/Beta + pgTAP | Pendiente |
+| 1 | Esqueleto Next.js + proxy por host (`*.localhost`) | Hecha |
+| 2 | Migraciones del núcleo + RLS + seed Alfa/Beta + pgTAP | Siguiente |
 | 3 | Auth + panel vacío con `requireTenantAccess` | Pendiente |
 | 4 | Catálogo en el panel | Pendiente |
 | 5 | Imágenes | Pendiente |
@@ -53,6 +53,24 @@ Idioma: el usuario habla español rioplatense. Código, nombres de tablas y colu
 - `src/modules/*` → usa solo `src/core` y `src/lib`. **Un módulo nunca importa a otro**; se comunican por la tabla `events`.
 - Migraciones solo en `supabase/migrations` vía `supabase migration new`, nombre `AAAAMMDDHHMMSS_<modulo>_<cambio>.sql`. Solo hacia adelante: nunca editar una migración ya aplicada.
 - Nunca cambiar el esquema desde el dashboard de Supabase.
+
+## Next.js 16
+
+Next.js 16.4 con `cacheComponents` activado, Tailwind 4 y React 19.3. Tiene cambios que no coinciden con versiones anteriores (el middleware ahora es `src/proxy.ts`, caché con `'use cache'`, rutas dinámicas con `<Suspense>`). **Antes de usar una API de Next, leé su guía en `node_modules/next/dist/docs/`** (ver `AGENTS.md`).
+
+## Comandos
+
+- `npm run dev` — servidor local en `:3000`.
+- `npm run check` — tipos (`next typegen && tsc`), lint y pruebas unitarias. Tiene que pasar antes de cada commit.
+- `npm run test` — pruebas unitarias con Vitest (`src/**/*.test.ts`).
+- `npm run build` — build de producción.
+- `npx supabase <comando>` — CLI de Supabase fijada en `devDependencies`.
+
+## Pendientes conocidos
+
+- En `next dev`, `www.localhost` no redirige bien a `localhost` (Next vuelve relativa la URL); en producción debería funcionar. Verificar en staging.
+- Reglas de ESLint para fronteras entre módulos y `service.ts`: se agregan cuando exista el primer módulo (etapa 4) y el cliente de servicio (etapa 7/8).
+- `/panel` y `/admin` hoy salen estáticas en el build porque no leen datos; desde la etapa 3 tienen que ser dinámicas (el diseño pide que CI lo verifique).
 
 ## Entorno local (Windows)
 

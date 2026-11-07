@@ -39,3 +39,6 @@ npm-debug.log*
 
 # Configuración local de Claude Code
 .claude/settings.local.json
+
+# Certificados locales
+*.pem
