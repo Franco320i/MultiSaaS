@@ -14,8 +14,8 @@ Idioma: el usuario habla español rioplatense. Código, nombres de tablas y colu
 
 | Etapa | Contenido | Estado |
 | --- | --- | --- |
-| 0 | Preparación del entorno, repo, este archivo | En curso |
-| 1 | Esqueleto Next.js + proxy por host (`*.localhost`) | Pendiente |
+| 0 | Preparación del entorno, repo, este archivo | Hecha |
+| 1 | Esqueleto Next.js + proxy por host (`*.localhost`) | Siguiente |
 | 2 | Migraciones del núcleo + RLS + seed Alfa/Beta + pgTAP | Pendiente |
 | 3 | Auth + panel vacío con `requireTenantAccess` | Pendiente |
 | 4 | Catálogo en el panel | Pendiente |
@@ -56,5 +56,5 @@ Idioma: el usuario habla español rioplatense. Código, nombres de tablas y colu
 
 ## Entorno local (Windows)
 
-- Supabase local con la CLI (requiere Docker Desktop). Hosts locales: `alfa.localhost:3000`, `app.localhost:3000`, `admin.localhost:3000`.
+- Supabase local con la CLI (`npx supabase start` / `stop`; requiere Docker Desktop abierto). API `127.0.0.1:54321`, base `127.0.0.1:54322`, Studio `127.0.0.1:54323`. `analytics` y `edge_runtime` están apagados en `supabase/config.toml` (no se usan en v1 y ahorran RAM). Hosts locales: `alfa.localhost:3000`, `app.localhost:3000`, `admin.localhost:3000`.
 - Comercios de prueba: Alfa y Beta (publicados), Gamma (suspendido).
