@@ -16,8 +16,8 @@ Idioma: el usuario habla español rioplatense. Código, nombres de tablas y colu
 | --- | --- | --- |
 | 0 | Preparación del entorno, repo, este archivo | Hecha |
 | 1 | Esqueleto Next.js + proxy por host (`*.localhost`) | Hecha |
-| 2 | Migraciones del núcleo + RLS + seed Alfa/Beta + pgTAP | Siguiente |
-| 3 | Auth + panel vacío con `requireTenantAccess` | Pendiente |
+| 2 | Migraciones del núcleo + RLS + seed Alfa/Beta + pgTAP | Hecha |
+| 3 | Auth + panel vacío con `requireTenantAccess` | Siguiente |
 | 4 | Catálogo en el panel | Pendiente |
 | 5 | Imágenes | Pendiente |
 | 6 | Catálogo público + caché | Pendiente |
@@ -64,7 +64,20 @@ Next.js 16.4 con `cacheComponents` activado, Tailwind 4 y React 19.3. Tiene camb
 - `npm run check` — tipos (`next typegen && tsc`), lint y pruebas unitarias. Tiene que pasar antes de cada commit.
 - `npm run test` — pruebas unitarias con Vitest (`src/**/*.test.ts`).
 - `npm run build` — build de producción.
+- `npm run db:reset` — recrea la base local: aplica todas las migraciones desde cero y carga `supabase/seed.sql`.
+- `npm run db:test` — pruebas pgTAP de esquema y RLS (`supabase/tests`). Tienen que pasar antes de cada commit que toque la base.
+- `npm run db:lint` — linter de Supabase sobre el esquema.
+- `npm run db:types` — regenera `src/types/database.ts` (se versiona; regenerar después de cada migración).
 - `npx supabase <comando>` — CLI de Supabase fijada en `devDependencies`.
+
+## Base de datos: cómo agregar una tabla
+
+1. `npx supabase migration new <modulo>_<cambio>` y escribir tabla + restricciones + índices + RLS + políticas + permisos en ese archivo, siguiendo el patrón de `20261107175938_core_tenants.sql` (revocar todo a `anon`/`authenticated`, devolver lo justo, `UPDATE` por columna).
+2. Agregar la tabla a la lista de cobertura de `supabase/tests/00_schema.test.sql` (si no, esa prueba falla).
+3. Escribir su bloque de pruebas de RLS por rol (dueño, staff, otro comercio, anónimo, sin comercio).
+4. `npm run db:reset && npm run db:test && npm run db:lint && npm run db:types`.
+
+Funciones auxiliares de RLS: `private.my_tenant_ids(roles)`, `private.my_teammate_ids()`, `private.tenant_is_public(tenant_id)`, `private.tenant_plan(tenant_id)`. Usarlas como `tenant_id in (select private.my_tenant_ids())`.
 
 ## Pendientes conocidos
 
@@ -75,4 +88,4 @@ Next.js 16.4 con `cacheComponents` activado, Tailwind 4 y React 19.3. Tiene camb
 ## Entorno local (Windows)
 
 - Supabase local con la CLI (`npx supabase start` / `stop`; requiere Docker Desktop abierto). API `127.0.0.1:54321`, base `127.0.0.1:54322`, Studio `127.0.0.1:54323`. `analytics` y `edge_runtime` están apagados en `supabase/config.toml` (no se usan en v1 y ahorran RAM). Hosts locales: `alfa.localhost:3000`, `app.localhost:3000`, `admin.localhost:3000`.
-- Comercios de prueba: Alfa y Beta (publicados), Gamma (suspendido).
+- Comercios de prueba: Alfa y Beta (publicados), Gamma (suspendido). Usuarios, UUID y contraseña local: ver el encabezado de `supabase/seed.sql`.
