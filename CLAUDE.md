@@ -17,8 +17,8 @@ Idioma: el usuario habla español rioplatense. Código, nombres de tablas y colu
 | 0 | Preparación del entorno, repo, este archivo | Hecha |
 | 1 | Esqueleto Next.js + proxy por host (`*.localhost`) | Hecha |
 | 2 | Migraciones del núcleo + RLS + seed Alfa/Beta + pgTAP | Hecha |
-| 3 | Auth + panel vacío con `requireTenantAccess` | Siguiente |
-| 4 | Catálogo en el panel | Pendiente |
+| 3 | Auth + panel vacío con `requireTenantAccess` | Hecha |
+| 4 | Catálogo en el panel | Siguiente |
 | 5 | Imágenes | Pendiente |
 | 6 | Catálogo público + caché | Pendiente |
 | 7 | Pedidos + WhatsApp | Pendiente |
@@ -63,6 +63,7 @@ Next.js 16.4 con `cacheComponents` activado, Tailwind 4 y React 19.3. Tiene camb
 - `npm run dev` — servidor local en `:3000`.
 - `npm run check` — tipos (`next typegen && tsc`), lint y pruebas unitarias. Tiene que pasar antes de cada commit.
 - `npm run test` — pruebas unitarias con Vitest (`src/**/*.test.ts`).
+- `npm run test:integration` — pruebas contra Supabase local con usuarios reales del seed (`tests/integration`). Requiere `npx supabase start` y `npm run db:reset`.
 - `npm run build` — build de producción.
 - `npm run db:reset` — recrea la base local: aplica todas las migraciones desde cero y carga `supabase/seed.sql`.
 - `npm run db:test` — pruebas pgTAP de esquema y RLS (`supabase/tests`). Tienen que pasar antes de cada commit que toque la base.
@@ -79,11 +80,28 @@ Next.js 16.4 con `cacheComponents` activado, Tailwind 4 y React 19.3. Tiene camb
 
 Funciones auxiliares de RLS: `private.my_tenant_ids(roles)`, `private.my_teammate_ids()`, `private.tenant_is_public(tenant_id)`, `private.tenant_plan(tenant_id)`. Usarlas como `tenant_id in (select private.my_tenant_ids())`.
 
+## Autenticación y panel (cómo está armado)
+
+- Clientes de Supabase: `src/lib/supabase/server.ts` (sesión del usuario, uno por petición) y `proxy-session.ts` (refresco de sesión en el proxy, solo hosts `app.` y `admin.`). Cookies sin atributo Domain.
+- Sesión: `getCurrentUser()` / `requireUser()` en `src/core/auth/session.ts` (usan `getClaims()`).
+- Acceso a un comercio: `requireTenantAccess(slug, permiso)` en `src/core/tenancy/require-access.ts`, dentro de cada página, Server Action y Route Handler del panel. Permisos por rol: `src/core/auth/permissions.ts`.
+- Páginas del panel: la sesión se lee dentro de `<Suspense>` (Next 16). Nada del panel se cachea: no usar `'use cache'` ni `'use cache: private'` con datos de comercios.
+
+## Trampas conocidas de Next.js 16 con hosts reescritos
+
+1. **En `next dev`, `request.nextUrl` siempre tiene host `localhost:3000`**, no el host real (`app.localhost`). Para redirigir desde Route Handlers usar un `Location` **relativo** (ver `src/app/auth/callback/route.ts`).
+2. **`redirect()` desde una Server Action se resuelve internamente, sin pasar por el proxy.** En el host del panel, `redirect("/")` muestra la landing. No redirigir a `/` desde acciones: devolver `redirectTo` y navegar desde el cliente (ver `AuthForm`), o redirigir a rutas de comercio (`/alfa/...`), que no existen sin el prefijo `/panel` y caen en una navegación normal.
+3. **`notFound()` dentro de `<Suspense>` responde HTTP 200** con el contenido 404 y `noindex`. No filtra datos (verificado), pero el código HTTP no es 404.
+4. Código que usa la sesión debe correr en el momento de la petición: `createSupabaseServerClient` llama a `connection()`.
+
 ## Pendientes conocidos
 
-- En `next dev`, `www.localhost` no redirige bien a `localhost` (Next vuelve relativa la URL); en producción debería funcionar. Verificar en staging.
+- En `next dev`, `www.localhost` no redirige bien a `localhost` (trampa 1); en producción debería funcionar. Verificar en staging.
 - Reglas de ESLint para fronteras entre módulos y `service.ts`: se agregan cuando exista el primer módulo (etapa 4) y el cliente de servicio (etapa 7/8).
-- `/panel` y `/admin` hoy salen estáticas en el build porque no leen datos; desde la etapa 3 tienen que ser dinámicas (el diseño pide que CI lo verifique).
+- `/panel` sale como "◐" en el build: cáscara estática genérica (encabezado, títulos) y todo dato de sesión o comercio en el momento de la petición. Lo que CI tiene que verificar (etapa 10) es que ningún dato de comercio quede en la parte estática.
+- La cookie de sesión de Supabase es legible desde JavaScript (comportamiento por defecto de `@supabase/ssr`). Evaluar `httpOnly` cuando se decida si el navegador necesita su propio cliente de Supabase (por ejemplo, Realtime en pedidos).
+- Pruebas E2E con Playwright (capa 4 del diseño): hoy los recorridos se verifican a mano en el navegador; automatizarlas antes de salir a producción (etapa 10).
+- Invitaciones de staff (crear, enviar correo, `accept_invitation`): quedan para cuando exista la pantalla de equipo.
 
 ## Entorno local (Windows)
 

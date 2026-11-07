@@ -1,14 +1,16 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { decideRoute } from "@/core/tenancy/route";
 import { env } from "@/lib/env";
+import { refreshSession } from "@/lib/supabase/proxy-session";
 
 /**
- * Proxy de Next.js 16 (antes "middleware"). Diseño, sección 7:
- * lee el host, bloquea rutas internas y reescribe a /sites, /panel o /admin.
- * No consulta la base de datos ni toca la sesión (la sesión llega en la etapa 3,
- * y solo para los hosts del panel y del admin).
+ * Proxy de Next.js 16 (antes "middleware"). Diseño, secciones 6, 7 y 12:
+ * - lee el host, bloquea rutas internas y reescribe a /sites, /panel o /admin;
+ * - no consulta tablas de la base;
+ * - refresca la sesión de Supabase SOLO en los hosts del panel y del admin.
+ *   El catálogo público nunca recibe ni escribe cookies de sesión.
  */
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const decision = decideRoute({
     rawHost: request.headers.get("host"),
     pathname: request.nextUrl.pathname,
@@ -17,17 +19,24 @@ export function proxy(request: NextRequest) {
 
   switch (decision.action) {
     case "next":
-      return NextResponse.next();
-
     case "rewrite": {
-      const url = request.nextUrl.clone();
-      url.pathname = decision.pathname;
-      const response = NextResponse.rewrite(url);
-      if (decision.private) {
-        // Panel y admin nunca se cachean (diseño, sección 12).
-        response.headers.set("Cache-Control", "private, no-store");
-      }
-      return response;
+      const makeResponse = () => {
+        let response: NextResponse;
+        if (decision.action === "rewrite") {
+          const url = request.nextUrl.clone();
+          url.pathname = decision.pathname;
+          response = NextResponse.rewrite(url, { request });
+        } else {
+          response = NextResponse.next({ request });
+        }
+        if (decision.private) {
+          // Panel y admin nunca se cachean (diseño, sección 12).
+          response.headers.set("Cache-Control", "private, no-store");
+        }
+        return response;
+      };
+
+      return decision.private ? refreshSession(request, makeResponse) : makeResponse();
     }
 
     case "redirect-to-root": {

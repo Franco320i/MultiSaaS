@@ -4,8 +4,12 @@ import { classifyHost, normalizeHost } from "./host";
  * Decisión de enrutamiento del proxy, separada de Next.js para poder probarla.
  * `src/proxy.ts` solo traduce esta decisión a un NextResponse.
  */
+/**
+ * `private: true` = respuesta de panel o admin: nunca se cachea y es el único caso
+ * en que el proxy toca la sesión de Supabase.
+ */
 export type RouteDecision =
-  | { action: "next" }
+  | { action: "next"; private: boolean }
   | { action: "rewrite"; pathname: string; private: boolean }
   | { action: "redirect-to-root" }
   | { action: "not-found" }
@@ -51,13 +55,21 @@ export function decideRoute(input: {
   if (target.kind === "invalid") return { action: "not-found" };
   if (target.kind === "redirect-to-root") return { action: "redirect-to-root" };
 
-  // 3. Las rutas de API no se reescriben: cada handler resuelve el host por su cuenta.
-  if (startsWithSegment(lowerPath, "/api")) return { action: "next" };
+  const isPrivateHost = target.kind === "panel" || target.kind === "admin";
 
-  // 4. Reescribir a la sección que corresponde.
+  // 3. Las rutas de API no se reescriben: cada handler resuelve el host por su cuenta.
+  if (startsWithSegment(lowerPath, "/api")) return { action: "next", private: isPrivateHost };
+
+  // 4. Login, logout y callbacks de Auth: solo en los hosts del panel y del admin,
+  //    para que las cookies de sesión queden atadas a esos hosts y a ningún otro.
+  if (startsWithSegment(lowerPath, "/auth")) {
+    return isPrivateHost ? { action: "next", private: true } : { action: "not-found" };
+  }
+
+  // 5. Reescribir a la sección que corresponde.
   switch (target.kind) {
     case "marketing":
-      return { action: "next" };
+      return { action: "next", private: false };
     case "panel":
       return { action: "rewrite", pathname: withPrefix("/panel", pathname), private: true };
     case "admin":

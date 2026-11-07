@@ -98,7 +98,7 @@ describe("decideRoute", () => {
   });
 
   it("el dominio raíz sirve marketing sin reescribir", () => {
-    expect(route("localhost:3000", "/")).toEqual({ action: "next" });
+    expect(route("localhost:3000", "/")).toEqual({ action: "next", private: false });
   });
 
   it("www redirige al dominio raíz", () => {
@@ -122,8 +122,8 @@ describe("decideRoute", () => {
   });
 
   it("rutas que solo empiezan parecido no se bloquean", () => {
-    expect(route("localhost", "/sitesmap")).toEqual({ action: "next" });
-    expect(route("localhost", "/administracion")).toEqual({ action: "next" });
+    expect(route("localhost", "/sitesmap")).toEqual({ action: "next", private: false });
+    expect(route("localhost", "/administracion")).toEqual({ action: "next", private: false });
   });
 
   it("hosts inválidos o reservados dan 404 y un Host ilegible da 400", () => {
@@ -134,6 +134,22 @@ describe("decideRoute", () => {
   });
 
   it("las rutas de API no se reescriben", () => {
-    expect(route("alfa.localhost", "/api/orders")).toEqual({ action: "next" });
+    expect(route("alfa.localhost", "/api/orders")).toEqual({ action: "next", private: false });
+    expect(route("admin.localhost", "/api/cron/daily")).toEqual({ action: "next", private: true });
+  });
+
+  it("las rutas /auth solo existen en el panel y el admin, y son privadas", () => {
+    expect(route("app.localhost:3000", "/auth/login")).toEqual({ action: "next", private: true });
+    expect(route("admin.localhost:3000", "/auth/login")).toEqual({ action: "next", private: true });
+    expect(route("localhost:3000", "/auth/login")).toEqual({ action: "not-found" });
+    expect(route("alfa.localhost:3000", "/auth/login")).toEqual({ action: "not-found" });
+    expect(route("alfa.localhost:3000", "/%61uth/login")).toEqual({ action: "not-found" });
+  });
+
+  it("solo panel y admin son privados (los únicos hosts que tocan la sesión)", () => {
+    expect(route("alfa.localhost", "/")).toMatchObject({ private: false });
+    expect(route("localhost", "/")).toMatchObject({ private: false });
+    expect(route("app.localhost", "/alfa")).toMatchObject({ private: true });
+    expect(route("admin.localhost", "/")).toMatchObject({ private: true });
   });
 });
