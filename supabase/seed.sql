@@ -143,3 +143,17 @@ values
    'Gorra', 'gorra', null, 900000, null, true, true, false, 2),
   ('c2000000-0000-4000-8000-000000000001', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'c1000000-0000-4000-8000-000000000001',
    'Producto Gamma', 'producto-gamma', null, 100000, null, true, true, false, 1);
+
+-- -----------------------------------------------------------------------------
+-- Fotos (etapa 5). Solo filas: los archivos se suben desde el panel.
+-- La ruta = {tenant_id}/products/{product_id}/{image_id}
+-- -----------------------------------------------------------------------------
+insert into public.catalog_product_images (id, tenant_id, product_id, storage_path, width, height, position) values
+  ('a3000000-0000-4000-8000-000000000001', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'a2000000-0000-4000-8000-000000000001',
+   'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/products/a2000000-0000-4000-8000-000000000001/a3000000-0000-4000-8000-000000000001', 1280, 960, 1),
+  ('a3000000-0000-4000-8000-000000000002', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'a2000000-0000-4000-8000-000000000004',
+   'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/products/a2000000-0000-4000-8000-000000000004/a3000000-0000-4000-8000-000000000002', 1280, 960, 1),
+  ('b3000000-0000-4000-8000-000000000001', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'b2000000-0000-4000-8000-000000000001',
+   'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/products/b2000000-0000-4000-8000-000000000001/b3000000-0000-4000-8000-000000000001', 1280, 1280, 1),
+  ('c3000000-0000-4000-8000-000000000001', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'c2000000-0000-4000-8000-000000000001',
+   'cccccccc-cccc-4ccc-8ccc-cccccccccccc/products/c2000000-0000-4000-8000-000000000001/c3000000-0000-4000-8000-000000000001', 800, 800, 1);

@@ -11,7 +11,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "check": "npm run typecheck && npm run lint && npm run test",
-    "db:reset": "supabase db reset",
+    "db:reset": "supabase db reset && node scripts/seed-images.mjs",
     "db:test": "supabase test db",
     "db:lint": "supabase db lint --level warning",
     "db:types": "supabase gen types typescript --local --schema public > src/types/database.ts",
@@ -25,6 +25,7 @@
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "server-only": "0.0.1",
+    "sharp": "0.35.5",
     "zod": "^4.6.7"
   },
   "devDependencies": {

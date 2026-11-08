@@ -99,6 +99,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"catalog_product_images": {
+                  Row: {
+                    "alt": string | null,"created_at": string,"height": number,"id": string,"position": number,"product_id": string,"storage_path": string,"tenant_id": string,"width": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "alt"?: string | null,"created_at"?: string,"height": number,"id"?: string,"position"?: number,"product_id": string,"storage_path": string,"tenant_id": string,"width": number
+                  }
+                  Update: {
+                    "alt"?: string | null,"created_at"?: string,"height"?: number,"id"?: string,"position"?: number,"product_id"?: string,"storage_path"?: string,"tenant_id"?: string,"width"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "catalog_product_images_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenants"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "catalog_product_images_tenant_id_product_id_fkey"
+      columns: ["tenant_id","product_id"]
+isOneToOne: false
+      referencedRelation: "catalog_products"
+      referencedColumns: ["tenant_id","id"]
+    }
+                  ]
                 },"catalog_products": {
                   Row: {
                     "category_id": string | null,"compare_at_price": number | null,"created_at": string,"description": string | null,"id": string,"is_available": boolean,"is_featured": boolean,"is_published": boolean,"name": string,"position": number,"price": number,"slug": string,"tenant_id": string,"updated_at": string

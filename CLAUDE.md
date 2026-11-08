@@ -19,8 +19,8 @@ Idioma: el usuario habla español rioplatense. Código, nombres de tablas y colu
 | 2 | Migraciones del núcleo + RLS + seed Alfa/Beta + pgTAP | Hecha |
 | 3 | Auth + panel vacío con `requireTenantAccess` | Hecha |
 | 4 | Catálogo en el panel | Hecha |
-| 5 | Imágenes | Siguiente |
-| 6 | Catálogo público + caché | Pendiente |
+| 5 | Imágenes | Hecha |
+| 6 | Catálogo público + caché | Siguiente |
 | 7 | Pedidos + WhatsApp | Pendiente |
 | 8 | Alta de comercios (`provision_tenant` + asistente) | Pendiente |
 | 9 | Panel central | Pendiente |
@@ -78,7 +78,7 @@ Next.js 16.4 con `cacheComponents` activado, Tailwind 4 y React 19.3. Tiene camb
 - `npm run test` — pruebas unitarias con Vitest (`src/**/*.test.ts`).
 - `npm run test:integration` — pruebas contra Supabase local con usuarios reales del seed (`tests/integration`). Requiere `npx supabase start` y `npm run db:reset`.
 - `npm run build` — build de producción.
-- `npm run db:reset` — recrea la base local: aplica todas las migraciones desde cero y carga `supabase/seed.sql`.
+- `npm run db:reset` — recrea la base local: aplica todas las migraciones desde cero, carga `supabase/seed.sql` y sube fotos de muestra (`scripts/seed-images.mjs`, solo local, con la sesión de cada dueño).
 - `npm run db:test` — pruebas pgTAP de esquema y RLS (`supabase/tests`). Tienen que pasar antes de cada commit que toque la base.
 - `npm run db:lint` — linter de Supabase sobre el esquema.
 - `npm run db:types` — regenera `src/types/database.ts` (se versiona; regenerar después de cada migración).
@@ -119,6 +119,10 @@ Funciones auxiliares de RLS: `private.my_tenant_ids(roles)`, `private.my_teammat
 - La cookie de sesión de Supabase es legible desde JavaScript (comportamiento por defecto de `@supabase/ssr`). Evaluar `httpOnly` cuando se decida si el navegador necesita su propio cliente de Supabase (por ejemplo, Realtime en pedidos).
 - Pruebas E2E con Playwright (capa 4 del diseño): hoy los recorridos se verifican a mano en el navegador; automatizarlas antes de salir a producción (etapa 10).
 - Invitaciones de staff (crear, enviar correo, `accept_invitation`): quedan para cuando exista la pantalla de equipo.
+- Fotos: barrido de archivos huérfanos en Storage (si falla un borrado o alguien sube directo a su carpeta sin pasar por el servidor). Preparado en el diseño; hacerlo con el cron (etapa 9).
+- Logo y portada del comercio (bucket `catalog-public`, carpeta `branding`): la pantalla llega con la configuración del comercio (etapa 8).
+- Sistema visual (`docs/design/sistema-visual.md`): elegir la dirección visual al empezar la etapa 6 (skill `diseno-interfaz`).
+- `/admin` sale estático en el build porque es provisoria; desde la etapa 9 tiene que ser dinámica.
 
 ## Módulos (cómo está armado el catálogo)
 
@@ -128,6 +132,8 @@ Funciones auxiliares de RLS: `private.my_tenant_ids(roles)`, `private.my_teammat
 - Después de mutar sin redirigir: `refresh()` de `next/cache`. Para redirigir: rutas de comercio (`/${slug}/...`).
 - Dinero: `parseAmountToCents` / `formatCents` / `centsToInput` en `src/lib/money.ts` (formato argentino). Slugs: `src/lib/slugify.ts`; ante choques se numeran (`-2`, `-3`); el slug no cambia al renombrar.
 - Componentes de formulario genéricos: `src/ui/form.tsx`.
+- Fotos: el navegador achica (`components/resize-image.ts`), el servidor re-procesa con sharp (`src/lib/images/process.ts`: solo JPEG/PNG/WebP, sin metadatos, 480 y 1280 px en WebP) y sube con la sesión del usuario (`images.ts`). En la base va la ruta base `{tenant}/products/{product}/{image}`; la URL la arma `publicImageUrl` (`src/lib/images/url.ts`). Server Actions aceptan hasta 4 MB (`next.config.ts`).
+- Storage no deja borrar archivos con SQL: las pruebas de borrado van en integración, con la API real.
 
 ## Entorno local (Windows)
 

@@ -2,6 +2,7 @@ import "server-only";
 import type { PostgrestError, SupabaseClient } from "@supabase/supabase-js";
 import { slugify, slugWithSuffix } from "@/lib/slugify";
 import type { Database } from "@/types/database";
+import { productImageObjects, removeObjects } from "./images";
 import type { CategoryForm, ProductFlag, ProductForm } from "./schemas";
 
 /**
@@ -171,7 +172,15 @@ export async function setProductFlag(
   return data ? { ok: true, id: data.id } : { ok: false, error: "El producto no existe." };
 }
 
+/** Las filas de fotos se borran solas (cascade); los archivos de Storage se borran acá. */
 export async function deleteProduct(supabase: Client, tenantId: string, id: string): Promise<MutationResult> {
+  const objects = await productImageObjects(supabase, tenantId, id);
+  const result = await deleteProductRow(supabase, tenantId, id);
+  if (result.ok) await removeObjects(supabase, objects);
+  return result;
+}
+
+async function deleteProductRow(supabase: Client, tenantId: string, id: string): Promise<MutationResult> {
   const { data, error } = await supabase
     .from("catalog_products")
     .delete()

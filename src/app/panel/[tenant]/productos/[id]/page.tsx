@@ -5,8 +5,15 @@ import { Suspense } from "react";
 import { z } from "zod";
 import { requireTenantAccess } from "@/core/tenancy/require-access";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { DeleteButton, getProduct, listCategories, ProductForm } from "@/modules/catalog";
-import { deleteProductAction, updateProductAction } from "@/modules/catalog/actions";
+import { publicImageUrl } from "@/lib/images/url";
+import { DeleteButton, getProduct, listCategories, listProductImages, ProductForm, ProductImages } from "@/modules/catalog";
+import {
+  deleteProductAction,
+  deleteProductImageAction,
+  moveProductImageAction,
+  updateProductAction,
+  uploadProductImageAction,
+} from "@/modules/catalog/actions";
 
 export const metadata: Metadata = { title: "Editar producto" };
 
@@ -26,9 +33,10 @@ async function EditProduct({ params }: Pick<PageProps<"/panel/[tenant]/productos
   if (!z.uuid().safeParse(id).success) notFound();
 
   const supabase = await createSupabaseServerClient();
-  const [product, categories] = await Promise.all([
+  const [product, categories, images] = await Promise.all([
     getProduct(supabase, access.tenantId, id),
     listCategories(supabase, access.tenantId),
+    listProductImages(supabase, access.tenantId, id),
   ]);
   if (!product) notFound();
 
@@ -43,6 +51,19 @@ async function EditProduct({ params }: Pick<PageProps<"/panel/[tenant]/productos
         product={product}
         categories={categories}
         submitLabel="Guardar cambios"
+      />
+      <hr className="border-foreground/10" />
+      <ProductImages
+        productName={product.name}
+        images={images.map((image) => ({
+          id: image.id,
+          url: publicImageUrl(image.storage_path, 480),
+          width: image.width,
+          height: image.height,
+        }))}
+        uploadAction={uploadProductImageAction.bind(null, access.slug, product.id)}
+        deleteAction={deleteProductImageAction.bind(null, access.slug)}
+        moveAction={moveProductImageAction.bind(null, access.slug)}
       />
       <hr className="border-foreground/10" />
       <DeleteButton

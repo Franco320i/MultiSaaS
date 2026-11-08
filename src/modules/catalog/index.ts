@@ -7,5 +7,7 @@
 export { CategoryForm } from "./components/category-form";
 export { DeleteButton } from "./components/delete-button";
 export { ProductForm } from "./components/product-form";
+export { ProductImages, type ImageItem } from "./components/product-images";
+export { firstImageByProduct, listProductImages, type ProductImage } from "./images";
 export { countProducts, getCategory, getProduct, listCategories, listProducts } from "./queries";
 export type { Category, Product } from "./queries";

@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { Suspense } from "react";
 import { z } from "zod";
 import { requireTenantAccess } from "@/core/tenancy/require-access";
+import { publicImageUrl } from "@/lib/images/url";
 import { formatCents } from "@/lib/money";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { listCategories, listProducts } from "@/modules/catalog";
+import { firstImageByProduct, listCategories, listProducts } from "@/modules/catalog";
 import { moveProductAction, setProductFlagAction } from "@/modules/catalog/actions";
 
 export const metadata: Metadata = { title: "Productos" };
@@ -38,6 +40,7 @@ async function ProductList({ params, searchParams }: PageProps<"/panel/[tenant]/
     listCategories(supabase, access.tenantId),
     listProducts(supabase, access.tenantId, filter),
   ]);
+  const thumbnails = await firstImageByProduct(supabase, access.tenantId, products.map((p) => p.id));
   const categoryName = new Map(categories.map((c) => [c.id, c.name]));
   const base = `/${access.slug}/productos`;
   const active = "categoryId" in filter ? (filter.categoryId ?? "sin") : "";
@@ -89,6 +92,7 @@ async function ProductList({ params, searchParams }: PageProps<"/panel/[tenant]/
                   </form>
                 </div>
               )}
+              <Thumbnail path={thumbnails.get(product.id)?.storage_path} />
               <div className="flex min-w-48 flex-1 flex-col">
                 <span className="font-medium">{product.name}</span>
                 <span className="text-xs opacity-60">
@@ -110,6 +114,26 @@ async function ProductList({ params, searchParams }: PageProps<"/panel/[tenant]/
         <p className="text-xs opacity-60">Para cambiar el orden, filtrá por una categoría.</p>
       )}
     </>
+  );
+}
+
+function Thumbnail({ path }: { path?: string }) {
+  if (!path) {
+    return (
+      <div className="flex size-12 shrink-0 items-center justify-center rounded-md bg-foreground/5 text-[10px] opacity-60">
+        Sin foto
+      </div>
+    );
+  }
+  return (
+    <Image
+      src={publicImageUrl(path, 480)}
+      alt=""
+      width={48}
+      height={48}
+      unoptimized
+      className="size-12 shrink-0 rounded-md object-cover"
+    />
   );
 }
 

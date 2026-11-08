@@ -4,6 +4,8 @@ import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireTenantAccess } from "@/core/tenancy/require-access";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { ImageError, MAX_UPLOAD_BYTES, processProductImage, type ProcessedImage } from "@/lib/images/process";
+import * as images from "./images";
 import * as mutations from "./mutations";
 import {
   categoryFormSchema,
@@ -161,5 +163,58 @@ export async function moveProductAction(tenantSlug: string, productId: string, d
   if (!id.success || !dir.success) return;
 
   await mutations.move(supabase, "catalog_products", access.tenantId, id.data, dir.data);
+  refresh();
+}
+
+// -----------------------------------------------------------------------------
+// Fotos de productos
+// -----------------------------------------------------------------------------
+
+/**
+ * Recibe la foto (ya achicada en el navegador), la re-procesa con sharp y la guarda.
+ * El navegador solo manda el archivo: el comercio sale del slug verificado y la ruta
+ * en Storage la arma el servidor.
+ */
+export async function uploadProductImageAction(
+  tenantSlug: string,
+  productId: string,
+  _prev: FormState,
+  formData: FormData,
+): Promise<FormState> {
+  const { access, supabase } = await context(tenantSlug);
+  const id = idSchema.safeParse(productId);
+  if (!id.success) return { error: "El producto no existe." };
+
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) return { error: "Elegí una foto." };
+  if (file.size > MAX_UPLOAD_BYTES) return { error: "La foto pesa demasiado (máximo 4 MB)." };
+
+  let processed: ProcessedImage;
+  try {
+    processed = await processProductImage(Buffer.from(await file.arrayBuffer()));
+  } catch (error) {
+    return { error: error instanceof ImageError ? error.message : "No pudimos procesar la foto. Probá con otra." };
+  }
+
+  const result = await images.addProductImage(supabase, access.tenantId, id.data, processed);
+  if (!result.ok) return { error: result.error };
+  refresh();
+  return {};
+}
+
+export async function deleteProductImageAction(tenantSlug: string, imageId: string): Promise<void> {
+  const { access, supabase } = await context(tenantSlug);
+  const id = idSchema.safeParse(imageId);
+  if (!id.success) return;
+  await images.deleteProductImage(supabase, access.tenantId, id.data);
+  refresh();
+}
+
+export async function moveProductImageAction(tenantSlug: string, imageId: string, direction: string): Promise<void> {
+  const { access, supabase } = await context(tenantSlug);
+  const id = idSchema.safeParse(imageId);
+  const dir = directionSchema.safeParse(direction);
+  if (!id.success || !dir.success) return;
+  await images.moveProductImage(supabase, access.tenantId, id.data, dir.data);
   refresh();
 }
