@@ -26,6 +26,19 @@ Idioma: el usuario habla español rioplatense. Código, nombres de tablas y colu
 | 9 | Panel central | Pendiente |
 | 10 | CI, staging, producción, migración de clientes actuales | Pendiente |
 
+## Skills y hooks del proyecto
+
+Procedimientos guardados en `.claude/skills/` (se versionan con el repo). Se activan solos cuando la tarea coincide, o se piden con `/nombre`:
+
+| Skill | Cuándo |
+| --- | --- |
+| `/nueva-tabla` | Antes de crear o cambiar cualquier tabla, columna o política RLS |
+| `/cerrar-etapa` | Para verificar todo y cerrar una etapa con su commit |
+| `/auditoria-aislamiento` | Antes de cerrar una etapa que tocó base, acciones, rutas o caché; antes de producción |
+| `/diseno-interfaz` | Antes de crear o cambiar pantallas, componentes o estilos |
+
+Hook (`.claude/settings.json` + `.claude/hooks/check-before-commit.mjs`): antes de cada `git commit` que ejecute Claude corre `npm run check` y bloquea el commit si falla. No saltearlo: si bloquea, corregir la causa.
+
 ## Reglas de seguridad (no negociables)
 
 1. **El comercio nunca lo dice el navegador.** Catálogo: sale del host. Panel: sale de la ruta `/[tenant]` y se verifica contra `tenant_members` con `requireTenantAccess` dentro de cada server action y route handler. Ningún endpoint acepta `tenant_id` del cliente.
