@@ -79,6 +79,52 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"catalog_categories": {
+                  Row: {
+                    "created_at": string,"description": string | null,"id": string,"is_visible": boolean,"name": string,"position": number,"slug": string,"tenant_id": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"description"?: string | null,"id"?: string,"is_visible"?: boolean,"name": string,"position"?: number,"slug": string,"tenant_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"description"?: string | null,"id"?: string,"is_visible"?: boolean,"name"?: string,"position"?: number,"slug"?: string,"tenant_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "catalog_categories_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenants"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"catalog_products": {
+                  Row: {
+                    "category_id": string | null,"compare_at_price": number | null,"created_at": string,"description": string | null,"id": string,"is_available": boolean,"is_featured": boolean,"is_published": boolean,"name": string,"position": number,"price": number,"slug": string,"tenant_id": string,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "category_id"?: string | null,"compare_at_price"?: number | null,"created_at"?: string,"description"?: string | null,"id"?: string,"is_available"?: boolean,"is_featured"?: boolean,"is_published"?: boolean,"name": string,"position"?: number,"price": number,"slug": string,"tenant_id": string,"updated_at"?: string
+                  }
+                  Update: {
+                    "category_id"?: string | null,"compare_at_price"?: number | null,"created_at"?: string,"description"?: string | null,"id"?: string,"is_available"?: boolean,"is_featured"?: boolean,"is_published"?: boolean,"name"?: string,"position"?: number,"price"?: number,"slug"?: string,"tenant_id"?: string,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "catalog_products_tenant_id_category_id_fkey"
+      columns: ["tenant_id","category_id"]
+isOneToOne: false
+      referencedRelation: "catalog_categories"
+      referencedColumns: ["tenant_id","id"]
+    },{
+      foreignKeyName: "catalog_products_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenants"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"domains": {
                   Row: {
                     "created_at": string,"hostname": string,"id": string,"is_primary": boolean,"kind": string,"status": string,"tenant_id": string,"verification": NonNullable<Json>,"verified_at": string | null

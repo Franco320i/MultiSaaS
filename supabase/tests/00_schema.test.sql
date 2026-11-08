@@ -34,7 +34,8 @@ select set_eq(
     'business_templates', 'reserved_slugs', 'tenants', 'profiles', 'tenant_members',
     'platform_admins', 'domains', 'tenant_invitations', 'plans', 'modules',
     'subscriptions', 'billing_payments', 'tenant_modules', 'tenant_settings',
-    'business_hours', 'events', 'audit_log', 'tenant_counters', 'rate_limits'
+    'business_hours', 'events', 'audit_log', 'tenant_counters', 'rate_limits',
+    'catalog_categories', 'catalog_products'
   ],
   'La lista de tablas de public es la esperada (agregá las nuevas acá y a sus pruebas de RLS)'
 );
@@ -164,8 +165,9 @@ select is_empty(
 select set_eq(
   $$ select distinct table_name::text from information_schema.role_table_grants
      where grantee = 'anon' and table_schema = 'public' $$,
-  array['business_templates', 'reserved_slugs', 'plans', 'modules'],
-  'anon solo puede leer los catálogos globales'
+  array['business_templates', 'reserved_slugs', 'plans', 'modules',
+        'catalog_categories', 'catalog_products'],
+  'anon solo puede leer los catálogos globales y el catálogo público (filtrado por RLS)'
 );
 
 select * from finish();

@@ -6,7 +6,12 @@ import { defineConfig } from "vitest/config";
 // con los datos de supabase/seed.sql. Requieren `npx supabase start` y `npm run db:reset`.
 export default defineConfig({
   resolve: {
-    alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
+    alias: {
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
+      // "server-only" protege que el código de servidor no llegue al navegador; en las
+      // pruebas (Node) se reemplaza por su versión vacía, la misma que usa React en el servidor.
+      "server-only": fileURLToPath(new URL("./node_modules/server-only/empty.js", import.meta.url)),
+    },
   },
   test: {
     include: ["tests/integration/**/*.test.ts"],

@@ -112,3 +112,34 @@ insert into public.events (tenant_id, type, entity_type, entity_id, actor_kind) 
 insert into public.audit_log (tenant_id, actor_user_id, actor_kind, action, target_type, target_id, reason) values
   ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', '55555555-5555-4555-8555-555555555555', 'platform_admin', 'subscription.paid',  'subscription', 'a5a5a5a5-0000-4000-8000-00000000000a', 'Pago por link de MP'),
   ('cccccccc-cccc-4ccc-8ccc-cccccccccccc', '55555555-5555-4555-8555-555555555555', 'platform_admin', 'tenant.suspended',   'tenant',       'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'Falta de pago');
+
+-- -----------------------------------------------------------------------------
+-- Catálogo (etapa 4)
+-- Alfa: 3 categorías (una oculta), productos publicados, un borrador y uno sin stock.
+-- Beta: 2 categorías y productos. Gamma (suspendido): 1 producto publicado.
+-- -----------------------------------------------------------------------------
+insert into public.catalog_categories (id, tenant_id, name, slug, position, is_visible) values
+  ('a1000000-0000-4000-8000-000000000001', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Hamburguesas', 'hamburguesas', 1, true),
+  ('a1000000-0000-4000-8000-000000000002', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Bebidas',      'bebidas',      2, true),
+  ('a1000000-0000-4000-8000-000000000003', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'Promos',       'promos',       3, false),
+  ('b1000000-0000-4000-8000-000000000001', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'Remeras',      'remeras',      1, true),
+  ('b1000000-0000-4000-8000-000000000002', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'Promos',       'promos',       2, true),
+  ('c1000000-0000-4000-8000-000000000001', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'General',      'general',      1, true);
+
+insert into public.catalog_products
+  (id, tenant_id, category_id, name, slug, description, price, compare_at_price, is_published, is_available, is_featured, position)
+values
+  ('a2000000-0000-4000-8000-000000000001', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'a1000000-0000-4000-8000-000000000001',
+   'Hamburguesa doble', 'hamburguesa-doble', 'Doble carne, cheddar y panceta.', 900000, null, true, true, true, 1),
+  ('a2000000-0000-4000-8000-000000000002', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'a1000000-0000-4000-8000-000000000001',
+   'Hamburguesa simple', 'hamburguesa-simple', null, 650000, 700000, true, true, false, 2),
+  ('a2000000-0000-4000-8000-000000000003', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'a1000000-0000-4000-8000-000000000002',
+   'Gaseosa 500 ml', 'gaseosa-500', null, 200000, null, true, false, false, 1),
+  ('a2000000-0000-4000-8000-000000000004', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'a1000000-0000-4000-8000-000000000001',
+   'Hamburguesa vegana (borrador)', 'hamburguesa-vegana', null, 800000, null, false, true, false, 3),
+  ('b2000000-0000-4000-8000-000000000001', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'b1000000-0000-4000-8000-000000000001',
+   'Remera negra', 'remera-negra', 'Algodón peinado.', 1500000, null, true, true, false, 1),
+  ('b2000000-0000-4000-8000-000000000002', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', null,
+   'Gorra', 'gorra', null, 900000, null, true, true, false, 2),
+  ('c2000000-0000-4000-8000-000000000001', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'c1000000-0000-4000-8000-000000000001',
+   'Producto Gamma', 'producto-gamma', null, 100000, null, true, true, false, 1);

@@ -18,8 +18,8 @@ Idioma: el usuario habla español rioplatense. Código, nombres de tablas y colu
 | 1 | Esqueleto Next.js + proxy por host (`*.localhost`) | Hecha |
 | 2 | Migraciones del núcleo + RLS + seed Alfa/Beta + pgTAP | Hecha |
 | 3 | Auth + panel vacío con `requireTenantAccess` | Hecha |
-| 4 | Catálogo en el panel | Siguiente |
-| 5 | Imágenes | Pendiente |
+| 4 | Catálogo en el panel | Hecha |
+| 5 | Imágenes | Siguiente |
 | 6 | Catálogo público + caché | Pendiente |
 | 7 | Pedidos + WhatsApp | Pendiente |
 | 8 | Alta de comercios (`provision_tenant` + asistente) | Pendiente |
@@ -69,6 +69,7 @@ Next.js 16.4 con `cacheComponents` activado, Tailwind 4 y React 19.3. Tiene camb
 - `npm run db:test` — pruebas pgTAP de esquema y RLS (`supabase/tests`). Tienen que pasar antes de cada commit que toque la base.
 - `npm run db:lint` — linter de Supabase sobre el esquema.
 - `npm run db:types` — regenera `src/types/database.ts` (se versiona; regenerar después de cada migración).
+- `npm run db:advisors` — advisors de seguridad y rendimiento de Supabase.
 - `npx supabase <comando>` — CLI de Supabase fijada en `devDependencies`.
 
 ## Base de datos: cómo agregar una tabla
@@ -76,7 +77,7 @@ Next.js 16.4 con `cacheComponents` activado, Tailwind 4 y React 19.3. Tiene camb
 1. `npx supabase migration new <modulo>_<cambio>` y escribir tabla + restricciones + índices + RLS + políticas + permisos en ese archivo, siguiendo el patrón de `20261107175938_core_tenants.sql` (revocar todo a `anon`/`authenticated`, devolver lo justo, `UPDATE` por columna).
 2. Agregar la tabla a la lista de cobertura de `supabase/tests/00_schema.test.sql` (si no, esa prueba falla).
 3. Escribir su bloque de pruebas de RLS por rol (dueño, staff, otro comercio, anónimo, sin comercio).
-4. `npm run db:reset && npm run db:test && npm run db:lint && npm run db:types`.
+4. `npm run db:reset && npm run db:test && npm run db:lint && npm run db:advisors && npm run db:types`.
 
 Funciones auxiliares de RLS: `private.my_tenant_ids(roles)`, `private.my_teammate_ids()`, `private.tenant_is_public(tenant_id)`, `private.tenant_plan(tenant_id)`. Usarlas como `tenant_id in (select private.my_tenant_ids())`.
 
@@ -97,13 +98,40 @@ Funciones auxiliares de RLS: `private.my_tenant_ids(roles)`, `private.my_teammat
 ## Pendientes conocidos
 
 - En `next dev`, `www.localhost` no redirige bien a `localhost` (trampa 1); en producción debería funcionar. Verificar en staging.
-- Reglas de ESLint para fronteras entre módulos y `service.ts`: se agregan cuando exista el primer módulo (etapa 4) y el cliente de servicio (etapa 7/8).
+- Al crear `src/lib/supabase/service.ts` (etapas 7-9): agregar en `eslint.config.mjs` el bloque que permita importarlo solo desde la lista cerrada.
+- Importador de productos desde planilla: se construye en la etapa 8, junto con el asistente de alta.
+- Paginación del listado de productos del panel: hoy trae hasta 1000; agregar paginación si un comercio Pro supera eso.
+- Al entrar sin sesión a una pantalla interna (por ejemplo `/alfa/productos`), después del login se vuelve a `/alfa` y no a esa pantalla.
 - `/panel` sale como "◐" en el build: cáscara estática genérica (encabezado, títulos) y todo dato de sesión o comercio en el momento de la petición. Lo que CI tiene que verificar (etapa 10) es que ningún dato de comercio quede en la parte estática.
 - La cookie de sesión de Supabase es legible desde JavaScript (comportamiento por defecto de `@supabase/ssr`). Evaluar `httpOnly` cuando se decida si el navegador necesita su propio cliente de Supabase (por ejemplo, Realtime en pedidos).
 - Pruebas E2E con Playwright (capa 4 del diseño): hoy los recorridos se verifican a mano en el navegador; automatizarlas antes de salir a producción (etapa 10).
 - Invitaciones de staff (crear, enviar correo, `accept_invitation`): quedan para cuando exista la pantalla de equipo.
 
+## Módulos (cómo está armado el catálogo)
+
+- Cada módulo vive en `src/modules/<nombre>/`: `schemas.ts` (Zod), `queries.ts` (lecturas), `mutations.ts` (escrituras sin Next, probables contra la base), `actions.ts` (Server Actions: `requireTenantAccess` + Zod + mutación), `components/` e `index.ts` (lo que pueden importar las rutas).
+- Las fronteras las verifica ESLint (`eslint.config.mjs`): un módulo no importa a otro, `core` no importa módulos, `lib`/`ui` no importan `core` ni módulos. **Agregar cada módulo nuevo a la lista `MODULES`.**
+- Formularios: ante un error, la acción devuelve `fields` con lo enviado y el formulario se vuelve a montar con esos valores (React vacía el formulario después de cada envío).
+- Después de mutar sin redirigir: `refresh()` de `next/cache`. Para redirigir: rutas de comercio (`/${slug}/...`).
+- Dinero: `parseAmountToCents` / `formatCents` / `centsToInput` en `src/lib/money.ts` (formato argentino). Slugs: `src/lib/slugify.ts`; ante choques se numeran (`-2`, `-3`); el slug no cambia al renombrar.
+- Componentes de formulario genéricos: `src/ui/form.tsx`.
+
 ## Entorno local (Windows)
 
 - Supabase local con la CLI (`npx supabase start` / `stop`; requiere Docker Desktop abierto). API `127.0.0.1:54321`, base `127.0.0.1:54322`, Studio `127.0.0.1:54323`. `analytics` y `edge_runtime` están apagados en `supabase/config.toml` (no se usan en v1 y ahorran RAM). Hosts locales: `alfa.localhost:3000`, `app.localhost:3000`, `admin.localhost:3000`.
 - Comercios de prueba: Alfa y Beta (publicados), Gamma (suspendido). Usuarios, UUID y contraseña local: ver el encabezado de `supabase/seed.sql`.
+
+## Reglas de Diseño UI/UX y Desarrollo Frontend
+
+1. **Jerarquía Visual y Estilo:**
+   - Evita diseños genéricos de plantilla. Usa paletas de colores bien definidas con roles claros (Fondo, Superficie, Texto Primario, Texto Secundario y Acento).
+   - Diseña pensando en dispositivos móviles primero (Mobile-First), priorizando la navegación táctil para el carrito de compras.
+
+2. **Seguridad Multitenant (Supabase + RLS):**
+   - Cada tabla o migración SQL debe incluir `tenant_id NOT NULL` y activar RLS desde el primer día.
+   - Jamás expongas `service_role` en componentes del cliente.
+   - Las políticas RLS deben consultar la pertenencia mediante funciones auxiliares seguras leyendo de `tenant_members`.
+
+3. **Arquitectura Next.js:**
+   - Prioriza React Server Components (RSC) para las vistas públicas del catálogo.
+   - Los formularios de pedidos deben validar los precios en el servidor (usando Zod), nunca confiando en los datos enviados desde el navegador.

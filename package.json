@@ -15,7 +15,8 @@
     "db:test": "supabase test db",
     "db:lint": "supabase db lint --level warning",
     "db:types": "supabase gen types typescript --local --schema public > src/types/database.ts",
-    "test:integration": "vitest run --config vitest.integration.config.mts"
+    "test:integration": "vitest run --config vitest.integration.config.mts",
+    "db:advisors": "supabase db advisors"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.7",
