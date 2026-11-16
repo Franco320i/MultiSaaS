@@ -20,8 +20,8 @@ Idioma: el usuario habla español rioplatense. Código, nombres de tablas y colu
 | 3 | Auth + panel vacío con `requireTenantAccess` | Hecha |
 | 4 | Catálogo en el panel | Hecha |
 | 5 | Imágenes | Hecha |
-| 6 | Catálogo público + caché | Siguiente |
-| 7 | Pedidos + WhatsApp | Pendiente |
+| 6 | Catálogo público + caché | Hecha |
+| 7 | Pedidos + WhatsApp | Siguiente |
 | 8 | Alta de comercios (`provision_tenant` + asistente) | Pendiente |
 | 9 | Panel central | Pendiente |
 | 10 | CI, staging, producción, migración de clientes actuales | Pendiente |
@@ -121,7 +121,11 @@ Funciones auxiliares de RLS: `private.my_tenant_ids(roles)`, `private.my_teammat
 - Invitaciones de staff (crear, enviar correo, `accept_invitation`): quedan para cuando exista la pantalla de equipo.
 - Fotos: barrido de archivos huérfanos en Storage (si falla un borrado o alguien sube directo a su carpeta sin pasar por el servidor). Preparado en el diseño; hacerlo con el cron (etapa 9).
 - Logo y portada del comercio (bucket `catalog-public`, carpeta `branding`): la pantalla llega con la configuración del comercio (etapa 8).
-- Sistema visual (`docs/design/sistema-visual.md`): elegir la dirección visual al empezar la etapa 6 (skill `diseno-interfaz`).
+- Sistema visual "Sobremesa" (`docs/design/sistema-visual.md`): el catálogo público ya lo usa; falta llevar el panel a esos tokens (cambio aparte) y una variante compacta para el panel central (etapa 9).
+- Catálogo público: el HTML sale con `Cache-Control: private, no-store` (prerender parcial con datos en el momento de la petición); lo que se cachea son los datos en el servidor (`'use cache'`). En Vercel sin `use cache: remote` esa caché vive por instancia. Evaluar en staging (etapa 10) caché de página o `use cache: remote`; la caché de página pide al menos un host en `generateStaticParams`.
+- Al suspender, cancelar o despublicar un comercio (etapa 9), invalidar `cacheTags.tenantSettings(id)` y `cacheTags.host(host)`: si no, su catálogo puede seguir visible hasta una hora. Lo mismo al editar `tenant_settings` u horarios (etapa 8).
+- Catálogo público: ficha de producto con link propio (para compartir) y logo/portada del comercio (etapa 8).
+- Prueba automática "edito Alfa, miro Beta" sobre la caché (capa E2E): hoy verificada a mano con `next start` (cambio directo en la base no se ve; cambio desde el panel se ve en Alfa y Beta no cambia).
 - `/admin` sale estático en el build porque es provisoria; desde la etapa 9 tiene que ser dinámica.
 
 ## Módulos (cómo está armado el catálogo)
@@ -135,9 +139,19 @@ Funciones auxiliares de RLS: `private.my_tenant_ids(roles)`, `private.my_teammat
 - Fotos: el navegador achica (`components/resize-image.ts`), el servidor re-procesa con sharp (`src/lib/images/process.ts`: solo JPEG/PNG/WebP, sin metadatos, 480 y 1280 px en WebP) y sube con la sesión del usuario (`images.ts`). En la base va la ruta base `{tenant}/products/{product}/{image}`; la URL la arma `publicImageUrl` (`src/lib/images/url.ts`). Server Actions aceptan hasta 4 MB (`next.config.ts`).
 - Storage no deja borrar archivos con SQL: las pruebas de borrado van en integración, con la API real.
 
+## Catálogo público (cómo está armado)
+
+- `/sites/[host]` lee `params` dentro de `<Suspense>`: la cáscara estática es solo el esqueleto. `getStorefront(host)` (`src/core/tenancy/storefront.ts`) llama a `public.storefront_by_host` y `getPublicCatalog(tenantId)` (`src/modules/catalog/public-queries.ts`) lee categorías, productos y fotos; las dos con `'use cache'`, cliente público sin cookies (`src/lib/supabase/public.ts`) y el host o el comercio como único argumento.
+- Tags solo desde `src/lib/cache/tags.ts`. Cada Server Action del catálogo termina con `revalidatePublicCatalog(access.tenantId)` (`updateTag`) después de escribir. Una acción nueva del catálogo tiene que hacer lo mismo.
+- Vida de la caché: catálogo y comercio 1 hora, comercio no disponible unos minutos, host desconocido 60 s.
+- Lo que depende de la hora ("Abierto ahora") se calcula en el navegador (`OpenStatus`), para no meter la hora en el HTML cacheado.
+- Color del comercio: `theme.brand` del comercio o `default_theme.brand` de su plantilla, validado (`src/lib/color.ts`) y con texto elegido por contraste AA.
+- Probar la caché de verdad con `next build` + `next start` (configuración `next-start` en `.claude/launch.json`); en `next dev` la caché no se comporta igual.
+
 ## Entorno local (Windows)
 
 - Supabase local con la CLI (`npx supabase start` / `stop`; requiere Docker Desktop abierto). API `127.0.0.1:54321`, base `127.0.0.1:54322`, Studio `127.0.0.1:54323`. `analytics` y `edge_runtime` están apagados en `supabase/config.toml` (no se usan en v1 y ahorran RAM). Hosts locales: `alfa.localhost:3000`, `app.localhost:3000`, `admin.localhost:3000`.
+- Si Docker Desktop no está abierto, `npm run db:types` escribe el mensaje de error dentro de `src/types/database.ts` (redirige la salida). Si pasa, `git checkout -- src/types/database.ts`, abrir Docker, `npx supabase start` y regenerar.
 - Comercios de prueba: Alfa y Beta (publicados), Gamma (suspendido). Usuarios, UUID y contraseña local: ver el encabezado de `supabase/seed.sql`.
 
 ## Reglas de Diseño UI/UX y Desarrollo Frontend

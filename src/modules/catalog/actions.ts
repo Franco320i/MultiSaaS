@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { requireTenantAccess } from "@/core/tenancy/require-access";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ImageError, MAX_UPLOAD_BYTES, processProductImage, type ProcessedImage } from "@/lib/images/process";
+import { revalidatePublicCatalog } from "./cache";
 import * as images from "./images";
 import * as mutations from "./mutations";
 import {
@@ -60,6 +61,7 @@ export async function createCategoryAction(tenantSlug: string, _prev: FormState,
 
   const result = await mutations.createCategory(supabase, access.tenantId, parsed.data);
   if (!result.ok) return { error: result.error, fields: submitted(formData) };
+  revalidatePublicCatalog(access.tenantId);
   redirect(`/${access.slug}/categorias`);
 }
 
@@ -77,6 +79,7 @@ export async function updateCategoryAction(
 
   const result = await mutations.updateCategory(supabase, access.tenantId, id.data, parsed.data);
   if (!result.ok) return { error: result.error, fields: submitted(formData) };
+  revalidatePublicCatalog(access.tenantId);
   redirect(`/${access.slug}/categorias`);
 }
 
@@ -87,6 +90,7 @@ export async function deleteCategoryAction(tenantSlug: string, categoryId: strin
 
   const result = await mutations.deleteCategory(supabase, access.tenantId, id.data);
   if (!result.ok) return { error: result.error };
+  revalidatePublicCatalog(access.tenantId);
   redirect(`/${access.slug}/categorias`);
 }
 
@@ -97,6 +101,7 @@ export async function moveCategoryAction(tenantSlug: string, categoryId: string,
   if (!id.success || !dir.success) return;
 
   await mutations.move(supabase, "catalog_categories", access.tenantId, id.data, dir.data);
+  revalidatePublicCatalog(access.tenantId);
   refresh();
 }
 
@@ -111,6 +116,7 @@ export async function createProductAction(tenantSlug: string, _prev: FormState, 
 
   const result = await mutations.createProduct(supabase, access.tenantId, parsed.data);
   if (!result.ok) return { error: result.error, fields: submitted(formData) };
+  revalidatePublicCatalog(access.tenantId);
   redirect(`/${access.slug}/productos`);
 }
 
@@ -128,6 +134,7 @@ export async function updateProductAction(
 
   const result = await mutations.updateProduct(supabase, access.tenantId, id.data, parsed.data);
   if (!result.ok) return { error: result.error, fields: submitted(formData) };
+  revalidatePublicCatalog(access.tenantId);
   redirect(`/${access.slug}/productos`);
 }
 
@@ -138,6 +145,7 @@ export async function deleteProductAction(tenantSlug: string, productId: string)
 
   const result = await mutations.deleteProduct(supabase, access.tenantId, id.data);
   if (!result.ok) return { error: result.error };
+  revalidatePublicCatalog(access.tenantId);
   redirect(`/${access.slug}/productos`);
 }
 
@@ -153,6 +161,7 @@ export async function setProductFlagAction(
   if (!id.success || !parsedFlag.success || typeof value !== "boolean") return;
 
   await mutations.setProductFlag(supabase, access.tenantId, id.data, parsedFlag.data, value);
+  revalidatePublicCatalog(access.tenantId);
   refresh();
 }
 
@@ -163,6 +172,7 @@ export async function moveProductAction(tenantSlug: string, productId: string, d
   if (!id.success || !dir.success) return;
 
   await mutations.move(supabase, "catalog_products", access.tenantId, id.data, dir.data);
+  revalidatePublicCatalog(access.tenantId);
   refresh();
 }
 
@@ -198,6 +208,7 @@ export async function uploadProductImageAction(
 
   const result = await images.addProductImage(supabase, access.tenantId, id.data, processed);
   if (!result.ok) return { error: result.error };
+  revalidatePublicCatalog(access.tenantId);
   refresh();
   return {};
 }
@@ -207,6 +218,7 @@ export async function deleteProductImageAction(tenantSlug: string, imageId: stri
   const id = idSchema.safeParse(imageId);
   if (!id.success) return;
   await images.deleteProductImage(supabase, access.tenantId, id.data);
+  revalidatePublicCatalog(access.tenantId);
   refresh();
 }
 
@@ -216,5 +228,6 @@ export async function moveProductImageAction(tenantSlug: string, imageId: string
   const dir = directionSchema.safeParse(direction);
   if (!id.success || !dir.success) return;
   await images.moveProductImage(supabase, access.tenantId, id.data, dir.data);
+  revalidatePublicCatalog(access.tenantId);
   refresh();
 }

@@ -9,5 +9,8 @@ export { DeleteButton } from "./components/delete-button";
 export { ProductForm } from "./components/product-form";
 export { ProductImages, type ImageItem } from "./components/product-images";
 export { firstImageByProduct, listProductImages, type ProductImage } from "./images";
+export { StorefrontNotFound, StorefrontSkeleton, StorefrontUnavailable } from "./components/storefront/states";
+export { StorefrontView } from "./components/storefront/storefront-view";
+export { getPublicCatalog, type PublicCatalog, type PublicProduct } from "./public-queries";
 export { countProducts, getCategory, getProduct, listCategories, listProducts } from "./queries";
 export type { Category, Product } from "./queries";

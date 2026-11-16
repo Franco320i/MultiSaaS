@@ -1,23 +1,50 @@
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { getStorefront } from "@/core/tenancy/storefront";
+import { getPublicCatalog, StorefrontSkeleton, StorefrontUnavailable, StorefrontView } from "@/modules/catalog";
 
-// [slug].tuapp.com.ar · Solo accesible por reescritura desde el proxy (/sites/{host}).
-// Etapa 1: solo muestra el host recibido. En la etapa 6 se resuelve el comercio
-// con `storefront_by_host` y se cachea por host.
-export default function StorefrontPage({ params }: PageProps<"/sites/[host]">) {
+/**
+ * Catálogo público: [slug].tuapp.com.ar → /sites/{host} (solo por reescritura del proxy).
+ * Diseño, secciones 7 y 12.
+ *
+ * - El comercio sale del host de la ruta, nunca de algo que mande el navegador.
+ * - Sin sesión ni cookies: getStorefront y getPublicCatalog son funciones cacheadas
+ *   con el host o el tenantId como argumento (el comercio siempre en la clave).
+ * - `params` se lee dentro de <Suspense> (Next 16): la cáscara estática es solo el
+ *   esqueleto, sin datos de ningún comercio.
+ */
+
+type Props = PageProps<"/sites/[host]">;
+
+async function hostFrom(params: Props["params"]): Promise<string> {
+  const { host } = await params;
+  return decodeURIComponent(host);
+}
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const storefront = await getStorefront(await hostFrom(params));
+  if (!storefront) return { title: "Catálogo no encontrado", robots: { index: false } };
+  if (!storefront.available) return { title: "Catálogo no disponible", robots: { index: false } };
+  return {
+    title: storefront.display_name,
+    description: storefront.tagline ?? storefront.description ?? `Catálogo de ${storefront.display_name}`,
+  };
+}
+
+export default function StorefrontPage({ params }: Props) {
   return (
-    <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col justify-center gap-4 p-8">
-      <p className="text-sm uppercase tracking-wide opacity-60">Catálogo público</p>
-      <Suspense fallback={<h1 className="text-3xl font-semibold">Cargando…</h1>}>
-        <StorefrontHost params={params} />
-      </Suspense>
-      <p className="opacity-80">
-        Página provisoria. Todavía no se consulta la base: se muestra el host que llegó.
-      </p>
-    </main>
+    <Suspense fallback={<StorefrontSkeleton />}>
+      <Storefront params={params} />
+    </Suspense>
   );
 }
 
-async function StorefrontHost({ params }: Pick<PageProps<"/sites/[host]">, "params">) {
-  const { host } = await params;
-  return <h1 className="text-3xl font-semibold">Catálogo de {decodeURIComponent(host)}</h1>;
+async function Storefront({ params }: Pick<Props, "params">) {
+  const storefront = await getStorefront(await hostFrom(params));
+  if (!storefront) notFound();
+  if (!storefront.available) return <StorefrontUnavailable />;
+
+  const catalog = await getPublicCatalog(storefront.tenant_id);
+  return <StorefrontView storefront={storefront} catalog={catalog} />;
 }

@@ -439,7 +439,9 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            [_ in never]: never
+            "storefront_by_host":
+{ Args: { "p_host": string }; Returns: Json
+                           }
           }
           Enums: {
             [_ in never]: never
