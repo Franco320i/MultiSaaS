@@ -1,0 +1,12 @@
+<!--
+  Correo de confirmación de cuenta (registro). Diseño, sección 10.
+  El enlace usa token_hash (no el flujo PKCE): el registro ocurre en tuapp.com.ar y la
+  confirmación vuelve a app.tuapp.com.ar ({{ .SiteURL }}), donde /auth/callback verifica
+  el token y crea la sesión. Al confirmar, el usuario sigue al asistente de alta (/nuevo).
+-->
+<h2>Confirmá tu cuenta</h2>
+<p>Hola, gracias por registrarte. Para empezar a armar el catálogo de tu comercio, confirmá tu email:</p>
+<p>
+  <a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=signup&next=%2Fnuevo">Confirmar mi cuenta</a>
+</p>
+<p>Si no fuiste vos, ignorá este correo.</p>

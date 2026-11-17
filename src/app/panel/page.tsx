@@ -27,13 +27,8 @@ async function TenantPicker() {
 
   if (tenants.length === 1) redirect(`/${tenants[0].slug}`);
 
-  if (tenants.length === 0) {
-    return (
-      <p className="opacity-80">
-        Tu usuario todavía no pertenece a ningún comercio. Si te invitaron, abrí el enlace del correo de invitación.
-      </p>
-    );
-  }
+  // Sin comercios: recién registrado, va al asistente de alta.
+  if (tenants.length === 0) redirect("/nuevo");
 
   return (
     <ul className="flex flex-col gap-2">

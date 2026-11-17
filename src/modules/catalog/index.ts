@@ -6,6 +6,7 @@
  */
 export { CategoryForm } from "./components/category-form";
 export { DeleteButton } from "./components/delete-button";
+export { ImportForm } from "./components/import-form";
 export { ProductForm } from "./components/product-form";
 export { ProductImages, type ImageItem } from "./components/product-images";
 export { firstImageByProduct, listProductImages, type ProductImage } from "./images";

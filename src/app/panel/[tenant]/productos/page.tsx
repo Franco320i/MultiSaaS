@@ -55,9 +55,14 @@ async function ProductList({ params, searchParams }: PageProps<"/panel/[tenant]/
     <>
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-semibold">Productos</h1>
-        <Link href={`${base}/nuevo`} className="rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background">
-          Nuevo producto
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link href={`${base}/importar`} className="rounded-md border border-foreground/20 px-4 py-2 text-sm font-medium">
+            Importar desde planilla
+          </Link>
+          <Link href={`${base}/nuevo`} className="rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background">
+            Nuevo producto
+          </Link>
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-2 text-sm">

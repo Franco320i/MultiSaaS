@@ -7,6 +7,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { ImageError, MAX_UPLOAD_BYTES, processProductImage, type ProcessedImage } from "@/lib/images/process";
 import { revalidatePublicCatalog } from "./cache";
 import * as images from "./images";
+import { parseSpreadsheet, type ParsedImport } from "./import";
 import * as mutations from "./mutations";
 import {
   categoryFormSchema,
@@ -230,4 +231,49 @@ export async function moveProductImageAction(tenantSlug: string, imageId: string
   await images.moveProductImage(supabase, access.tenantId, id.data, dir.data);
   revalidatePublicCatalog(access.tenantId);
   refresh();
+}
+
+// -----------------------------------------------------------------------------
+// Importar desde planilla
+// -----------------------------------------------------------------------------
+
+export type ImportState = {
+  error?: string;
+  text?: string;
+  preview?: ParsedImport;
+  result?: mutations.ImportResult;
+};
+
+const MAX_IMPORT_TEXT = 200_000;
+
+function importText(formData: FormData): string | null {
+  const text = formData.get("text");
+  return typeof text === "string" && text.length <= MAX_IMPORT_TEXT ? text : null;
+}
+
+/** Paso 1: revisar lo pegado y mostrar los errores por fila, sin guardar nada. */
+export async function previewImportAction(tenantSlug: string, _prev: ImportState, formData: FormData): Promise<ImportState> {
+  await requireTenantAccess(tenantSlug, "catalog.write");
+  const text = importText(formData);
+  if (text === null) return { error: "Lo pegado es demasiado largo. Importá de a partes (hasta 300 filas)." };
+  const preview = parseSpreadsheet(text);
+  if (preview.rows.length === 0) return { error: "No encontramos filas. Copiá las celdas de la planilla y pegalas acá.", text };
+  return { text, preview };
+}
+
+/** Paso 2: crear los productos de las filas válidas (el texto se vuelve a validar acá). */
+export async function importProductsAction(tenantSlug: string, _prev: ImportState, formData: FormData): Promise<ImportState> {
+  const { access, supabase } = await context(tenantSlug);
+  const text = importText(formData);
+  if (text === null) return { error: "Lo pegado es demasiado largo. Importá de a partes (hasta 300 filas)." };
+  const parsed = parseSpreadsheet(text);
+  const valid = parsed.rows
+    .filter((row) => row.errors.length === 0 && row.price !== null)
+    .map((row) => ({ line: row.line, category: row.category, name: row.name, description: row.description, price: row.price as number }));
+  if (valid.length === 0) return { error: "No hay filas para importar: corregí los errores y probá de nuevo.", text, preview: parsed };
+
+  const result = await mutations.importProducts(supabase, access.tenantId, valid);
+  if (result.created > 0) revalidatePublicCatalog(access.tenantId);
+  refresh();
+  return { result };
 }

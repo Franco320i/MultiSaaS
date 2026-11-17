@@ -4,7 +4,7 @@ import Image from "next/image";
 import { startTransition, useActionState, useRef, useState } from "react";
 import { FormError } from "@/ui/form";
 import type { FormState } from "../actions";
-import { ACCEPT_ATTRIBUTE, ResizeError, resizeForUpload } from "./resize-image";
+import { ACCEPT_ATTRIBUTE, ResizeError, resizeForUpload } from "@/ui/resize-image";
 
 export type ImageItem = { id: string; url: string; width: number; height: number };
 

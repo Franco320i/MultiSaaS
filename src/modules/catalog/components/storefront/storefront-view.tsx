@@ -49,16 +49,32 @@ export function StorefrontView({
 
   return (
     <div style={brandStyle} className="flex min-h-full flex-1 flex-col bg-background">
+      {/* Portada: la foto del comercio con un velo oscuro abajo para que el texto blanco se lea,
+          o, sin foto, el color de la marca. */}
       <header
-        className="bg-brand text-brand-foreground"
+        className={storefront.cover_path ? "relative bg-cover bg-center text-white" : "bg-brand text-brand-foreground"}
         style={{
-          backgroundImage:
-            "radial-gradient(circle at 85% 15%, color-mix(in srgb, var(--brand-foreground) 16%, transparent), transparent 55%)",
+          backgroundImage: storefront.cover_path
+            ? `linear-gradient(to top, rgb(0 0 0 / 0.7), rgb(0 0 0 / 0.15) 60%), url("${publicImageUrl(storefront.cover_path, 1280)}")`
+            : "radial-gradient(circle at 85% 15%, color-mix(in srgb, var(--brand-foreground) 16%, transparent), transparent 55%)",
         }}
       >
-        <div className="mx-auto flex min-h-44 max-w-2xl flex-col justify-end gap-1 px-4 pb-6 pt-12 sm:min-h-56">
-          <h1 className="font-display text-[32px] leading-tight text-balance sm:text-[40px]">{storefront.display_name}</h1>
-          {storefront.tagline ? <p className="text-[15px] opacity-90">{storefront.tagline}</p> : null}
+        <div className="mx-auto flex min-h-44 max-w-2xl items-end gap-4 px-4 pb-6 pt-12 sm:min-h-56">
+          {storefront.logo_path ? (
+            <Image
+              src={publicImageUrl(storefront.logo_path, 480)}
+              alt={`Logo de ${storefront.display_name}`}
+              width={72}
+              height={72}
+              unoptimized
+              priority
+              className="size-16 shrink-0 rounded-full bg-surface object-cover ring-2 ring-white/80 sm:size-18"
+            />
+          ) : null}
+          <div className="flex min-w-0 flex-col gap-1">
+            <h1 className="font-display text-[32px] leading-tight text-balance sm:text-[40px]">{storefront.display_name}</h1>
+            {storefront.tagline ? <p className="text-[15px] opacity-90">{storefront.tagline}</p> : null}
+          </div>
         </div>
       </header>
 

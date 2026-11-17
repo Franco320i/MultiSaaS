@@ -22,8 +22,8 @@ Idioma: el usuario habla español rioplatense. Código, nombres de tablas y colu
 | 5 | Imágenes | Hecha |
 | 6 | Catálogo público + caché | Hecha |
 | 7 | Pedidos + WhatsApp | Hecha |
-| 8 | Alta de comercios (`provision_tenant` + asistente) | Siguiente |
-| 9 | Panel central | Pendiente |
+| 8 | Alta de comercios (`provision_tenant` + asistente) | Hecha |
+| 9 | Panel central | Siguiente |
 | 10 | CI, staging, producción, migración de clientes actuales | Pendiente |
 
 ## Skills y hooks del proyecto
@@ -111,8 +111,7 @@ Funciones auxiliares de RLS: `private.my_tenant_ids(roles)`, `private.my_teammat
 ## Pendientes conocidos
 
 - En `next dev`, `www.localhost` no redirige bien a `localhost` (trampa 1); en producción debería funcionar. Verificar en staging.
-- Al usar la clave secreta en el panel central, el alta o el cron (etapas 8 y 9): agregar cada archivo a `SERVICE_KEY_ALLOWED` en `eslint.config.mjs`, y a nada más.
-- Importador de productos desde planilla: se construye en la etapa 8, junto con el asistente de alta.
+- Al usar la clave secreta en el panel central o el cron (etapa 9): agregar cada archivo a `SERVICE_KEY_ALLOWED` en `eslint.config.mjs`, y a nada más.
 - Paginación del listado de productos del panel: hoy trae hasta 1000; agregar paginación si un comercio Pro supera eso.
 - Al entrar sin sesión a una pantalla interna (por ejemplo `/alfa/productos`), después del login se vuelve a `/alfa` y no a esa pantalla.
 - `/panel` sale como "◐" en el build: cáscara estática genérica (encabezado, títulos) y todo dato de sesión o comercio en el momento de la petición. Lo que CI tiene que verificar (etapa 10) es que ningún dato de comercio quede en la parte estática.
@@ -120,13 +119,17 @@ Funciones auxiliares de RLS: `private.my_tenant_ids(roles)`, `private.my_teammat
 - Pruebas E2E con Playwright (capa 4 del diseño): hoy los recorridos se verifican a mano en el navegador; automatizarlas antes de salir a producción (etapa 10).
 - Invitaciones de staff (crear, enviar correo, `accept_invitation`): quedan para cuando exista la pantalla de equipo.
 - Fotos: barrido de archivos huérfanos en Storage (si falla un borrado o alguien sube directo a su carpeta sin pasar por el servidor). Preparado en el diseño; hacerlo con el cron (etapa 9).
-- Logo y portada del comercio (bucket `catalog-public`, carpeta `branding`): la pantalla llega con la configuración del comercio (etapa 8).
 - Sistema visual "Sobremesa" (`docs/design/sistema-visual.md`): el catálogo público ya lo usa; falta llevar el panel a esos tokens (cambio aparte) y una variante compacta para el panel central (etapa 9).
 - Catálogo público: el HTML sale con `Cache-Control: private, no-store` (prerender parcial con datos en el momento de la petición); lo que se cachea son los datos en el servidor (`'use cache'`). En Vercel sin `use cache: remote` esa caché vive por instancia. Evaluar en staging (etapa 10) caché de página o `use cache: remote`; la caché de página pide al menos un host en `generateStaticParams`.
-- Al suspender, cancelar o despublicar un comercio (etapa 9), invalidar `cacheTags.tenantSettings(id)` y `cacheTags.host(host)`: si no, su catálogo puede seguir visible hasta una hora. Lo mismo al editar `tenant_settings` u horarios (etapa 8).
-- Catálogo público: ficha de producto con link propio (para compartir) y logo/portada del comercio (etapa 8).
+- Al suspender, cancelar o reactivar un comercio desde el panel central (etapa 9), invalidar `cacheTags.tenantSettings(id)` y `cacheTags.host(host)` (como `revalidateStorefrontHosts` en `src/modules/settings/cache.ts`). Si no, su catálogo puede seguir visible hasta una hora.
+- Catálogo público: ficha de producto con link propio (para compartir). No está en ninguna etapa del diseño; decidir cuándo.
 - Prueba automática "edito Alfa, miro Beta" sobre la caché (capa E2E): hoy verificada a mano con `next start` (cambio directo en la base no se ve; cambio desde el panel se ve en Alfa y Beta no cambia).
 - `/admin` sale estático en el build porque es provisoria; desde la etapa 9 tiene que ser dinámica.
+- Alta asistida (etapa 9): crear el comercio desde el panel central con `provisionTenant` y una invitación de dueño. Hoy el autoservicio permite un solo comercio por usuario.
+- Correo de confirmación: cargar `supabase/templates/confirmation.html` en los proyectos de staging y producción, y configurar SMTP con Resend (etapa 10). En local los correos se ven en Mailpit (`127.0.0.1:54324`).
+- Staff: Storage le permite subir archivos a la carpeta `branding` de su comercio (la política es por miembro), pero no cambiar el logo ni la portada, que es una columna solo del dueño. Como mucho deja archivos huérfanos; los limpia el barrido del cron (etapa 9).
+- `npm audit`: 17 alertas en herramientas de desarrollo (`picomatch` y `minimatch`, dentro de ESLint y Vitest). Producción tiene 0 (`npm audit --omit=dev`). `picomatch` no tiene versión corregida todavía. En CI (etapa 10), frenar el despliegue con `npm audit --omit=dev` y revisar las de desarrollo cuando salgan versiones corregidas. Nunca correr `npm audit fix --force` (baja ESLint y Vitest de versión mayor).
+- Las pruebas pgTAP de pedidos y alta cuentan sobre los datos del seed: correr `npm run db:test` justo después de `npm run db:reset`. Las de integración y el uso en el navegador suman datos.
 - Pedidos: limpieza de ventanas viejas de `rate_limits` con el cron diario (etapa 9). Hoy la tabla solo crece.
 - Pedidos: el límite por IP usa `x-forwarded-for`, que en Vercel arma la plataforma. Fuera de Vercel ese header se puede falsificar (el límite de 200 por hora por comercio sigue valiendo). No servir la app detrás de otro proxy sin revisar esto.
 - Pedidos: Turnstile usa las claves de prueba públicas en local. Crear las claves reales de staging y producción en Cloudflare (etapa 10).
@@ -161,6 +164,15 @@ Funciones auxiliares de RLS: `private.my_tenant_ids(roles)`, `private.my_teammat
 - `POST /api/orders` (`src/app/api/orders/route.ts`): comercio desde el header Host → `submitOrder` (`src/modules/orders/submit.ts`, sin Next y probado) → `createOrder` / `withinRateLimits` (`create.ts`, el único archivo con la clave secreta). Mensaje y link de WhatsApp en `whatsapp.ts`.
 - Panel: `/[tenant]/pedidos` (en curso y terminados) y `/[tenant]/pedidos/[id]`, con permiso `orders.manage`, `setOrderStatusAction`, actualización cada 20 s (`OrdersAutoRefresh`) y "(N)" en el título de la pestaña.
 - Seed: Alfa #1 (nuevo, envío), Alfa #2 (confirmado) y Beta #1. Las pruebas de integración cambian estados y consumen números: `npm run db:reset` deja todo como al principio.
+
+## Alta de comercios (cómo está armado)
+
+- Decisiones que completan el diseño: `docs/decisions/0003-alta-de-comercios.md`.
+- Registro: `{dominio}/registro` (`src/app/(marketing)/registro`, `registerUser` en `src/core/auth/register.ts`, con Turnstile). La confirmación llega con la plantilla `supabase/templates/confirmation.html` y vuelve a `app.{dominio}/auth/callback?…&next=/nuevo`.
+- Asistente: `app.{dominio}/nuevo` (paso 1, `provisionTenantAction` → `provisionTenant` en `src/core/tenancy/provision.ts`) y `/[tenant]/configurar?paso=marca|contacto|horarios|productos|publicar`. Los mismos formularios están en `/[tenant]/ajustes` (solo el dueño, `settings.write`). El inicio del panel muestra `SetupChecklist`.
+- Módulo `src/modules/settings`: schemas, queries, mutations (con la sesión: RLS deja al dueño), actions y `cache.ts`. Guardar invalida `tenant:{id}:settings`; publicar invalida además los `host:{host}`.
+- Importador: `/[tenant]/productos/importar` (`parseSpreadsheet` en `src/modules/catalog/import.ts` y `importProducts` en `mutations.ts`).
+- URLs de la plataforma: `platformUrl(ROOT_DOMAIN, subdominio, ruta)` en `src/lib/urls.ts`. QR: `src/lib/qr.ts` (data URI SVG, se muestra con `<img>`).
 
 ## Entorno local (Windows)
 

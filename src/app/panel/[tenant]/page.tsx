@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { requireTenantAccess } from "@/core/tenancy/require-access";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { countProducts } from "@/modules/catalog";
+import { getSetupStatus, SetupChecklist } from "@/modules/settings";
 
 export const metadata: Metadata = { title: "Inicio" };
 
@@ -16,7 +17,7 @@ const STATUS_LABEL = {
 } as const;
 
 // app.tuapp.com.ar/[tenant] · Inicio del panel de un comercio.
-// Etapa 3: solo verifica el acceso y muestra el comercio. Las secciones llegan después.
+// Muestra los pendientes del comercio (al dueño) y los accesos a cada sección.
 export default function TenantHome({ params }: PageProps<"/panel/[tenant]">) {
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 p-8">
@@ -31,7 +32,10 @@ async function TenantDashboard({ params }: Pick<PageProps<"/panel/[tenant]">, "p
   const { tenant: slug } = await params;
   const access = await requireTenantAccess(slug, "panel.view");
   const supabase = await createSupabaseServerClient();
-  const productCount = await countProducts(supabase, access.tenantId);
+  const [productCount, setup] = await Promise.all([
+    countProducts(supabase, access.tenantId),
+    access.role === "owner" ? getSetupStatus(supabase, access.tenantId) : Promise.resolve(null),
+  ]);
 
   return (
     <>
@@ -42,7 +46,12 @@ async function TenantDashboard({ params }: Pick<PageProps<"/panel/[tenant]">, "p
           {access.role === "owner" ? "Dueño" : "Staff"} · {STATUS_LABEL[access.status]}
         </p>
       </div>
+      {setup ? <SetupChecklist slug={access.slug} status={setup} /> : null}
       <div className="grid gap-3 sm:grid-cols-2">
+        <Link href={`/${access.slug}/pedidos`} className="rounded-md border border-foreground/15 px-4 py-3 hover:bg-foreground/5">
+          <span className="block font-medium">Pedidos</span>
+          <span className="text-sm opacity-70">Los que llegan desde tu catálogo</span>
+        </Link>
         <Link href={`/${access.slug}/productos`} className="rounded-md border border-foreground/15 px-4 py-3 hover:bg-foreground/5">
           <span className="block font-medium">Productos</span>
           <span className="text-sm opacity-70">{productCount} cargados</span>
@@ -52,11 +61,6 @@ async function TenantDashboard({ params }: Pick<PageProps<"/panel/[tenant]">, "p
           <span className="text-sm opacity-70">Ordená y agrupá tu catálogo</span>
         </Link>
       </div>
-      <ul className="flex flex-col gap-1 text-sm opacity-60">
-        <li>Fotos de productos — etapa 5</li>
-        <li>Pedidos — etapa 7</li>
-        {access.role === "owner" && <li>Configuración, horarios y equipo — próximas etapas</li>}
-      </ul>
     </>
   );
 }

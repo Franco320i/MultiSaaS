@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
+import { requireTenantAccess } from "@/core/tenancy/require-access";
 
 // Menú del comercio. El acceso lo verifica cada página (y cada acción) con
 // requireTenantAccess: el layout solo dibuja la navegación.
@@ -16,11 +17,14 @@ export default function TenantLayout({ children, params }: LayoutProps<"/panel/[
 
 async function TenantNav({ params }: Pick<LayoutProps<"/panel/[tenant]">, "params">) {
   const { tenant } = await params;
+  // El menú muestra solo lo que el rol puede usar (cada página igual lo verifica).
+  const access = await requireTenantAccess(tenant, "panel.view");
   const links = [
     { href: `/${tenant}`, label: "Inicio" },
     { href: `/${tenant}/pedidos`, label: "Pedidos" },
     { href: `/${tenant}/productos`, label: "Productos" },
     { href: `/${tenant}/categorias`, label: "Categorías" },
+    ...(access.role === "owner" ? [{ href: `/${tenant}/ajustes`, label: "Ajustes" }] : []),
   ];
 
   return (

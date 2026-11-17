@@ -24,6 +24,13 @@ const hoursSchema = z.array(
   }),
 );
 
+const UUID = "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
+const BRANDING_PATH = new RegExp(`^${UUID}/branding/(logo|cover)-${UUID}$`);
+const brandingPath = z
+  .string()
+  .nullable()
+  .transform((path) => (path && BRANDING_PATH.test(path) ? path : null));
+
 const availableSchema = z.object({
   available: z.literal(true),
   tenant_id: z.uuid(),
@@ -31,8 +38,10 @@ const availableSchema = z.object({
   display_name: z.string(),
   tagline: z.string().nullable(),
   description: z.string().nullable(),
-  logo_path: z.string().nullable(),
-  cover_path: z.string().nullable(),
+  // Solo el formato que genera el servidor ({tenant}/branding/{tipo}-{uuid}): la ruta
+  // termina en un url("…") de CSS y el dueño puede escribir la columna con su sesión.
+  logo_path: brandingPath,
+  cover_path: brandingPath,
   theme: z.record(z.string(), z.unknown()),
   template_key: z.string(),
   whatsapp_phone: z.string().nullable(),

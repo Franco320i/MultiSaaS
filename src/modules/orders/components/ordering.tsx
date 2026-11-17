@@ -5,7 +5,7 @@ import { isOpenAt, type HoursRange, type OpenMode } from "@/lib/hours";
 import { formatCents } from "@/lib/money";
 import { Stepper } from "./add-to-cart";
 import { clearCart, removeProducts, useCart } from "./cart-store";
-import { useTurnstile } from "./use-turnstile";
+import { useTurnstile } from "@/ui/use-turnstile";
 
 /**
  * Barra "Ver pedido" fija abajo y hoja con el pedido y el formulario

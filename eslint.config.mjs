@@ -13,13 +13,13 @@ import nextTs from "eslint-config-next/typescript";
 // -----------------------------------------------------------------------------
 
 /** Módulos existentes. Agregar cada módulo nuevo a esta lista. */
-const MODULES = ["catalog", "orders"];
+const MODULES = ["catalog", "orders", "settings"];
 
 /**
  * Únicos archivos que pueden importar la clave secreta (diseño, principio 4):
  * creación de pedidos hoy; panel central, alta de comercios y cron en las etapas 8 y 9.
  */
-const SERVICE_KEY_ALLOWED = ["src/modules/orders/create.ts"];
+const SERVICE_KEY_ALLOWED = ["src/modules/orders/create.ts", "src/core/tenancy/provision.ts"];
 
 const serviceKey = {
   name: "@/lib/supabase/service",
@@ -55,13 +55,17 @@ const eslintConfig = defineConfig([
     files: [`src/modules/${module}/**/*.{ts,tsx}`],
     rules: restrict(modulePatterns(module)),
   })),
-  // Lista cerrada de la clave secreta: mismas fronteras, pero con el import permitido.
-  ...SERVICE_KEY_ALLOWED.map((file) => ({
-    files: [file],
-    rules: restrict(modulePatterns(file.split("/")[2]), { allowServiceKey: true }),
-  })),
   { files: ["src/core/**/*.{ts,tsx}"], rules: restrict([noApp, noModules, noRelativeParent]) },
   { files: ["src/lib/**/*.{ts,tsx}", "src/ui/**/*.{ts,tsx}"], rules: restrict([noApp, noModules, noCore, noRelativeParent]) },
+  // Lista cerrada de la clave secreta: mismas fronteras, pero con el import permitido.
+  // Va al final para que sea la última regla que se aplica a esos archivos.
+  ...SERVICE_KEY_ALLOWED.map((file) => ({
+    files: [file],
+    rules: restrict(
+      file.startsWith("src/core/") ? [noApp, noModules, noRelativeParent] : modulePatterns(file.split("/")[2]),
+      { allowServiceKey: true },
+    ),
+  })),
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

@@ -494,8 +494,17 @@ isOneToOne: false
             "create_order":
 { Args: { "p_order": Json,"p_tenant_id": string }; Returns: Json
                            },
+"provision_tenant":
+{ Args: { "p_input": Json,"p_root_domain": string,"p_user_id": string }; Returns: Json
+                           },
 "rate_limit_hit":
 { Args: { "p_key": string,"p_limit": number,"p_window_seconds": number }; Returns: boolean
+                           },
+"set_tenant_published":
+{ Args: { "p_actor_id": string,"p_published": boolean,"p_tenant_id": string }; Returns: string
+                           },
+"slug_available":
+{ Args: { "p_slug": string }; Returns: boolean
                            },
 "storefront_by_host":
 { Args: { "p_host": string }; Returns: Json

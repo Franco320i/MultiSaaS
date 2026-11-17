@@ -254,3 +254,61 @@ export async function move(
   }
   return { ok: true, id };
 }
+
+// -----------------------------------------------------------------------------
+// Importación desde planilla (diseño, sección 10, paso 4)
+// -----------------------------------------------------------------------------
+
+export type ImportResult = { created: number; categoriesCreated: number; failed: { line: number; error: string }[] };
+
+/**
+ * Crea los productos de las filas sin errores, en el orden de la planilla, publicados y
+ * disponibles. Las categorías se buscan por nombre (sin distinguir mayúsculas) y, si no
+ * existen, se crean. Si el plan llega a su límite de productos, se corta ahí y se informa.
+ */
+export async function importProducts(
+  supabase: Client,
+  tenantId: string,
+  rows: { line: number; category: string | null; name: string; description: string | null; price: number }[],
+): Promise<ImportResult> {
+  const { data: existing } = await supabase.from("catalog_categories").select("id, name").eq("tenant_id", tenantId);
+  const categories = new Map((existing ?? []).map((c) => [c.name.trim().toLowerCase(), c.id]));
+  const result: ImportResult = { created: 0, categoriesCreated: 0, failed: [] };
+
+  for (const row of rows) {
+    let categoryId: string | null = null;
+    if (row.category) {
+      const key = row.category.trim().toLowerCase();
+      categoryId = categories.get(key) ?? null;
+      if (!categoryId) {
+        const created = await createCategory(supabase, tenantId, { name: row.category.trim(), description: null, is_visible: true });
+        if (!created.ok) {
+          result.failed.push({ line: row.line, error: created.error });
+          continue;
+        }
+        categoryId = created.id;
+        categories.set(key, created.id);
+        result.categoriesCreated++;
+      }
+    }
+
+    const product = await createProduct(supabase, tenantId, {
+      name: row.name,
+      description: row.description,
+      category_id: categoryId,
+      price: row.price,
+      compare_at_price: null,
+      is_published: true,
+      is_available: true,
+      is_featured: false,
+    });
+    if (product.ok) {
+      result.created++;
+    } else {
+      result.failed.push({ line: row.line, error: product.error });
+      // Límite del plan: el resto tampoco va a entrar.
+      if (product.error.includes("plan")) break;
+    }
+  }
+  return result;
+}

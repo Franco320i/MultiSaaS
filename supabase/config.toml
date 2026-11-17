@@ -245,6 +245,12 @@ otp_expiry = 3600
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
+# Confirmación de cuenta en castellano, con enlace token_hash hacia app.{dominio}/auth/callback
+# (el registro ocurre en el dominio principal; ver supabase/templates/confirmation.html).
+[auth.email.template.confirmation]
+subject = "Confirmá tu cuenta"
+content_path = "./supabase/templates/confirmation.html"
+
 # Uncomment to customize email template
 # [auth.email.template.invite]
 # subject = "You have been invited"

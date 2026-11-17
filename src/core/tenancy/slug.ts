@@ -25,6 +25,8 @@ export const RESERVED_SLUGS: ReadonlySet<string> = new Set([
   "blog",
   "status",
   "docs",
+  // Ruta del asistente de alta en el panel (app.{dominio}/nuevo).
+  "nuevo",
 ]);
 
 export function isValidSlug(slug: string): boolean {

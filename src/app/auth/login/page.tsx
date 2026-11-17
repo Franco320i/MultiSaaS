@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { env } from "@/lib/env";
+import { platformUrl } from "@/lib/urls";
 import { signInAction } from "../actions";
 import { AuthForm, Field } from "../auth-form";
 import { NextField } from "./next-field";
@@ -21,6 +23,12 @@ export default function LoginPage() {
       <Link href="/auth/recuperar" className="text-sm underline opacity-80">
         Olvidé mi contraseña
       </Link>
+      <p className="text-sm opacity-80">
+        ¿No tenés cuenta?{" "}
+        <a href={platformUrl(env.ROOT_DOMAIN, null, "/registro")} className="underline">
+          Creá tu catálogo
+        </a>
+      </p>
     </>
   );
 }
