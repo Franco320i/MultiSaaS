@@ -21,8 +21,8 @@ Idioma: el usuario habla español rioplatense. Código, nombres de tablas y colu
 | 4 | Catálogo en el panel | Hecha |
 | 5 | Imágenes | Hecha |
 | 6 | Catálogo público + caché | Hecha |
-| 7 | Pedidos + WhatsApp | Siguiente |
-| 8 | Alta de comercios (`provision_tenant` + asistente) | Pendiente |
+| 7 | Pedidos + WhatsApp | Hecha |
+| 8 | Alta de comercios (`provision_tenant` + asistente) | Siguiente |
 | 9 | Panel central | Pendiente |
 | 10 | CI, staging, producción, migración de clientes actuales | Pendiente |
 
@@ -111,7 +111,7 @@ Funciones auxiliares de RLS: `private.my_tenant_ids(roles)`, `private.my_teammat
 ## Pendientes conocidos
 
 - En `next dev`, `www.localhost` no redirige bien a `localhost` (trampa 1); en producción debería funcionar. Verificar en staging.
-- Al crear `src/lib/supabase/service.ts` (etapas 7-9): agregar en `eslint.config.mjs` el bloque que permita importarlo solo desde la lista cerrada.
+- Al usar la clave secreta en el panel central, el alta o el cron (etapas 8 y 9): agregar cada archivo a `SERVICE_KEY_ALLOWED` en `eslint.config.mjs`, y a nada más.
 - Importador de productos desde planilla: se construye en la etapa 8, junto con el asistente de alta.
 - Paginación del listado de productos del panel: hoy trae hasta 1000; agregar paginación si un comercio Pro supera eso.
 - Al entrar sin sesión a una pantalla interna (por ejemplo `/alfa/productos`), después del login se vuelve a `/alfa` y no a esa pantalla.
@@ -127,6 +127,11 @@ Funciones auxiliares de RLS: `private.my_tenant_ids(roles)`, `private.my_teammat
 - Catálogo público: ficha de producto con link propio (para compartir) y logo/portada del comercio (etapa 8).
 - Prueba automática "edito Alfa, miro Beta" sobre la caché (capa E2E): hoy verificada a mano con `next start` (cambio directo en la base no se ve; cambio desde el panel se ve en Alfa y Beta no cambia).
 - `/admin` sale estático en el build porque es provisoria; desde la etapa 9 tiene que ser dinámica.
+- Pedidos: limpieza de ventanas viejas de `rate_limits` con el cron diario (etapa 9). Hoy la tabla solo crece.
+- Pedidos: el límite por IP usa `x-forwarded-for`, que en Vercel arma la plataforma. Fuera de Vercel ese header se puede falsificar (el límite de 200 por hora por comercio sigue valiendo). No servir la app detrás de otro proxy sin revisar esto.
+- Pedidos: Turnstile usa las claves de prueba públicas en local. Crear las claves reales de staging y producción en Cloudflare (etapa 10).
+- Pedidos: notas internas del comercio en cada pedido. El diseño las menciona pero no tienen columna; ver `docs/decisions/0002-pedidos-implementacion.md`.
+- Pedidos: la prueba automática de punta a punta en el navegador (carrito → WhatsApp → panel) se verificó a mano. Pasarla a Playwright (etapa 10).
 
 ## Módulos (cómo está armado el catálogo)
 
@@ -148,10 +153,21 @@ Funciones auxiliares de RLS: `private.my_tenant_ids(roles)`, `private.my_teammat
 - Color del comercio: `theme.brand` del comercio o `default_theme.brand` de su plantilla, validado (`src/lib/color.ts`) y con texto elegido por contraste AA.
 - Probar la caché de verdad con `next build` + `next start` (configuración `next-start` en `.claude/launch.json`); en `next dev` la caché no se comporta igual.
 
+## Pedidos (cómo está armado)
+
+- Decisiones que completan el diseño: `docs/decisions/0002-pedidos-implementacion.md`.
+- Base: `orders` y `order_items` (nadie inserta desde el navegador; los miembros solo cambian `status`), `private.create_order` (precios, envío, mínimo, numeración por comercio, idempotencia y `order.created`), `private.rate_limit_hit` y sus envoltorios `public.*`, que solo puede ejecutar `service_role`.
+- Catálogo: `AddToCartButton` y `Ordering` (barra "Ver pedido" + hoja en `<dialog>`) del módulo `orders`, conectados por la ruta `/sites/[host]` con los espacios de `StorefrontView`. El carrito vive en `localStorage` (`pedido:v1`) y los datos del cliente en `datos:v1`.
+- `POST /api/orders` (`src/app/api/orders/route.ts`): comercio desde el header Host → `submitOrder` (`src/modules/orders/submit.ts`, sin Next y probado) → `createOrder` / `withinRateLimits` (`create.ts`, el único archivo con la clave secreta). Mensaje y link de WhatsApp en `whatsapp.ts`.
+- Panel: `/[tenant]/pedidos` (en curso y terminados) y `/[tenant]/pedidos/[id]`, con permiso `orders.manage`, `setOrderStatusAction`, actualización cada 20 s (`OrdersAutoRefresh`) y "(N)" en el título de la pestaña.
+- Seed: Alfa #1 (nuevo, envío), Alfa #2 (confirmado) y Beta #1. Las pruebas de integración cambian estados y consumen números: `npm run db:reset` deja todo como al principio.
+
 ## Entorno local (Windows)
 
 - Supabase local con la CLI (`npx supabase start` / `stop`; requiere Docker Desktop abierto). API `127.0.0.1:54321`, base `127.0.0.1:54322`, Studio `127.0.0.1:54323`. `analytics` y `edge_runtime` están apagados en `supabase/config.toml` (no se usan en v1 y ahorran RAM). Hosts locales: `alfa.localhost:3000`, `app.localhost:3000`, `admin.localhost:3000`.
 - Si Docker Desktop no está abierto, `npm run db:types` escribe el mensaje de error dentro de `src/types/database.ts` (redirige la salida). Si pasa, `git checkout -- src/types/database.ts`, abrir Docker, `npx supabase start` y regenerar.
+- Docker Desktop se cierra cuando la computadora se suspende o se reinicia. Síntoma: "fetch failed" en el catálogo o pruebas de integración que fallan todas juntas. Abrir Docker y correr `npx supabase start`.
+- Navegador integrado: con el panel oculto, el contenido que llega en partes no se dibuja y React no conecta los botones. Para revisar pantallas, mostrar el panel (y que la ventana de Claude no esté minimizada).
 - Comercios de prueba: Alfa y Beta (publicados), Gamma (suspendido). Usuarios, UUID y contraseña local: ver el encabezado de `supabase/seed.sql`.
 
 ## Reglas de Diseño UI/UX y Desarrollo Frontend

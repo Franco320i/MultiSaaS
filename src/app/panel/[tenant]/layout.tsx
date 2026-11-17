@@ -18,6 +18,7 @@ async function TenantNav({ params }: Pick<LayoutProps<"/panel/[tenant]">, "param
   const { tenant } = await params;
   const links = [
     { href: `/${tenant}`, label: "Inicio" },
+    { href: `/${tenant}/pedidos`, label: "Pedidos" },
     { href: `/${tenant}/productos`, label: "Productos" },
     { href: `/${tenant}/categorias`, label: "Categorías" },
   ];

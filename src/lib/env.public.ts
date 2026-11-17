@@ -13,10 +13,13 @@ const publicEnvSchema = z.object({
     .refine((key) => !key.startsWith("sb_secret_"), "Se cargó una clave SECRETA como publicable"),
   /** Base de las URLs de fotos (bucket catalog-public de Supabase, o un CDN más adelante). */
   NEXT_PUBLIC_IMAGES_BASE_URL: z.url(),
+  /** Cloudflare Turnstile: clave del sitio (pública por diseño). */
+  NEXT_PUBLIC_TURNSTILE_SITE_KEY: z.string().min(1, "Falta NEXT_PUBLIC_TURNSTILE_SITE_KEY"),
 });
 
 export const publicEnv = publicEnvSchema.parse({
   NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
   NEXT_PUBLIC_IMAGES_BASE_URL: process.env.NEXT_PUBLIC_IMAGES_BASE_URL,
+  NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY,
 });

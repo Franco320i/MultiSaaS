@@ -157,3 +157,30 @@ insert into public.catalog_product_images (id, tenant_id, product_id, storage_pa
    'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/products/b2000000-0000-4000-8000-000000000001/b3000000-0000-4000-8000-000000000001', 1280, 1280, 1),
   ('c3000000-0000-4000-8000-000000000001', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'c2000000-0000-4000-8000-000000000001',
    'cccccccc-cccc-4ccc-8ccc-cccccccccccc/products/c2000000-0000-4000-8000-000000000001/c3000000-0000-4000-8000-000000000001', 800, 800, 1);
+
+-- -----------------------------------------------------------------------------
+-- Pedidos (etapa 7). Se crean con private.create_order, igual que desde el catálogo.
+--   Alfa #1: envío, 2 dobles + 1 simple (nuevo) · Alfa #2: retiro, 1 doble (confirmado)
+--   Beta #1: retiro, 1 remera (nuevo)
+-- -----------------------------------------------------------------------------
+select private.create_order('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', jsonb_build_object(
+  'idempotency_key', 'a7000000-0000-4000-8000-000000000001',
+  'customer_name', 'Lucía Pérez', 'customer_phone', '+54 9 2954 111111',
+  'fulfillment', 'delivery', 'delivery_address', 'Av. San Martín 123', 'notes', 'Sin cebolla',
+  'items', jsonb_build_array(
+    jsonb_build_object('product_id', 'a2000000-0000-4000-8000-000000000001', 'quantity', 2),
+    jsonb_build_object('product_id', 'a2000000-0000-4000-8000-000000000002', 'quantity', 1))));
+
+select private.create_order('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', jsonb_build_object(
+  'idempotency_key', 'a7000000-0000-4000-8000-000000000002',
+  'customer_name', 'Martín Gómez', 'customer_phone', '2954 222222', 'fulfillment', 'pickup',
+  'items', jsonb_build_array(
+    jsonb_build_object('product_id', 'a2000000-0000-4000-8000-000000000001', 'quantity', 1))));
+update public.orders set status = 'confirmed'
+where tenant_id = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' and number = 2;
+
+select private.create_order('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', jsonb_build_object(
+  'idempotency_key', 'b7000000-0000-4000-8000-000000000001',
+  'customer_name', 'Sofía Díaz', 'customer_phone', '+54 9 2954 333333', 'fulfillment', 'pickup',
+  'items', jsonb_build_array(
+    jsonb_build_object('product_id', 'b2000000-0000-4000-8000-000000000001', 'quantity', 1))));

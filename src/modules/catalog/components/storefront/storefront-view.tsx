@@ -1,5 +1,5 @@
 import Image from "next/image";
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import type { Storefront } from "@/core/tenancy/storefront";
 import { summarizeHours } from "@/lib/hours";
 import { publicImageUrl } from "@/lib/images/url";
@@ -12,8 +12,22 @@ import { OpenStatus } from "./open-status";
  * Catálogo público (docs/design/sistema-visual.md, "Catálogo público").
  * Componente de servidor sin estado de petición: todo sale de los argumentos, que
  * vienen de funciones cacheadas por host y por comercio.
+ *
+ * `productAction` y `children` son espacios que llena la ruta (por ejemplo, el botón
+ * "Agregar" y la barra del pedido del módulo pedidos): así el catálogo no importa
+ * otro módulo.
  */
-export function StorefrontView({ storefront, catalog }: { storefront: Storefront; catalog: PublicCatalog }) {
+export function StorefrontView({
+  storefront,
+  catalog,
+  productAction,
+  children,
+}: {
+  storefront: Storefront;
+  catalog: PublicCatalog;
+  productAction?: (product: PublicProduct) => ReactNode;
+  children?: ReactNode;
+}) {
   const { categories, products } = catalog;
   const featured = products.filter((p) => p.isFeatured);
 
@@ -72,7 +86,7 @@ export function StorefrontView({ storefront, catalog }: { storefront: Storefront
 
       <CategoryNav items={sections.map((s) => ({ id: s.id, label: s.label }))} />
 
-      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 pb-16">
+      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 pb-28">
         {products.length === 0 ? (
           <div className="flex flex-col gap-2 py-16 text-center">
             <p className="font-display text-[22px]">Todavía no hay productos</p>
@@ -87,7 +101,7 @@ export function StorefrontView({ storefront, catalog }: { storefront: Storefront
             </h2>
             <ul className="-mx-4 mt-3 flex gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {featured.map((product) => (
-                <FeaturedCard key={product.id} product={product} currency={storefront.currency} />
+                <FeaturedCard key={product.id} product={product} currency={storefront.currency} action={productAction?.(product)} />
               ))}
             </ul>
           </section>
@@ -101,7 +115,7 @@ export function StorefrontView({ storefront, catalog }: { storefront: Storefront
             {section.description ? <p className="mt-1 text-[15px] text-muted">{section.description}</p> : null}
             <ul className="mt-1 divide-y divide-line">
               {section.products.map((product) => (
-                <ProductRow key={product.id} product={product} currency={storefront.currency} />
+                <ProductRow key={product.id} product={product} currency={storefront.currency} action={productAction?.(product)} />
               ))}
             </ul>
           </section>
@@ -109,6 +123,7 @@ export function StorefrontView({ storefront, catalog }: { storefront: Storefront
       </main>
 
       <StorefrontFooter storefront={storefront} />
+      {children}
     </div>
   );
 }
@@ -134,7 +149,7 @@ function SoldOut() {
   );
 }
 
-function ProductRow({ product, currency }: { product: PublicProduct; currency: string }) {
+function ProductRow({ product, currency, action }: { product: PublicProduct; currency: string; action?: ReactNode }) {
   return (
     <li className="flex gap-4 py-4">
       <div className="flex min-w-0 flex-1 flex-col gap-1">
@@ -146,6 +161,7 @@ function ProductRow({ product, currency }: { product: PublicProduct; currency: s
           <Price product={product} currency={currency} />
           {product.isAvailable ? null : <SoldOut />}
         </div>
+        {product.isAvailable && action ? <div className="mt-2">{action}</div> : null}
       </div>
       {product.imagePath ? (
         <Image
@@ -161,7 +177,7 @@ function ProductRow({ product, currency }: { product: PublicProduct; currency: s
   );
 }
 
-function FeaturedCard({ product, currency }: { product: PublicProduct; currency: string }) {
+function FeaturedCard({ product, currency, action }: { product: PublicProduct; currency: string; action?: ReactNode }) {
   return (
     <li className="flex w-40 shrink-0 flex-col gap-2">
       {product.imagePath ? (
@@ -182,6 +198,7 @@ function FeaturedCard({ product, currency }: { product: PublicProduct; currency:
         <h3 className="text-[15px] font-semibold leading-snug">{product.name}</h3>
         <Price product={product} currency={currency} />
         {product.isAvailable ? null : <SoldOut />}
+        {product.isAvailable && action ? <div className="mt-1">{action}</div> : null}
       </div>
     </li>
   );

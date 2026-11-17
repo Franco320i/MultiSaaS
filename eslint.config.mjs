@@ -8,13 +8,18 @@ import nextTs from "eslint-config-next/typescript";
 //   modules → core, lib, ui (nunca otro módulo: se comunican por la tabla events)
 //   core → lib (nunca modules ni app)
 //   lib, ui → nada del proyecto salvo lib/ui
-// La clave secreta (src/lib/supabase/service.ts, etapas 7-9) solo se podrá importar
-// desde la lista cerrada del diseño: al crear ese archivo, agregar acá un bloque
-// que permita el import solo en esos archivos.
+// La clave secreta (src/lib/supabase/service.ts) solo se puede importar desde la
+// lista cerrada del diseño: SERVICE_KEY_ALLOWED. Todo otro archivo da error de lint.
 // -----------------------------------------------------------------------------
 
 /** Módulos existentes. Agregar cada módulo nuevo a esta lista. */
-const MODULES = ["catalog"];
+const MODULES = ["catalog", "orders"];
+
+/**
+ * Únicos archivos que pueden importar la clave secreta (diseño, principio 4):
+ * creación de pedidos hoy; panel central, alta de comercios y cron en las etapas 8 y 9.
+ */
+const SERVICE_KEY_ALLOWED = ["src/modules/orders/create.ts"];
 
 const serviceKey = {
   name: "@/lib/supabase/service",
@@ -29,9 +34,18 @@ const noRelativeParent = {
   message: "Usá el alias @/ para importar fuera de la carpeta actual (así las fronteras se pueden verificar).",
 };
 
-const restrict = (patterns) => ({
-  "no-restricted-imports": ["error", { paths: [serviceKey], patterns }],
+const restrict = (patterns, { allowServiceKey = false } = {}) => ({
+  "no-restricted-imports": ["error", { paths: allowServiceKey ? [] : [serviceKey], patterns }],
 });
+
+const modulePatterns = (module) => [
+  noApp,
+  noRelativeParent,
+  {
+    group: ["@/modules/*", `!@/modules/${module}`, `!@/modules/${module}/**`],
+    message: "Un módulo nunca importa a otro: se comunican por la tabla events.",
+  },
+];
 
 const eslintConfig = defineConfig([
   ...nextVitals,
@@ -39,14 +53,12 @@ const eslintConfig = defineConfig([
   { files: ["src/**/*.{ts,tsx}"], rules: restrict([noRelativeParent]) },
   ...MODULES.map((module) => ({
     files: [`src/modules/${module}/**/*.{ts,tsx}`],
-    rules: restrict([
-      noApp,
-      noRelativeParent,
-      {
-        group: ["@/modules/*", `!@/modules/${module}`, `!@/modules/${module}/**`],
-        message: "Un módulo nunca importa a otro: se comunican por la tabla events.",
-      },
-    ]),
+    rules: restrict(modulePatterns(module)),
+  })),
+  // Lista cerrada de la clave secreta: mismas fronteras, pero con el import permitido.
+  ...SERVICE_KEY_ALLOWED.map((file) => ({
+    files: [file],
+    rules: restrict(modulePatterns(file.split("/")[2]), { allowServiceKey: true }),
   })),
   { files: ["src/core/**/*.{ts,tsx}"], rules: restrict([noApp, noModules, noRelativeParent]) },
   { files: ["src/lib/**/*.{ts,tsx}", "src/ui/**/*.{ts,tsx}"], rules: restrict([noApp, noModules, noCore, noRelativeParent]) },

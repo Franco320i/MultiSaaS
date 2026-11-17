@@ -65,6 +65,14 @@ Los tokens viven en `src/app/globals.css` (bloque `@theme` de Tailwind 4). Usalo
 - Producto: nombre, descripción en 2 líneas, precio (y el anterior tachado si tiene) y foto cuadrada a la derecha. "Sin stock": etiqueta roja y el producto atenuado, pero visible.
 - Sin datos de la plataforma arriba. La marca es la del comercio.
 
+### Pedido (etapa 7)
+
+- **Agregar:** botón de píldora con borde del color del comercio, debajo del precio. Cuando el producto ya está en el pedido, pasa a un selector `− cantidad +` relleno con la marca. Botones de 44 px. Los productos sin stock no tienen botón.
+- **Barra "Ver pedido · N"**: fija abajo, del color del comercio, con el total a la derecha y un degradé del fondo detrás para que no tape el contenido de golpe. Es la única sombra del catálogo. Se oculta con el pedido vacío o con la hoja abierta.
+- **Hoja del pedido** (`<dialog>`): pantalla completa en el celular y ventana centrada de hasta 512 px en pantallas grandes. Contiene líneas con selector, "¿Cómo lo recibís?" (dos opciones grandes: retiro o envío con su costo), datos del cliente, resumen y un único botón principal abajo, "Enviar pedido por WhatsApp".
+- Los avisos que bloquean el envío (cerrado, pedido mínimo) van en una línea sobre el botón, en `muted`. Los errores del servidor van en `danger` sobre `danger-soft` con `role="alert"`.
+- **Pedido registrado:** número grande en `font-display` y el botón "Enviar por WhatsApp" por si el navegador no abrió WhatsApp solo.
+
 ## Modo oscuro
 
 - Se define en tokens con `prefers-color-scheme`. Cada componente usa tokens, así cambia solo.

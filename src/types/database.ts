@@ -205,6 +205,58 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"order_items": {
+                  Row: {
+                    "id": string,"line_total": number,"options": NonNullable<Json>,"order_id": string,"position": number,"product_id": string | null,"product_name": string,"quantity": number,"tenant_id": string,"unit_price": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "id"?: string,"line_total": number,"options"?: NonNullable<Json>,"order_id": string,"position": number,"product_id"?: string | null,"product_name": string,"quantity": number,"tenant_id": string,"unit_price": number
+                  }
+                  Update: {
+                    "id"?: string,"line_total"?: number,"options"?: NonNullable<Json>,"order_id"?: string,"position"?: number,"product_id"?: string | null,"product_name"?: string,"quantity"?: number,"tenant_id"?: string,"unit_price"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "order_items_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenants"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "order_items_tenant_id_order_id_fkey"
+      columns: ["tenant_id","order_id"]
+isOneToOne: false
+      referencedRelation: "orders"
+      referencedColumns: ["tenant_id","id"]
+    },{
+      foreignKeyName: "order_items_tenant_id_product_id_fkey"
+      columns: ["tenant_id","product_id"]
+isOneToOne: false
+      referencedRelation: "catalog_products"
+      referencedColumns: ["tenant_id","id"]
+    }
+                  ]
+                },"orders": {
+                  Row: {
+                    "channel": string,"client_ip_hash": string | null,"created_at": string,"customer_name": string,"customer_phone": string,"delivery_address": string | null,"delivery_fee": number,"fulfillment": string,"id": string,"idempotency_key": string,"notes": string | null,"number": number,"status": string,"status_changed_at": string,"subtotal": number,"tenant_id": string,"total": number,"updated_at": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "channel"?: string,"client_ip_hash"?: string | null,"created_at"?: string,"customer_name": string,"customer_phone": string,"delivery_address"?: string | null,"delivery_fee"?: number,"fulfillment": string,"id"?: string,"idempotency_key": string,"notes"?: string | null,"number": number,"status"?: string,"status_changed_at"?: string,"subtotal": number,"tenant_id": string,"total": number,"updated_at"?: string
+                  }
+                  Update: {
+                    "channel"?: string,"client_ip_hash"?: string | null,"created_at"?: string,"customer_name"?: string,"customer_phone"?: string,"delivery_address"?: string | null,"delivery_fee"?: number,"fulfillment"?: string,"id"?: string,"idempotency_key"?: string,"notes"?: string | null,"number"?: number,"status"?: string,"status_changed_at"?: string,"subtotal"?: number,"tenant_id"?: string,"total"?: number,"updated_at"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "orders_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenants"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"plans": {
                   Row: {
                     "custom_domain": boolean,"id": string,"is_public": boolean,"max_images_per_product": number,"max_members": number,"max_products": number | null,"name": string,"price_ars": number,"remove_branding": boolean,"sort": number
@@ -439,7 +491,13 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "storefront_by_host":
+            "create_order":
+{ Args: { "p_order": Json,"p_tenant_id": string }; Returns: Json
+                           },
+"rate_limit_hit":
+{ Args: { "p_key": string,"p_limit": number,"p_window_seconds": number }; Returns: boolean
+                           },
+"storefront_by_host":
 { Args: { "p_host": string }; Returns: Json
                            }
           }

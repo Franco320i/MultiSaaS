@@ -35,7 +35,8 @@ select set_eq(
     'platform_admins', 'domains', 'tenant_invitations', 'plans', 'modules',
     'subscriptions', 'billing_payments', 'tenant_modules', 'tenant_settings',
     'business_hours', 'events', 'audit_log', 'tenant_counters', 'rate_limits',
-    'catalog_categories', 'catalog_products', 'catalog_product_images'
+    'catalog_categories', 'catalog_products', 'catalog_product_images',
+    'orders', 'order_items'
   ],
   'La lista de tablas de public es la esperada (agregá las nuevas acá y a sus pruebas de RLS)'
 );
