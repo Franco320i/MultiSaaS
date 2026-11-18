@@ -18,5 +18,8 @@ export default defineConfig({
     environment: "node",
     env: loadEnv("test", process.cwd(), ""),
     testTimeout: 15_000,
+    // Todos los archivos usan la misma base local y algunos cambian datos del seed
+    // (por ejemplo, el alta asistida le suma un comercio al dueño de Alfa): uno por vez.
+    fileParallelism: false,
   },
 });

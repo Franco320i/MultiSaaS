@@ -78,7 +78,32 @@ Los tokens viven en `src/app/globals.css` (bloque `@theme` de Tailwind 4). Usalo
 - Se define en tokens con `prefers-color-scheme`. Cada componente usa tokens, así cambia solo.
 - La marca del comercio no cambia en oscuro. Su texto sigue eligiéndose por contraste.
 
+## Panel central: Grafito
+
+Elegido el 17 de noviembre de 2026, al empezar la etapa 9, entre tres direcciones oscuras (Grafito, Tinta y Concreto; maquetas en https://claude.ai/artifact/R9qH1AffHxseSqvFRG55tD).
+
+**Intención:** Sobremesa en oscuro, para trabajar por excepciones. Grises con un tinte verde, el verde yerba como acento y el mismo par tipográfico, así el panel central se siente parte de la misma familia. Más denso que el panel del comercio: tablas, números alineados y filtros rápidos.
+
+- **Siempre oscuro** (no sigue el tema del sistema). Se activa con `data-surface="admin"` en el layout de `/admin`, que pisa los mismos tokens (`bg-background`, `text-muted`, `bg-accent`…). Los componentes no cambian de clases.
+- Números (montos, contadores, slugs): `font-mono` (IBM Plex Mono) con `tabular-nums`.
+
+| Token | Valor | Rol |
+| --- | --- | --- |
+| `background` | `#0F1112` | Fondo |
+| `surface` | `#16191B` | Menú lateral, encabezados de tabla, tarjetas de números |
+| `surface-muted` | `#1D2124` | Fila al pasar el mouse, ítem activo, chips activos |
+| `line` | `#2A2F33` | Bordes y separadores |
+| `foreground` | `#E7EAE8` | Texto |
+| `muted` | `#9AA39D` | Texto secundario (AA sobre `background` y `surface`) |
+| `accent` / `accent-foreground` | `#8FBF98` / `#0F1A12` | Acción principal, foco, chip activo |
+| `warning` | `#E5B86B` | Prueba por vencer, pago pendiente |
+| `danger` / `danger-soft` | `#EC8A78` / `#3A2420` | Vencido, suspendido, borrar |
+
+- **Estados del comercio:** píldora con punto y texto. Activo en `accent`, Prueba neutra, Pago pendiente en `warning` y Suspendido o Cancelado en `danger`. Nunca solo color.
+- **Movimiento:** el botón sube 1 px y se aclara al pasar el mouse (`translateY(-1px)`, `brightness(1.08)`), y al apretarlo se achica a `scale(.98)`, en unos 120 ms. Las filas cambian de fondo en 150 ms. Sin movimiento con `prefers-reduced-motion`.
+- **Estructura:** menú lateral fijo en pantallas grandes y arriba en el celular. Arriba de cada lista, los números que importan; debajo, filtros rápidos por excepción ("Prueba por vencer", "Sin pedidos en 14 días"). Las tablas pasan a lista en el celular.
+- Una sola acción principal por pantalla (por ejemplo, "Alta asistida" o "Registrar pago").
+
 ## Pendiente
 
 - Llevar el panel a estos tokens (encabezado, listados como en la maqueta, estados vacíos). Va en un cambio aparte, no en la etapa 6.
-- Variante compacta para el panel central (etapa 9).

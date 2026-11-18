@@ -19,6 +19,8 @@ const serverEnvSchema = z.object({
   TURNSTILE_SECRET_KEY: z.string().min(1, "Falta TURNSTILE_SECRET_KEY"),
   /** Sal para guardar las IPs como hash en los límites de frecuencia. */
   IP_HASH_SALT: z.string().min(16, "IP_HASH_SALT debe tener al menos 16 caracteres"),
+  /** Protege /api/cron/daily (Vercel Cron lo manda como Bearer). */
+  CRON_SECRET: z.string().min(16, "CRON_SECRET debe tener al menos 16 caracteres"),
 });
 
 // SUPABASE_SECRET_KEY no está acá a propósito: la lee y valida solo
@@ -31,4 +33,5 @@ export const env: ServerEnv = serverEnvSchema.parse({
   ROOT_DOMAIN: process.env.ROOT_DOMAIN,
   TURNSTILE_SECRET_KEY: process.env.TURNSTILE_SECRET_KEY,
   IP_HASH_SALT: process.env.IP_HASH_SALT,
+  CRON_SECRET: process.env.CRON_SECRET,
 });

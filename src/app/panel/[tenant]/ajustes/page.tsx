@@ -4,7 +4,16 @@ import { Suspense } from "react";
 import { requireTenantAccess } from "@/core/tenancy/require-access";
 import { publicImageUrl } from "@/lib/images/url";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { BRAND_PALETTE, BrandForm, BrandingImage, ContactForm, getHours, getSettings, HoursForm } from "@/modules/settings";
+import {
+  BRAND_PALETTE,
+  BrandForm,
+  BrandingImage,
+  ContactForm,
+  getHours,
+  getSettings,
+  HoursForm,
+  listSupportAccesses,
+} from "@/modules/settings";
 import {
   removeBrandingAction,
   saveBrandAction,
@@ -14,6 +23,25 @@ import {
 } from "@/modules/settings/actions";
 
 export const metadata: Metadata = { title: "Ajustes" };
+
+const PLATFORM_ACTION: Record<string, string> = {
+  "support.viewed": "Soporte entró a ver tu comercio",
+  "subscription.paid": "Registramos un pago",
+  "subscription.plan_changed": "Cambio de plan",
+  "subscription.extended": "Extendimos tu vencimiento",
+  "tenant.suspended": "Suspensión de la cuenta",
+  "tenant.reactivated": "Reactivación de la cuenta",
+  "tenant.created": "Alta de tu comercio",
+};
+
+const dateTime = new Intl.DateTimeFormat("es-AR", {
+  day: "numeric",
+  month: "short",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+  timeZone: "America/Argentina/Buenos_Aires",
+});
 
 /**
  * app.tuapp.com.ar/[tenant]/ajustes · Marca, contacto, entrega y horarios del comercio.
@@ -33,7 +61,11 @@ async function Settings({ params }: Pick<PageProps<"/panel/[tenant]/ajustes">, "
   const { tenant: slug } = await params;
   const access = await requireTenantAccess(slug, "settings.write");
   const supabase = await createSupabaseServerClient();
-  const [settings, hours] = await Promise.all([getSettings(supabase, access.tenantId), getHours(supabase, access.tenantId)]);
+  const [settings, hours, platformActions] = await Promise.all([
+    getSettings(supabase, access.tenantId),
+    getHours(supabase, access.tenantId),
+    listSupportAccesses(supabase, access.tenantId),
+  ]);
   const theme = (settings.theme ?? {}) as Record<string, unknown>;
   const brand = (BRAND_PALETTE as readonly string[]).includes(theme.brand as string) ? (theme.brand as string) : BRAND_PALETTE[0];
 
@@ -78,6 +110,25 @@ async function Settings({ params }: Pick<PageProps<"/panel/[tenant]/ajustes">, "
       <section aria-labelledby="horarios" className={section}>
         <h2 id="horarios" className="font-display text-[22px]">Horarios</h2>
         <HoursForm action={saveHoursAction.bind(null, access.slug)} submitLabel="Guardar horarios" hours={hours} />
+      </section>
+
+      <section aria-labelledby="soporte" className={section}>
+        <h2 id="soporte" className="font-display text-[22px]">Accesos de la plataforma</h2>
+        <p className="text-[15px] text-muted">
+          Cada vez que nuestro equipo entra a ver tu comercio para ayudarte, o cambia algo de tu cuenta, queda registrado acá.
+        </p>
+        {platformActions.length === 0 ? (
+          <p className="text-[15px]">Nadie de la plataforma entró a tu comercio.</p>
+        ) : (
+          <ul className="flex flex-col divide-y divide-line text-[15px]">
+            {platformActions.map((a) => (
+              <li key={a.at + a.action} className="flex justify-between gap-3 py-2">
+                <span>{PLATFORM_ACTION[a.action] ?? "Cambio en tu cuenta"}</span>
+                <span className="text-muted tabular-nums">{dateTime.format(new Date(a.at))}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </>
   );

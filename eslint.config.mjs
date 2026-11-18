@@ -19,7 +19,11 @@ const MODULES = ["catalog", "orders", "settings"];
  * Únicos archivos que pueden importar la clave secreta (diseño, principio 4):
  * creación de pedidos hoy; panel central, alta de comercios y cron en las etapas 8 y 9.
  */
-const SERVICE_KEY_ALLOWED = ["src/modules/orders/create.ts", "src/core/tenancy/provision.ts"];
+const SERVICE_KEY_ALLOWED = [
+  "src/modules/orders/create.ts", // creación de pedidos
+  "src/core/tenancy/provision.ts", // alta de comercios
+  "src/core/admin/service.ts", // panel central y tarea diaria
+];
 
 const serviceKey = {
   name: "@/lib/supabase/service",

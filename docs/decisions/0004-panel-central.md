@@ -1,0 +1,19 @@
+# 0004 · Panel central: cómo se implementó lo que el diseño no detallaba
+
+Fecha: 2026-11-18 · Estado: aceptada · Etapa 9
+
+Completa la sección 9 del diseño (`docs/diseno-tecnico-v1.md`). Si se cambia algo de esto, actualizar también el diseño.
+
+## Decisiones
+
+1. **Acceso:** `requirePlatformAdmin(ruta, rol)` en `src/core/admin/access.ts`, dentro de cada página y acción. Exige sesión, fila en `platform_admins` (leída con la sesión: RLS deja ver solo la propia) y `aal2` en el token (MFA verificado en esa sesión). Sin fila → 404. Sin MFA → `/mfa`. El rol `support` puede ver pero no cambiar nada: las acciones piden `superadmin`.
+2. **MFA con TOTP de Supabase** (activado en `supabase/config.toml`). Pantalla `/mfa` para activarlo (QR y clave manual) y para pedir el código. Con un factor ya verificado, no se puede activar otro desde una sesión aal1: Supabase lo rechaza (`insufficient_aal`, verificado) y además lo bloquea el servidor. Para cambiar de app, un superadmin borra el factor por SQL revisado.
+3. **Escrituras:** funciones `private.admin_*` (estado, pago, plan, extensión y entrada de soporte) que vuelven a comprobar que el actor sea superadmin, exigen motivo y escriben el cambio, `audit_log` y su evento en la misma transacción. Se llaman con la clave secreta desde `src/core/admin/service.ts` (lista cerrada) a través de envoltorios `public.*` `SECURITY INVOKER` que solo ejecuta `service_role`.
+4. **Lecturas con números:** `private.admin_tenants` (lista paginada con filtros por excepción y búsqueda por nombre, slug o WhatsApp) y `private.admin_overview` (resumen). Los conteos los hace la base, no la app.
+5. **Cancelar es final desde el panel:** un comercio cancelado no se reactiva ni recibe pagos desde acá. La purga es manual, según el diseño.
+6. **Pagos:** el período nuevo corre desde la fecha mayor entre el vencimiento y hoy. Pagar reactiva el comercio (incluso suspendido) y deja la suscripción activa.
+7. **Tarea diaria** (`/api/cron/daily`, `CRON_SECRET` comparado en tiempo constante, `vercel.json` a las 9 UTC = 6 de Argentina). La gracia de 5 días se cuenta desde el vencimiento del período. Es idempotente. Invalida el catálogo de los comercios que cambian. Los avisos de prueba por vencer se calculan, pero el correo espera a Resend (etapa 10).
+8. **Barrido de fotos huérfanas:** compara el bucket con `catalog_product_images` y con el logo y la portada de cada comercio. Solo borra archivos de más de un día, con un tope de 500 por corrida.
+9. **Alta asistida:** la creación del comercio pasó a `private.create_tenant` (común). `provision_tenant` (autoservicio) mantiene sus reglas: email confirmado y un comercio por usuario. `admin_provision_tenant` exige superadmin y acepta un dueño invitado sin confirmar o con otros comercios. El dueño nuevo recibe `inviteUserByEmail` con la plantilla `supabase/templates/invite.html` ("Tu catálogo está listo"); si ya tiene cuenta, no se lo invita.
+10. **Modo soporte de solo lectura** (`/comercios/[id]/soporte`). La entrada se audita antes de mostrar nada, y el link es un `<a>` común para que Next no la precargue. El dueño ve las entradas y los cambios de la plataforma en Ajustes, en "Accesos de la plataforma". La edición como soporte queda pendiente.
+11. **Estilo "Grafito"** (`data-surface="admin"`, siempre oscuro): ver `docs/design/sistema-visual.md`.

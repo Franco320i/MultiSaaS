@@ -14,6 +14,7 @@ export {
   getSettings,
   getSetupStatus,
   listBusinessTemplates,
+  listSupportAccesses,
   type SetupStatus,
   type TenantSettings,
 } from "./queries";

@@ -1,0 +1,11 @@
+<!--
+  Invitación al dueño de un comercio creado desde el panel central (alta asistida).
+  Diseño, sección 10. Igual que la confirmación: enlace token_hash hacia
+  app.{dominio}/auth/callback, que crea la sesión y lleva a elegir la contraseña.
+-->
+<h2>Tu catálogo está listo</h2>
+<p>Hola, te creamos el catálogo de tu comercio. Para entrar a tu panel, elegí tu contraseña:</p>
+<p>
+  <a href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=invite&next=%2Fauth%2Fnueva-contrasena">Elegir mi contraseña</a>
+</p>
+<p>Desde el panel vas a poder cargar productos, ver tus pedidos y compartir el link de tu catálogo.</p>

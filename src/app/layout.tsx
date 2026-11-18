@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Hanken_Grotesk, Young_Serif } from "next/font/google";
+import { Hanken_Grotesk, IBM_Plex_Mono, Young_Serif } from "next/font/google";
 import "./globals.css";
 
 // Sistema visual "Sobremesa" (docs/design/sistema-visual.md).
@@ -14,6 +14,13 @@ const youngSerif = Young_Serif({
   weight: "400",
 });
 
+// Números del panel central (montos, contadores, slugs).
+const plexMono = IBM_Plex_Mono({
+  variable: "--font-plex-mono",
+  subsets: ["latin"],
+  weight: ["400", "500"],
+});
+
 export const metadata: Metadata = {
   title: "Catálogos digitales",
   description: "Catálogos con pedidos por WhatsApp para comercios.",
@@ -21,7 +28,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="es" className={`${hanken.variable} ${youngSerif.variable} h-full antialiased`}>
+    <html lang="es" className={`${hanken.variable} ${youngSerif.variable} ${plexMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

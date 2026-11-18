@@ -115,3 +115,18 @@ export async function findOwnedTenantSlug(supabase: Client, userId: string): Pro
     .find((t) => t && t.status !== "cancelled");
   return tenant?.slug ?? null;
 }
+
+/**
+ * Entradas del panel central en modo soporte (diseño, sección 9: el dueño ve cuándo
+ * entró soporte). RLS de audit_log: solo el dueño lee lo de su comercio.
+ */
+export async function listSupportAccesses(supabase: Client, tenantId: string, limit = 10): Promise<{ at: string; action: string }[]> {
+  const { data } = await supabase
+    .from("audit_log")
+    .select("action, created_at")
+    .eq("tenant_id", tenantId)
+    .eq("actor_kind", "platform_admin")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  return (data ?? []).map((r) => ({ at: r.created_at, action: r.action }));
+}

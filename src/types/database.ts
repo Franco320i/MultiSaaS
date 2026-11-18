@@ -491,8 +491,40 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "create_order":
+            "admin_change_plan":
+{ Args: { "p_actor": string,"p_plan_id": string,"p_reason": string,"p_tenant_id": string }; Returns: string
+                           },
+"admin_extend_period":
+{ Args: { "p_actor": string,"p_days": number,"p_reason": string,"p_tenant_id": string }; Returns: string
+                           },
+"admin_log_support_view":
+{ Args: { "p_actor": string,"p_tenant_id": string }; Returns: undefined
+                           },
+"admin_overview":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
+"admin_provision_tenant":
+{ Args: { "p_actor": string,"p_input": Json,"p_owner_id": string,"p_root_domain": string }; Returns: Json
+                           },
+"admin_record_payment":
+{ Args: { "p_actor": string,"p_amount": number,"p_method": string,"p_months": number,"p_notes": string,"p_reference": string,"p_tenant_id": string }; Returns: string
+                           },
+"admin_set_tenant_status":
+{ Args: { "p_actor": string,"p_reason": string,"p_status": string,"p_tenant_id": string }; Returns: string
+                           },
+"admin_tenants":
+{ Args: { "p_filter": string,"p_limit": number,"p_offset": number,"p_search": string }; Returns: {
+              "business_type": string,"created_at": string,"id": string,"last_order_at": string,"name": string,"orders_30d": number,"period_end": string,"plan_id": string,"published": boolean,"published_products": number,"slug": string,"status": string,"subscription_status": string,"total": number,"whatsapp_phone": string
+            }[]
+                           },
+"admin_user_id_by_email":
+{ Args: { "p_email": string }; Returns: string
+                           },
+"create_order":
 { Args: { "p_order": Json,"p_tenant_id": string }; Returns: Json
+                           },
+"daily_maintenance":
+{ Args: Record<PropertyKey, never>; Returns: Json
                            },
 "provision_tenant":
 { Args: { "p_input": Json,"p_root_domain": string,"p_user_id": string }; Returns: Json

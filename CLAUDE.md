@@ -23,8 +23,8 @@ Idioma: el usuario habla español rioplatense. Código, nombres de tablas y colu
 | 6 | Catálogo público + caché | Hecha |
 | 7 | Pedidos + WhatsApp | Hecha |
 | 8 | Alta de comercios (`provision_tenant` + asistente) | Hecha |
-| 9 | Panel central | Siguiente |
-| 10 | CI, staging, producción, migración de clientes actuales | Pendiente |
+| 9 | Panel central | Hecha |
+| 10 | CI, staging, producción, migración de clientes actuales | Siguiente |
 
 ## Skills y hooks del proyecto
 
@@ -111,30 +111,29 @@ Funciones auxiliares de RLS: `private.my_tenant_ids(roles)`, `private.my_teammat
 ## Pendientes conocidos
 
 - En `next dev`, `www.localhost` no redirige bien a `localhost` (trampa 1); en producción debería funcionar. Verificar en staging.
-- Al usar la clave secreta en el panel central o el cron (etapa 9): agregar cada archivo a `SERVICE_KEY_ALLOWED` en `eslint.config.mjs`, y a nada más.
+- Clave secreta: la lista cerrada está en `SERVICE_KEY_ALLOWED` de `eslint.config.mjs` (pedidos, alta y panel central). Un uso nuevo se agrega ahí, y a nada más.
 - Paginación del listado de productos del panel: hoy trae hasta 1000; agregar paginación si un comercio Pro supera eso.
 - Al entrar sin sesión a una pantalla interna (por ejemplo `/alfa/productos`), después del login se vuelve a `/alfa` y no a esa pantalla.
 - `/panel` sale como "◐" en el build: cáscara estática genérica (encabezado, títulos) y todo dato de sesión o comercio en el momento de la petición. Lo que CI tiene que verificar (etapa 10) es que ningún dato de comercio quede en la parte estática.
 - La cookie de sesión de Supabase es legible desde JavaScript (comportamiento por defecto de `@supabase/ssr`). Evaluar `httpOnly` cuando se decida si el navegador necesita su propio cliente de Supabase (por ejemplo, Realtime en pedidos).
 - Pruebas E2E con Playwright (capa 4 del diseño): hoy los recorridos se verifican a mano en el navegador; automatizarlas antes de salir a producción (etapa 10).
 - Invitaciones de staff (crear, enviar correo, `accept_invitation`): quedan para cuando exista la pantalla de equipo.
-- Fotos: barrido de archivos huérfanos en Storage (si falla un borrado o alguien sube directo a su carpeta sin pasar por el servidor). Preparado en el diseño; hacerlo con el cron (etapa 9).
-- Sistema visual "Sobremesa" (`docs/design/sistema-visual.md`): el catálogo público ya lo usa; falta llevar el panel a esos tokens (cambio aparte) y una variante compacta para el panel central (etapa 9).
+- Sistema visual "Sobremesa" (`docs/design/sistema-visual.md`): lo usan el catálogo, el asistente, Ajustes y Pedidos. Falta llevar a esos tokens las pantallas viejas del panel del comercio (productos, categorías, inicio). El panel central usa "Grafito".
 - Catálogo público: el HTML sale con `Cache-Control: private, no-store` (prerender parcial con datos en el momento de la petición); lo que se cachea son los datos en el servidor (`'use cache'`). En Vercel sin `use cache: remote` esa caché vive por instancia. Evaluar en staging (etapa 10) caché de página o `use cache: remote`; la caché de página pide al menos un host en `generateStaticParams`.
-- Al suspender, cancelar o reactivar un comercio desde el panel central (etapa 9), invalidar `cacheTags.tenantSettings(id)` y `cacheTags.host(host)` (como `revalidateStorefrontHosts` en `src/modules/settings/cache.ts`). Si no, su catálogo puede seguir visible hasta una hora.
 - Catálogo público: ficha de producto con link propio (para compartir). No está en ninguna etapa del diseño; decidir cuándo.
 - Prueba automática "edito Alfa, miro Beta" sobre la caché (capa E2E): hoy verificada a mano con `next start` (cambio directo en la base no se ve; cambio desde el panel se ve en Alfa y Beta no cambia).
-- `/admin` sale estático en el build porque es provisoria; desde la etapa 9 tiene que ser dinámica.
-- Alta asistida (etapa 9): crear el comercio desde el panel central con `provisionTenant` y una invitación de dueño. Hoy el autoservicio permite un solo comercio por usuario.
 - Correo de confirmación: cargar `supabase/templates/confirmation.html` en los proyectos de staging y producción, y configurar SMTP con Resend (etapa 10). En local los correos se ven en Mailpit (`127.0.0.1:54324`).
-- Staff: Storage le permite subir archivos a la carpeta `branding` de su comercio (la política es por miembro), pero no cambiar el logo ni la portada, que es una columna solo del dueño. Como mucho deja archivos huérfanos; los limpia el barrido del cron (etapa 9).
+- Staff: Storage le permite subir archivos a la carpeta `branding` de su comercio (la política es por miembro), pero no cambiar el logo ni la portada, que es una columna solo del dueño. Como mucho deja archivos huérfanos, que limpia el barrido de la tarea diaria.
 - `npm audit`: 17 alertas en herramientas de desarrollo (`picomatch` y `minimatch`, dentro de ESLint y Vitest). Producción tiene 0 (`npm audit --omit=dev`). `picomatch` no tiene versión corregida todavía. En CI (etapa 10), frenar el despliegue con `npm audit --omit=dev` y revisar las de desarrollo cuando salgan versiones corregidas. Nunca correr `npm audit fix --force` (baja ESLint y Vitest de versión mayor).
 - Las pruebas pgTAP de pedidos y alta cuentan sobre los datos del seed: correr `npm run db:test` justo después de `npm run db:reset`. Las de integración y el uso en el navegador suman datos.
-- Pedidos: limpieza de ventanas viejas de `rate_limits` con el cron diario (etapa 9). Hoy la tabla solo crece.
 - Pedidos: el límite por IP usa `x-forwarded-for`, que en Vercel arma la plataforma. Fuera de Vercel ese header se puede falsificar (el límite de 200 por hora por comercio sigue valiendo). No servir la app detrás de otro proxy sin revisar esto.
 - Pedidos: Turnstile usa las claves de prueba públicas en local. Crear las claves reales de staging y producción en Cloudflare (etapa 10).
 - Pedidos: notas internas del comercio en cada pedido. El diseño las menciona pero no tienen columna; ver `docs/decisions/0002-pedidos-implementacion.md`.
 - Pedidos: la prueba automática de punta a punta en el navegador (carrito → WhatsApp → panel) se verificó a mano. Pasarla a Playwright (etapa 10).
+- Panel central: avisos por correo de prueba por vencer (la tarea diaria ya calcula a quién avisar) y resumen diario para vos. Requieren Resend (etapa 10).
+- Panel central: edición como soporte (cambiar catálogo o ajustes en nombre del comercio, auditada). Hoy el modo soporte es solo lectura.
+- Panel central: cargar `supabase/templates/invite.html`, activar MFA TOTP y configurar `CRON_SECRET` en staging y producción (etapa 10).
+- Panel central: el título de la pestaña de un 404 dice el nombre de la pantalla (por ejemplo, "Comercios · Panel central"). No muestra datos, pero confirma que la pantalla existe.
 
 ## Módulos (cómo está armado el catálogo)
 
@@ -173,6 +172,21 @@ Funciones auxiliares de RLS: `private.my_tenant_ids(roles)`, `private.my_teammat
 - Módulo `src/modules/settings`: schemas, queries, mutations (con la sesión: RLS deja al dueño), actions y `cache.ts`. Guardar invalida `tenant:{id}:settings`; publicar invalida además los `host:{host}`.
 - Importador: `/[tenant]/productos/importar` (`parseSpreadsheet` en `src/modules/catalog/import.ts` y `importProducts` en `mutations.ts`).
 - URLs de la plataforma: `platformUrl(ROOT_DOMAIN, subdominio, ruta)` en `src/lib/urls.ts`. QR: `src/lib/qr.ts` (data URI SVG, se muestra con `<img>`).
+
+## Panel central (cómo está armado)
+
+- Decisiones que completan el diseño: `docs/decisions/0004-panel-central.md`. Estilo "Grafito": `data-surface="admin"` en `src/app/admin/layout.tsx`.
+- Acceso: `requirePlatformAdmin(ruta, rol)` (`src/core/admin/access.ts`) dentro de cada página y acción: sesión + `platform_admins` + MFA (aal2). `/mfa` para activarlo o pedir el código. Sin acceso → 404.
+- Datos: `src/core/admin/service.ts` (único archivo del panel con la clave secreta). Lecturas `admin_tenants` y `admin_overview`. Escrituras `admin_*`, auditadas y con motivo.
+- Pantallas en `src/app/admin/(panel)`: Resumen, Comercios (`?q=`, `?filtro=`, `?pagina=`), Ficha (cobros, estado, plan, extensión), Modo soporte (solo lectura, auditado), Alta asistida y Auditoría. Acciones en `actions.ts`, que al cambiar estado o vigencia invalidan el catálogo del comercio.
+- Tarea diaria: `GET /api/cron/daily` con `Authorization: Bearer <CRON_SECRET>` (vercel.json). Para probarla en local:
+
+```bash
+curl -H "Authorization: Bearer $(grep '^CRON_SECRET=' .env.local | cut -d= -f2)" http://localhost:3000/api/cron/daily
+```
+
+- Probar en local: `admin.localhost:3000` con `admin@example.com` (contraseña del seed), activar el MFA con una app autenticadora. `npm run db:reset` borra el factor.
+- Las pruebas de integración corren un archivo por vez (`fileParallelism: false`), porque comparten la base.
 
 ## Entorno local (Windows)
 

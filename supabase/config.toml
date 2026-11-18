@@ -251,10 +251,10 @@ otp_expiry = 3600
 subject = "Confirmá tu cuenta"
 content_path = "./supabase/templates/confirmation.html"
 
-# Uncomment to customize email template
-# [auth.email.template.invite]
-# subject = "You have been invited"
-# content_path = "./supabase/templates/invite.html"
+# Invitación al dueño en el alta asistida (panel central), en castellano.
+[auth.email.template.invite]
+subject = "Tu catálogo está listo"
+content_path = "./supabase/templates/invite.html"
 
 # Uncomment to customize notification email template
 # [auth.email.notification.password_changed]
@@ -309,9 +309,10 @@ auth_token = "env(SUPABASE_AUTH_SMS_TWILIO_AUTH_TOKEN)"
 max_enrolled_factors = 10
 
 # Control MFA via App Authenticator (TOTP)
+# MFA con app autenticadora: obligatorio para el panel central (diseño, sección 6).
 [auth.mfa.totp]
-enroll_enabled = false
-verify_enabled = false
+enroll_enabled = true
+verify_enabled = true
 
 # Configure MFA via Phone Messaging
 [auth.mfa.phone]
