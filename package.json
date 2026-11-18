@@ -10,13 +10,17 @@
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check": "npm run typecheck && npm run lint && npm run test",
+    "check": "npm run typecheck && npm run lint && npm run check:env && npm run test",
     "db:reset": "supabase db reset && node scripts/seed-images.mjs",
     "db:test": "supabase test db",
     "db:lint": "supabase db lint --level warning",
     "db:types": "supabase gen types typescript --local --schema public > src/types/database.ts",
     "test:integration": "vitest run --config vitest.integration.config.mts",
-    "db:advisors": "supabase db advisors"
+    "db:advisors": "supabase db advisors",
+    "check:env": "node scripts/check-env-names.mjs",
+    "check:types": "node scripts/check-db-types.mjs",
+    "check:build": "node scripts/check-build-output.mjs",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@supabase/ssr": "0.12.7",
@@ -30,6 +34,7 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@playwright/test": "1.65.1",
     "@tailwindcss/turbopack": "^4",
     "@types/node": "^24.19.2",
     "@types/qrcode": "1.5.5",

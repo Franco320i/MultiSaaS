@@ -1,0 +1,120 @@
+# Pipeline de CI (diseño, sección 13): corre en cada PR y en cada push a main y staging.
+# Si un paso falla, no se fusiona ni se despliega (las reglas de protección de rama se
+# configuran en GitHub, etapa 10b).
+#
+# Orden: estática → base desde cero → pgTAP → integración → build → E2E de humo.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main, staging]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    name: Verificación completa
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CI: "true"
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # gitleaks revisa la historia
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Dependencias
+        run: npm ci
+
+      # --- 1. Estática (capa 5) ---------------------------------------------------
+      - name: Secretos en el repositorio (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Variables NEXT_PUBLIC_ con nombre de secreto
+        run: npm run check:env
+
+      - name: Vulnerabilidades en dependencias de producción
+        run: npm audit --omit=dev --audit-level=low
+
+      # --- 2. Supabase local y base desde cero ----------------------------------------
+      - name: Levantar Supabase local
+        run: npx supabase start
+
+      - name: Variables de entorno de la corrida (.env.local)
+        run: |
+          eval "$(npx supabase status -o env 2>/dev/null)"
+          {
+            echo "ROOT_DOMAIN=localhost"
+            echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL"
+            echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$PUBLISHABLE_KEY"
+            echo "NEXT_PUBLIC_IMAGES_BASE_URL=$API_URL/storage/v1/object/public/catalog-public"
+            echo "SUPABASE_SECRET_KEY=$SECRET_KEY"
+            echo "NEXT_PUBLIC_TURNSTILE_SITE_KEY=1x00000000000000000000AA"
+            echo "TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA"
+            echo "IP_HASH_SALT=$(openssl rand -base64 24)"
+            echo "CRON_SECRET=$(openssl rand -base64 24)"
+          } > .env.local
+
+      - name: Tipos, lint y pruebas unitarias
+        run: npm run check
+
+      - name: Migraciones desde cero + seed
+        run: npm run db:reset
+
+      # --- 3. pgTAP (capas 1 y 2): justo después del reset, cuentan sobre el seed --------
+      - name: Pruebas de esquema y RLS (pgTAP)
+        run: npm run db:test
+
+      - name: Linter de la base
+        run: npm run db:lint
+
+      - name: Advisors de seguridad y rendimiento
+        run: npm run db:advisors
+
+      - name: Tipos generados sin diferencias con el esquema
+        run: npm run check:types
+
+      # --- 4. Integración (capa 3) ------------------------------------------------------
+      - name: Pruebas de integración
+        run: npm run test:integration
+
+      # --- 5. Build y lo que quedó fijo en él ---------------------------------------------
+      - name: Build de producción
+        run: npm run build
+
+      - name: Sin datos de comercios ni secretos en el build
+        run: npm run check:build
+
+      # --- 6. E2E de humo (capa 4) --------------------------------------------------------
+      - name: Navegador para Playwright
+        run: npx playwright install --with-deps chromium
+
+      - name: Base limpia para E2E
+        run: npm run db:reset
+
+      - name: Recorridos E2E
+        run: npm run test:e2e
+
+      - name: Reporte de Playwright
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7

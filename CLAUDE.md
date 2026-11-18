@@ -24,7 +24,7 @@ Idioma: el usuario habla español rioplatense. Código, nombres de tablas y colu
 | 7 | Pedidos + WhatsApp | Hecha |
 | 8 | Alta de comercios (`provision_tenant` + asistente) | Hecha |
 | 9 | Panel central | Hecha |
-| 10 | CI, staging, producción, migración de clientes actuales | Siguiente |
+| 10 | CI, staging, producción, migración de clientes actuales | En curso: 10a (CI y E2E en local) hecha; sigue 10b (GitHub) |
 
 ## Skills y hooks del proyecto
 
@@ -83,6 +83,8 @@ Next.js 16.4 con `cacheComponents` activado, Tailwind 4 y React 19.3. Tiene camb
 - `npm run db:lint` — linter de Supabase sobre el esquema.
 - `npm run db:types` — regenera `src/types/database.ts` (se versiona; regenerar después de cada migración).
 - `npm run db:advisors` — advisors de seguridad y rendimiento de Supabase.
+- `npm run test:e2e` — recorridos E2E con Playwright contra `next start` (requieren `npm run build` y `npm run db:reset` antes).
+- `npm run check:env` (dentro de `check`), `check:types` (tipos generados contra el esquema, con Supabase levantado) y `check:build` (después del build: ni datos del seed ni secretos en lo prerenderizado ni en el JavaScript del navegador).
 - `npx supabase <comando>` — CLI de Supabase fijada en `devDependencies`.
 
 ## Base de datos: cómo agregar una tabla
@@ -107,6 +109,7 @@ Funciones auxiliares de RLS: `private.my_tenant_ids(roles)`, `private.my_teammat
 2. **`redirect()` desde una Server Action se resuelve internamente, sin pasar por el proxy.** En el host del panel, `redirect("/")` muestra la landing. No redirigir a `/` desde acciones: devolver `redirectTo` y navegar desde el cliente (ver `AuthForm`), o redirigir a rutas de comercio (`/alfa/...`), que no existen sin el prefijo `/panel` y caen en una navegación normal.
 3. **`notFound()` dentro de `<Suspense>` responde HTTP 200** con el contenido 404 y `noindex`. No filtra datos (verificado), pero el código HTTP no es 404.
 4. Código que usa la sesión debe correr en el momento de la petición: `createSupabaseServerClient` llama a `connection()`.
+5. **El `not-found.tsx` de un segmento no atrapa el `notFound()` de su propio layout.** El menú de `/panel/[tenant]/layout.tsx` llama a `requireTenantAccess`, así que la página de no encontrado del panel vive en `src/app/panel/not-found.tsx` (si no, sale el 404 genérico de Next en inglés).
 
 ## Pendientes conocidos
 
@@ -114,26 +117,33 @@ Funciones auxiliares de RLS: `private.my_tenant_ids(roles)`, `private.my_teammat
 - Clave secreta: la lista cerrada está en `SERVICE_KEY_ALLOWED` de `eslint.config.mjs` (pedidos, alta y panel central). Un uso nuevo se agrega ahí, y a nada más.
 - Paginación del listado de productos del panel: hoy trae hasta 1000; agregar paginación si un comercio Pro supera eso.
 - Al entrar sin sesión a una pantalla interna (por ejemplo `/alfa/productos`), después del login se vuelve a `/alfa` y no a esa pantalla.
-- `/panel` sale como "◐" en el build: cáscara estática genérica (encabezado, títulos) y todo dato de sesión o comercio en el momento de la petición. Lo que CI tiene que verificar (etapa 10) es que ningún dato de comercio quede en la parte estática.
 - La cookie de sesión de Supabase es legible desde JavaScript (comportamiento por defecto de `@supabase/ssr`). Evaluar `httpOnly` cuando se decida si el navegador necesita su propio cliente de Supabase (por ejemplo, Realtime en pedidos).
-- Pruebas E2E con Playwright (capa 4 del diseño): hoy los recorridos se verifican a mano en el navegador; automatizarlas antes de salir a producción (etapa 10).
+- E2E: están los 4 recorridos de humo del diseño (`e2e/`). Siguen a mano: el panel de pedidos después de un pedido, el panel central (pide MFA) y Ajustes.
+- CI: `.github/workflows/ci.yml` está escrito y cada paso se probó en local, pero todavía no corrió en GitHub (el repo no tiene remoto; etapa 10b).
+- Registro: en el primer intento de E2E, el envío antes de que cargaran React y Turnstile no mostró ni la confirmación ni un error. No se investigó; revisarlo con conexión lenta.
 - Invitaciones de staff (crear, enviar correo, `accept_invitation`): quedan para cuando exista la pantalla de equipo.
 - Sistema visual "Sobremesa" (`docs/design/sistema-visual.md`): lo usan el catálogo, el asistente, Ajustes y Pedidos. Falta llevar a esos tokens las pantallas viejas del panel del comercio (productos, categorías, inicio). El panel central usa "Grafito".
 - Catálogo público: el HTML sale con `Cache-Control: private, no-store` (prerender parcial con datos en el momento de la petición); lo que se cachea son los datos en el servidor (`'use cache'`). En Vercel sin `use cache: remote` esa caché vive por instancia. Evaluar en staging (etapa 10) caché de página o `use cache: remote`; la caché de página pide al menos un host en `generateStaticParams`.
 - Catálogo público: ficha de producto con link propio (para compartir). No está en ninguna etapa del diseño; decidir cuándo.
-- Prueba automática "edito Alfa, miro Beta" sobre la caché (capa E2E): hoy verificada a mano con `next start` (cambio directo en la base no se ve; cambio desde el panel se ve en Alfa y Beta no cambia).
 - Correo de confirmación: cargar `supabase/templates/confirmation.html` en los proyectos de staging y producción, y configurar SMTP con Resend (etapa 10). En local los correos se ven en Mailpit (`127.0.0.1:54324`).
 - Staff: Storage le permite subir archivos a la carpeta `branding` de su comercio (la política es por miembro), pero no cambiar el logo ni la portada, que es una columna solo del dueño. Como mucho deja archivos huérfanos, que limpia el barrido de la tarea diaria.
-- `npm audit`: 17 alertas en herramientas de desarrollo (`picomatch` y `minimatch`, dentro de ESLint y Vitest). Producción tiene 0 (`npm audit --omit=dev`). `picomatch` no tiene versión corregida todavía. En CI (etapa 10), frenar el despliegue con `npm audit --omit=dev` y revisar las de desarrollo cuando salgan versiones corregidas. Nunca correr `npm audit fix --force` (baja ESLint y Vitest de versión mayor).
+- `npm audit`: 17 alertas en herramientas de desarrollo (`picomatch` y `minimatch`, dentro de ESLint y Vitest). Producción tiene 0 (`npm audit --omit=dev`). `picomatch` no tiene versión corregida todavía. CI ya frena con `npm audit --omit=dev`; revisar las de desarrollo cuando salgan versiones corregidas. Nunca correr `npm audit fix --force` (baja ESLint y Vitest de versión mayor).
 - Las pruebas pgTAP de pedidos y alta cuentan sobre los datos del seed: correr `npm run db:test` justo después de `npm run db:reset`. Las de integración y el uso en el navegador suman datos.
 - Pedidos: el límite por IP usa `x-forwarded-for`, que en Vercel arma la plataforma. Fuera de Vercel ese header se puede falsificar (el límite de 200 por hora por comercio sigue valiendo). No servir la app detrás de otro proxy sin revisar esto.
 - Pedidos: Turnstile usa las claves de prueba públicas en local. Crear las claves reales de staging y producción en Cloudflare (etapa 10).
 - Pedidos: notas internas del comercio en cada pedido. El diseño las menciona pero no tienen columna; ver `docs/decisions/0002-pedidos-implementacion.md`.
-- Pedidos: la prueba automática de punta a punta en el navegador (carrito → WhatsApp → panel) se verificó a mano. Pasarla a Playwright (etapa 10).
+- Pedidos: Playwright cubre carrito → WhatsApp; la parte del panel (el pedido aparece y cambia de estado) sigue a mano.
 - Panel central: avisos por correo de prueba por vencer (la tarea diaria ya calcula a quién avisar) y resumen diario para vos. Requieren Resend (etapa 10).
 - Panel central: edición como soporte (cambiar catálogo o ajustes en nombre del comercio, auditada). Hoy el modo soporte es solo lectura.
 - Panel central: cargar `supabase/templates/invite.html`, activar MFA TOTP y configurar `CRON_SECRET` en staging y producción (etapa 10).
 - Panel central: el título de la pestaña de un 404 dice el nombre de la pantalla (por ejemplo, "Comercios · Panel central"). No muestra datos, pero confirma que la pantalla existe.
+
+## CI y E2E (cómo está armado)
+
+- `.github/workflows/ci.yml`, en cada PR y push a `main`/`staging`: gitleaks, `check:env`, `npm audit --omit=dev`, Supabase local, `.env.local` armado desde `supabase status`, `check`, `db:reset`, pgTAP, `db:lint`, `db:advisors`, `check:types`, integración, build, `check:build`, `db:reset` y E2E. Si falla, sube el reporte de Playwright.
+- Playwright (`playwright.config.ts`): un worker, Pixel 7, levanta `npm run start` (en local reusa el servidor del puerto 3000: que sea `next start`, no `next dev`). Helpers en `e2e/helpers.ts`: `login(page, email, next)` espera el destino exacto, `waitForTurnstile` antes de enviar formularios con Turnstile y `confirmationLink` lee Mailpit. El link de WhatsApp se intercepta con `page.route`.
+- Los E2E no dependen del orden ni ensucian: el registro crea un comercio nuevo por corrida y el de caché deja el producto de Alfa como estaba.
+- `check:build` busca UUID, correos, nombres de comercio y hosts del seed. No usa nombres de productos: son palabras comunes que aparecen en ejemplos de la interfaz.
 
 ## Módulos (cómo está armado el catálogo)
 
