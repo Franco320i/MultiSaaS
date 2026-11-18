@@ -24,7 +24,7 @@ Idioma: el usuario habla español rioplatense. Código, nombres de tablas y colu
 | 7 | Pedidos + WhatsApp | Hecha |
 | 8 | Alta de comercios (`provision_tenant` + asistente) | Hecha |
 | 9 | Panel central | Hecha |
-| 10 | CI, staging, producción, migración de clientes actuales | En curso: 10a (CI y E2E en local) hecha; sigue 10b (GitHub) |
+| 10 | CI, staging, producción, migración de clientes actuales | En curso: 10a (CI y E2E) y 10b (GitHub) hechas; sigue 10c (staging) |
 
 ## Skills y hooks del proyecto
 
@@ -119,7 +119,7 @@ Funciones auxiliares de RLS: `private.my_tenant_ids(roles)`, `private.my_teammat
 - Al entrar sin sesión a una pantalla interna (por ejemplo `/alfa/productos`), después del login se vuelve a `/alfa` y no a esa pantalla.
 - La cookie de sesión de Supabase es legible desde JavaScript (comportamiento por defecto de `@supabase/ssr`). Evaluar `httpOnly` cuando se decida si el navegador necesita su propio cliente de Supabase (por ejemplo, Realtime en pedidos).
 - E2E: están los 4 recorridos de humo del diseño (`e2e/`). Siguen a mano: el panel de pedidos después de un pedido, el panel central (pide MFA) y Ajustes.
-- CI: `.github/workflows/ci.yml` está escrito y cada paso se probó en local, pero todavía no corrió en GitHub (el repo no tiene remoto; etapa 10b).
+- GitHub: el repo es privado en una cuenta gratis, así que las ramas no están protegidas (exigir CI en verde para fusionar pide GitHub Pro). CI corre y avisa, pero no bloquea. Revisarlo cuando entre otra persona al proyecto.
 - Registro: en el primer intento de E2E, el envío antes de que cargaran React y Turnstile no mostró ni la confirmación ni un error. No se investigó; revisarlo con conexión lenta.
 - Invitaciones de staff (crear, enviar correo, `accept_invitation`): quedan para cuando exista la pantalla de equipo.
 - Sistema visual "Sobremesa" (`docs/design/sistema-visual.md`): lo usan el catálogo, el asistente, Ajustes y Pedidos. Falta llevar a esos tokens las pantallas viejas del panel del comercio (productos, categorías, inicio). El panel central usa "Grafito".
@@ -140,7 +140,8 @@ Funciones auxiliares de RLS: `private.my_tenant_ids(roles)`, `private.my_teammat
 
 ## CI y E2E (cómo está armado)
 
-- `.github/workflows/ci.yml`, en cada PR y push a `main`/`staging`: gitleaks, `check:env`, `npm audit --omit=dev`, Supabase local, `.env.local` armado desde `supabase status`, `check`, `db:reset`, pgTAP, `db:lint`, `db:advisors`, `check:types`, integración, build, `check:build`, `db:reset` y E2E. Si falla, sube el reporte de Playwright.
+- Repo: `github.com/Franco320i/MultiSaaS` (privado), ramas `main` y `staging`. No hay `gh` instalado: el push usa el administrador de credenciales de Git y las corridas se ven en la pestaña Actions.
+- `.github/workflows/ci.yml`, en cada PR y push a `main`/`staging` (entre 5 y 13 minutos; lo que más varía es instalar las dependencias de Playwright): gitleaks (imagen oficial con versión fija, sobre toda la historia; `gitleaks-action` falla en el primer push de una rama), `check:env`, `npm audit --omit=dev`, Supabase local, `.env.local` armado desde `supabase status`, `check`, `db:reset`, pgTAP, `db:lint`, `db:advisors`, `check:types`, integración, build, `check:build`, `db:reset` y E2E. Si falla, sube el reporte de Playwright.
 - Playwright (`playwright.config.ts`): un worker, Pixel 7, levanta `npm run start` (en local reusa el servidor del puerto 3000: que sea `next start`, no `next dev`). Helpers en `e2e/helpers.ts`: `login(page, email, next)` espera el destino exacto, `waitForTurnstile` antes de enviar formularios con Turnstile y `confirmationLink` lee Mailpit. El link de WhatsApp se intercepta con `page.route`.
 - Los E2E no dependen del orden ni ensucian: el registro crea un comercio nuevo por corrida y el de caché deja el producto de Alfa como estaba.
 - `check:build` busca UUID, correos, nombres de comercio y hosts del seed. No usa nombres de productos: son palabras comunes que aparecen en ejemplos de la interfaz.
