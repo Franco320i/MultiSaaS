@@ -15,7 +15,8 @@ Dominio de la plataforma: `vidri.ar` (registrado en NIC Argentina).
 - **Vercel:** proyecto `vidri-staging` (plan Hobby), conectado a `Franco320i/MultiSaaS`. Rama de producción del proyecto: `staging` (Settings → Environments → Production → Branch Tracking). Así la tarea diaria de `vercel.json` corre en staging: Vercel solo ejecuta crons en despliegues de producción del proyecto.
   - Dominios: `staging.vidri.ar` y `*.staging.vidri.ar`. El comodín exige que el DNS de `vidri.ar` lo maneje Vercel (nameservers de Vercel delegados en NIC).
   - No usar la integración "Supabase" del asistente de Vercel: crea otra base y reparte la clave secreta en todos los entornos.
-- **Supabase:** organización `vidri-staging` (plan Free, separada de producción) con el proyecto `vidri-staging` en São Paulo. Se pausa tras una semana sin uso.
+- **Supabase:** organización `vidri-staging` (plan Free, separada de producción) con el proyecto `vidri-staging` (ref `eysiaanpcwbxmxiwiscy`). Quedó en West US (Oregon), no en São Paulo: para staging alcanza; producción va en São Paulo. Se pausa tras una semana sin uso.
+- **Migraciones:** las aplica el job `migrate-staging` de `ci.yml` después de CI, por el session pooler (`aws-0-us-west-2.pooler.supabase.com`): la conexión directa es solo IPv6 y GitHub no tiene IPv6. Secretos del repo: `STAGING_PROJECT_REF` y `STAGING_DB_PASSWORD`.
 - **Cloudflare Turnstile:** un sitio para `staging.vidri.ar` con sus dos claves.
 - **Correos:** el SMTP propio de Supabase alcanza para probar (pocos por hora). Resend llega en 10d.
 
@@ -43,12 +44,12 @@ Las claves secretas se copian directo del panel de cada servicio a Vercel. No se
 
 1. [x] Comprar `vidri.ar` en NIC.
 2. [x] Crear el proyecto `vidri-staging` en Vercel desde el repo.
-3. [ ] Rama de producción del proyecto: `staging`.
-4. [ ] Agregar `staging.vidri.ar` y `*.staging.vidri.ar` en Vercel → Domains.
-5. [ ] Delegar `vidri.ar` en NIC a los nameservers de Vercel.
+3. [x] Rama de producción del proyecto: `staging`.
+4. [x] Agregar `staging.vidri.ar` y `*.staging.vidri.ar` en Vercel → Domains.
+5. [x] Delegar `vidri.ar` en NIC a los nameservers de Vercel.
 6. [ ] Crear organización y proyecto en Supabase y aplicar las migraciones.
 7. [ ] Configurar Auth en Supabase: Site URL, redirecciones, plantillas de correo y MFA TOTP.
-8. [ ] Crear el sitio de Turnstile.
+8. [x] Crear el sitio de Turnstile.
 9. [ ] Cargar las variables de entorno en Vercel y volver a desplegar.
 10. [ ] Crear el usuario administrador (sin el seed: sus contraseñas están en el repo).
 11. [ ] Recorrer la plataforma en `staging.vidri.ar` y anotar lo que falle.

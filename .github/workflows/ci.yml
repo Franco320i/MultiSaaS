@@ -126,8 +126,11 @@ jobs:
 
   # Diseño, sección 14, paso 2: al subir a `staging`, y solo si CI pasó, se aplican las
   # migraciones nuevas al proyecto de Supabase de staging. Vercel despliega por su cuenta.
+  #
+  # Se entra por el "session pooler" de Supabase: la conexión directa a la base es solo
+  # IPv6 y los runners de GitHub no tienen IPv6. El host del pooler no es secreto (sale
+  # de Connect → Session pooler en el panel de Supabase).
   # Secretos del repositorio (GitHub → Settings → Secrets and variables → Actions):
-  #   SUPABASE_ACCESS_TOKEN  token personal de supabase.com/dashboard/account/tokens
   #   STAGING_PROJECT_REF    identificador del proyecto (el que aparece en su URL)
   #   STAGING_DB_PASSWORD    contraseña de la base del proyecto de staging
   # `db push` no carga supabase/seed.sql: en staging no van los usuarios de prueba.
@@ -141,9 +144,9 @@ jobs:
       group: migrate-staging
       cancel-in-progress: false # nunca cortar una migración a la mitad
     env:
-      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      SUPABASE_DB_PASSWORD: ${{ secrets.STAGING_DB_PASSWORD }}
+      DB_PASSWORD: ${{ secrets.STAGING_DB_PASSWORD }}
       PROJECT_REF: ${{ secrets.STAGING_PROJECT_REF }}
+      POOLER_HOST: aws-0-us-west-2.pooler.supabase.com
     steps:
       - uses: actions/checkout@v5
 
@@ -155,17 +158,20 @@ jobs:
       - name: Dependencias
         run: npm ci
 
-      - name: Secretos configurados
+      - name: Conexión a la base de staging
         run: |
-          for name in SUPABASE_ACCESS_TOKEN SUPABASE_DB_PASSWORD PROJECT_REF; do
+          for name in DB_PASSWORD PROJECT_REF; do
             if [ -z "${!name}" ]; then echo "::error::Falta el secreto para $name (ver comentario del job)"; exit 1; fi
           done
-
-      - name: Vincular el proyecto de staging
-        run: npx supabase link --project-ref "$PROJECT_REF"
+          # La contraseña va codificada para URL; se oculta del log en las dos formas.
+          encoded=$(node -e 'process.stdout.write(encodeURIComponent(process.env.DB_PASSWORD))')
+          echo "::add-mask::$encoded"
+          url="postgresql://postgres.${PROJECT_REF}:${encoded}@${POOLER_HOST}:5432/postgres"
+          echo "::add-mask::$url"
+          echo "DB_URL=$url" >> "$GITHUB_ENV"
 
       - name: Migraciones pendientes
-        run: npx supabase migration list
+        run: npx supabase migration list --db-url "$DB_URL"
 
       - name: Aplicar migraciones
-        run: npx supabase db push
+        run: npx supabase db push --db-url "$DB_URL"
