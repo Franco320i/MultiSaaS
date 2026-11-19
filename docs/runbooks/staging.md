@@ -47,9 +47,13 @@ Las claves secretas se copian directo del panel de cada servicio a Vercel. No se
 3. [x] Rama de producción del proyecto: `staging`.
 4. [x] Agregar `staging.vidri.ar` y `*.staging.vidri.ar` en Vercel → Domains.
 5. [x] Delegar `vidri.ar` en NIC a los nameservers de Vercel.
-6. [ ] Crear organización y proyecto en Supabase y aplicar las migraciones.
-7. [ ] Configurar Auth en Supabase: Site URL, redirecciones, plantillas de correo y MFA TOTP.
+6. [x] Crear organización y proyecto en Supabase y aplicar las migraciones (12 aplicadas por `migrate-staging`).
+7. [ ] Configurar Auth en Supabase:
+   - [x] Site URL `https://app.staging.vidri.ar`; redirecciones `https://app.staging.vidri.ar/auth/callback` y `https://admin.staging.vidri.ar/auth/callback`.
+   - [x] Contraseña mínima 10 y "Secure password change" activado (igual que `config.toml`).
+   - [x] MFA TOTP activado.
+   - [ ] Plantillas de correo (`supabase/templates/`): Supabase no deja editarlas sin SMTP propio. Con el SMTP por defecto manda las plantillas en inglés, cuyo enlace no lleva a `/nuevo`, y solo entrega correos a miembros de la organización de Supabase. Requiere Resend.
 8. [x] Crear el sitio de Turnstile.
-9. [ ] Cargar las variables de entorno en Vercel y volver a desplegar.
+9. [x] Cargar las variables de entorno en Vercel y volver a desplegar.
 10. [ ] Crear el usuario administrador (sin el seed: sus contraseñas están en el repo).
 11. [ ] Recorrer la plataforma en `staging.vidri.ar` y anotar lo que falle.
