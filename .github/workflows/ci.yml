@@ -173,5 +173,7 @@ jobs:
       - name: Migraciones pendientes
         run: npx supabase migration list --db-url "$DB_URL"
 
+      # --yes: sin esto la CLI pide confirmación para tocar un proyecto en la nube y, sin
+      # nadie que responda, cancela sin aplicar nada.
       - name: Aplicar migraciones
-        run: npx supabase db push --db-url "$DB_URL"
+        run: npx supabase db push --db-url "$DB_URL" --yes
