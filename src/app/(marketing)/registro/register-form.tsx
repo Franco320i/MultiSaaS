@@ -9,7 +9,7 @@ export function RegisterForm({ turnstileSiteKey, minPasswordLength }: { turnstil
   const id = useId();
   const formRef = useRef<HTMLFormElement>(null);
   const tokenRef = useRef<HTMLInputElement>(null);
-  const { containerRef, getToken } = useTurnstile(turnstileSiteKey);
+  const { containerRef, getToken } = useTurnstile(turnstileSiteKey, "dark");
   const [state, formAction, pending] = useActionState<RegisterState, FormData>(registerAction, {});
   const [verifying, setVerifying] = useState(false);
 

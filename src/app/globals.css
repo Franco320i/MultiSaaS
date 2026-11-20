@@ -13,6 +13,7 @@
   --line: #e3e6df;
   --accent: #3d6b47;
   --accent-foreground: #ffffff;
+  --accent-soft: var(--accent);
   --danger: #a8432f;
   --danger-soft: #f6e7e2;
   --warning: #8a5a12;
@@ -60,6 +61,63 @@
   color: var(--foreground);
 }
 
+/*
+ * Página principal "Noche" (docs/design/sistema-visual.md): siempre oscura, negro con
+ * tinte violeta. El layout de (marketing) pone data-surface="marketing".
+ * --surface-muted cumple el rol de "surface-raised" del diseño (lo que flota).
+ */
+[data-surface="marketing"] {
+  --background: #0b0912;
+  --surface: #15111f;
+  --surface-muted: #1d1830;
+  --foreground: #f3f0fa;
+  --muted: #a8a2bd;
+  --line: #2b2442;
+  --accent: #7c3aed;
+  --accent-foreground: #ffffff;
+  --accent-soft: #c4b5fd;
+  --danger: #f2a08f;
+  --danger-soft: #3a1f26;
+  --warning: #e5b86b;
+
+  /* Maquetas del comercio ficticio: llevan SU marca (naranja), no la de Vidri. */
+  --mock-brand: #c2410c;
+  --mock-brand-deep: #9a3412;
+  --mock-screen: #fbfbf9;
+  --mock-ink: #22261f;
+  --mock-ink-muted: #5f6659;
+  --mock-line: #e3e6df;
+  --mock-open: #3d6b47;
+  --mock-whatsapp: #25d366;
+
+  color-scheme: dark;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+/* El violeta del botón no contrasta como foco sobre el fondo: se usa el suave. */
+[data-surface="marketing"] :focus-visible {
+  outline-color: var(--accent-soft);
+}
+
+/* Entrada suave de las maquetas: sube 12 px y aparece. */
+@keyframes mk-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.mk-rise {
+  animation: mk-rise 0.6s ease-out both;
+}
+.mk-rise-late {
+  animation: mk-rise 0.6s ease-out 0.4s both;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-surface: var(--surface);
@@ -69,6 +127,7 @@
   --color-line: var(--line);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-accent-soft: var(--accent-soft);
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
   --color-warning: var(--warning);
@@ -116,5 +175,9 @@ body {
   .admin-btn:active {
     transition: none;
     transform: none;
+  }
+  .mk-rise,
+  .mk-rise-late {
+    animation: none;
   }
 }

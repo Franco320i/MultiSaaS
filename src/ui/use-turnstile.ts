@@ -39,7 +39,8 @@ function loadScript(): Promise<Turnstile> {
   });
 }
 
-export function useTurnstile(siteKey: string) {
+/** `theme`: "dark" en superficies siempre oscuras (página principal); "auto" sigue al sistema. */
+export function useTurnstile(siteKey: string, theme: "auto" | "dark" = "auto") {
   const containerRef = useRef<HTMLDivElement>(null);
   const widgetRef = useRef<string | null>(null);
   const pending = useRef<{ resolve: (t: string) => void; reject: (e: Error) => void } | null>(null);
@@ -54,6 +55,7 @@ export function useTurnstile(siteKey: string) {
           execution: "execute",
           appearance: "interaction-only",
           language: "es",
+          theme,
           callback: (token: string) => pending.current?.resolve(token),
           "error-callback": () => pending.current?.reject(new Error("turnstile")),
           "expired-callback": () => widgetRef.current && turnstile.reset(widgetRef.current),
@@ -65,7 +67,7 @@ export function useTurnstile(siteKey: string) {
       if (widgetRef.current) window.turnstile?.remove(widgetRef.current);
       widgetRef.current = null;
     };
-  }, [siteKey]);
+  }, [siteKey, theme]);
 
   const getToken = useCallback(
     () =>

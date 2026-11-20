@@ -107,3 +107,24 @@ Elegido el 17 de noviembre de 2026, al empezar la etapa 9, entre tres direccione
 ## Pendiente
 
 - Llevar el panel a estos tokens (encabezado, listados como en la maqueta, estados vacíos). Va en un cambio aparte, no en la etapa 6.
+
+## Página principal: Noche
+
+Elegida el 20 de noviembre de 2026 con una muestra (diseño en `docs/superpowers/specs/2026-11-20-pagina-principal-design.md`). `data-surface="marketing"` en `src/app/(marketing)/layout.tsx`: la usan la página principal, `/registro` y los legales.
+
+**Intención:** lo primero que ve un comerciante que todavía no es cliente. Negro con tinte violeta, siempre oscuro (no sigue el modo del sistema), con el mismo par tipográfico que la app para que no haya un salto al registrarse.
+
+| Token | Valor | Rol |
+| --- | --- | --- |
+| background | `#0B0912` | Fondo casi negro con tinte violeta |
+| surface | `#15111F` | Tarjetas y bloques |
+| surface-muted | `#1D1830` | Lo que flota (burbuja de pedido, menú móvil) |
+| line | `#2B2442` | Bordes y separadores |
+| foreground | `#F3F0FA` | Texto principal |
+| muted | `#A8A2BD` | Texto secundario (AA sobre fondo y superficie) |
+| accent | `#7C3AED` | Botón principal, con texto blanco |
+| accent-soft | `#C4B5FD` | Énfasis en títulos, links, etiquetas y el foco |
+
+- Un resplandor violeta suave solo detrás del hero y del cierre.
+- Las maquetas del producto van en los colores del comercio ficticio (variables `--mock-*`, naranja de Gastronomía), no en violeta: el catálogo de cada comercio lleva su marca.
+- Animaciones: `.mk-rise` y `.mk-rise-late` (aparecer subiendo 12 px). Se apagan con `prefers-reduced-motion`.
