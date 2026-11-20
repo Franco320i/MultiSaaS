@@ -7,6 +7,8 @@ import { SiteHeader } from "./_components/site-header";
 // vidri.ar · Página principal, registro y legales. Siempre oscura:
 // data-surface="marketing" activa los tokens "Noche" (docs/design/sistema-visual.md).
 export const metadata: Metadata = {
+  // Para que la imagen al compartir salga con la dirección completa del entorno.
+  metadataBase: new URL(platformUrl(env.ROOT_DOMAIN, null)),
   title: { default: "Vidri · Catálogos con pedidos a WhatsApp", template: "%s · Vidri" },
   description:
     "Tu catálogo, con tu marca, en un link. Tus clientes eligen, arman el pedido y te llega al WhatsApp ya escrito. 14 días gratis, sin tarjeta.",
