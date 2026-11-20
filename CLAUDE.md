@@ -6,6 +6,8 @@ SaaS de catálogos digitales con pedidos a WhatsApp para muchos comercios. Next.
 
 Idioma: el usuario habla español rioplatense. Código, nombres de tablas y columnas en inglés; textos de la interfaz, comentarios de negocio y documentación en español.
 
+**Hablale SIEMPRE en español, nunca en inglés, salvo que el usuario lo pida.** Vale para todo mensaje: estados cortos, tablas, pasos guiados y después de leer páginas, logs o errores en inglés. Revisá el idioma antes de mandar cada mensaje. Los nombres que aparecen en pantalla (botones, menús) se pueden citar tal cual, pero la explicación va en español y simple: el usuario no es técnico en infraestructura.
+
 ## Cómo se trabaja
 
 - El proyecto avanza **por etapas** (ver tabla abajo). Trabajá solo la etapa actual; no adelantes funcionalidades de etapas siguientes ni nada marcado como "preparado" o "no desarrollar todavía" en el diseño.
