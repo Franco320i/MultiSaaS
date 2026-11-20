@@ -28,6 +28,9 @@ test("la página principal vende y lleva al registro", async ({ page }) => {
 
   await page.getByRole("link", { name: "Crear mi catálogo gratis" }).first().click();
   await expect(page).toHaveURL(`${ROOT}/registro`);
+  // Los términos dicen "al crear una cuenta aceptás": el registro tiene que mostrarlos.
+  await expect(page.getByRole("link", { name: "Términos y condiciones" }).first()).toBeVisible();
+  await expect(page.getByRole("main").getByRole("link", { name: "Política de privacidad" })).toBeVisible();
 });
 
 test("los legales están publicados y no se indexan", async ({ page }) => {

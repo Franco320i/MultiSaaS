@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { MIN_PASSWORD_LENGTH } from "@/core/auth/register";
 import { env } from "@/lib/env";
 import { publicEnv } from "@/lib/env.public";
@@ -27,6 +28,17 @@ export default function RegisterPage() {
         </p>
       </header>
       <RegisterForm turnstileSiteKey={publicEnv.NEXT_PUBLIC_TURNSTILE_SITE_KEY} minPasswordLength={MIN_PASSWORD_LENGTH} />
+      <p className="text-center text-[14px] text-muted">
+        Al crear tu cuenta aceptás los{" "}
+        <Link href="/terminos" className="underline underline-offset-4">
+          Términos y condiciones
+        </Link>{" "}
+        y la{" "}
+        <Link href="/privacidad" className="underline underline-offset-4">
+          Política de privacidad
+        </Link>
+        .
+      </p>
       <p className="text-center text-[15px] text-muted">
         ¿Ya tenés cuenta?{" "}
         <a href={loginUrl} className="font-semibold text-foreground underline underline-offset-4">

@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { ButtonLink } from "./button-link";
 import { Glow } from "./glow";
 import { PhoneMockup } from "./phone-mockup";
@@ -5,7 +6,21 @@ import { WhatsAppBubble } from "./whatsapp-bubble";
 
 export const RISK_LINE = "14 días gratis · Sin tarjeta · Sin comisiones por venta";
 
-export function Hero({ demoUrl }: { demoUrl: string | null }) {
+/** Botón al catálogo de ejemplo; la página lo pasa dentro de su propio <Suspense>. */
+export function DemoButton({ url }: { url: string | null }) {
+  if (!url) return null;
+  return (
+    <ButtonLink href={url} variant="ghost">
+      Mirá un catálogo de ejemplo
+    </ButtonLink>
+  );
+}
+
+/**
+ * `demoSlot` llega envuelto en <Suspense> desde la página: así el hero sale en la parte
+ * estática y no se vuelve a dibujar (ni a animar) cuando se resuelve el botón de ejemplo.
+ */
+export function Hero({ demoSlot }: { demoSlot?: ReactNode }) {
   return (
     <section className="relative isolate">
       <Glow className="top-0 right-[-30%] h-[520px] w-[720px] md:right-0" />
@@ -23,11 +38,7 @@ export function Hero({ demoUrl }: { demoUrl: string | null }) {
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <ButtonLink href="/registro">Crear mi catálogo gratis</ButtonLink>
-            {demoUrl ? (
-              <ButtonLink href={demoUrl} variant="ghost">
-                Mirá un catálogo de ejemplo
-              </ButtonLink>
-            ) : null}
+            {demoSlot}
           </div>
           <p className="mt-4 text-[14px] text-muted">{RISK_LINE}</p>
         </div>

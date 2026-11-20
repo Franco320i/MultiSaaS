@@ -6,7 +6,7 @@ import { ClosingCta } from "./_components/closing-cta";
 import { DemoBand } from "./_components/demo-band";
 import { Faq } from "./_components/faq";
 import { Features } from "./_components/features";
-import { Hero } from "./_components/hero";
+import { DemoButton, Hero } from "./_components/hero";
 import { HowItWorks } from "./_components/how-it-works";
 import { Pricing, PricingSkeleton } from "./_components/pricing";
 
@@ -15,9 +15,13 @@ import { Pricing, PricingSkeleton } from "./_components/pricing";
 export default function MarketingHome() {
   return (
     <main className="flex flex-col">
-      <Suspense fallback={<Hero demoUrl={null} />}>
-        <HeroWithDemo />
-      </Suspense>
+      <Hero
+        demoSlot={
+          <Suspense fallback={null}>
+            <DemoButtonIfPublished />
+          </Suspense>
+        }
+      />
       <BeforeAfter />
       <HowItWorks />
       <Features />
@@ -33,8 +37,8 @@ export default function MarketingHome() {
   );
 }
 
-async function HeroWithDemo() {
-  return <Hero demoUrl={await getDemoCatalogUrl()} />;
+async function DemoButtonIfPublished() {
+  return <DemoButton url={await getDemoCatalogUrl()} />;
 }
 
 async function DemoBandIfPublished() {

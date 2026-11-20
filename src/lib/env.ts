@@ -21,6 +21,13 @@ const serverEnvSchema = z.object({
   IP_HASH_SALT: z.string().min(16, "IP_HASH_SALT debe tener al menos 16 caracteres"),
   /** Protege /api/cron/daily (Vercel Cron lo manda como Bearer). */
   CRON_SECRET: z.string().min(16, "CRON_SECRET debe tener al menos 16 caracteres"),
+  /**
+   * Catálogo de ejemplo de la página principal (opcional, los dos juntos). Sin ellos no
+   * aparece el botón "Mirá un catálogo de ejemplo". El id ata el ejemplo a un comercio de
+   * la plataforma: otro que registre el mismo slug no queda anunciado.
+   */
+  DEMO_CATALOG_SLUG: z.string().trim().regex(/^[a-z0-9-]{2,40}$/).optional(),
+  DEMO_TENANT_ID: z.uuid().optional(),
 });
 
 // SUPABASE_SECRET_KEY no está acá a propósito: la lee y valida solo
@@ -34,4 +41,6 @@ export const env: ServerEnv = serverEnvSchema.parse({
   TURNSTILE_SECRET_KEY: process.env.TURNSTILE_SECRET_KEY,
   IP_HASH_SALT: process.env.IP_HASH_SALT,
   CRON_SECRET: process.env.CRON_SECRET,
+  DEMO_CATALOG_SLUG: process.env.DEMO_CATALOG_SLUG || undefined,
+  DEMO_TENANT_ID: process.env.DEMO_TENANT_ID || undefined,
 });
