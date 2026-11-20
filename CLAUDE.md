@@ -26,7 +26,7 @@ Idioma: el usuario habla español rioplatense. Código, nombres de tablas y colu
 | 7 | Pedidos + WhatsApp | Hecha |
 | 8 | Alta de comercios (`provision_tenant` + asistente) | Hecha |
 | 9 | Panel central | Hecha |
-| 10 | CI, staging, producción, migración de clientes actuales | En curso: 10a (CI y E2E) y 10b (GitHub) hechas; sigue 10c (staging) |
+| 10 | CI, staging, producción, migración de clientes actuales | En curso: 10a (CI y E2E), 10b (GitHub) y 10c (staging) hechas; sigue 10d (avisos por correo y Sentry) |
 
 ## Skills y hooks del proyecto
 
@@ -115,7 +115,10 @@ Funciones auxiliares de RLS: `private.my_tenant_ids(roles)`, `private.my_teammat
 
 ## Pendientes conocidos
 
-- En `next dev`, `www.localhost` no redirige bien a `localhost` (trampa 1); en producción debería funcionar. Verificar en staging.
+- En `next dev`, `www.localhost` no redirige bien a `localhost` (trampa 1). En staging funciona (`www.staging.vidri.ar` → 308 a `staging.vidri.ar`, con ruta y parámetros).
+- Diseño y experiencia de uso: el usuario probó el recorrido completo en staging y le parecen flojos (catálogo, asistente, panel). Mejorarlos en una etapa propia, con `/diseno-interfaz`.
+- Un host con punto final (`admin.staging.vidri.ar.`) responde 404 o corta la conexión. Pasa si se copia la dirección con el punto de una oración; no es grave, normalizarlo en el proxy cuando se toque.
+- Invitación del alta asistida: el administrador de staging se creó con "Invite user" de Supabase y le llegó la plantilla de comercios ("Tu catálogo está listo"). Para invitar administradores, evaluar una plantilla o un flujo propio.
 - Clave secreta: la lista cerrada está en `SERVICE_KEY_ALLOWED` de `eslint.config.mjs` (pedidos, alta y panel central). Un uso nuevo se agrega ahí, y a nada más.
 - Paginación del listado de productos del panel: hoy trae hasta 1000; agregar paginación si un comercio Pro supera eso.
 - Al entrar sin sesión a una pantalla interna (por ejemplo `/alfa/productos`), después del login se vuelve a `/alfa` y no a esa pantalla.
@@ -125,20 +128,28 @@ Funciones auxiliares de RLS: `private.my_tenant_ids(roles)`, `private.my_teammat
 - Registro: en el primer intento de E2E, el envío antes de que cargaran React y Turnstile no mostró ni la confirmación ni un error. No se investigó; revisarlo con conexión lenta.
 - Invitaciones de staff (crear, enviar correo, `accept_invitation`): quedan para cuando exista la pantalla de equipo.
 - Sistema visual "Sobremesa" (`docs/design/sistema-visual.md`): lo usan el catálogo, el asistente, Ajustes y Pedidos. Falta llevar a esos tokens las pantallas viejas del panel del comercio (productos, categorías, inicio). El panel central usa "Grafito".
-- Catálogo público: el HTML sale con `Cache-Control: private, no-store` (prerender parcial con datos en el momento de la petición); lo que se cachea son los datos en el servidor (`'use cache'`). En Vercel sin `use cache: remote` esa caché vive por instancia. Evaluar en staging (etapa 10) caché de página o `use cache: remote`; la caché de página pide al menos un host en `generateStaticParams`.
+- Catálogo público: en local el HTML sale con `Cache-Control: private, no-store`; en Vercel sale `public, max-age=0, must-revalidate` y `X-Vercel-Cache: HIT` (la CDN guarda la página por host). Verificado en staging con un comercio: su catálogo no aparece en otros hosts y los cambios del panel se ven. Repetir con dos comercios a la vez y medir si conviene `use cache: remote` (la caché de datos `'use cache'` vive por instancia).
 - Catálogo público: ficha de producto con link propio (para compartir). No está en ninguna etapa del diseño; decidir cuándo.
-- Correo de confirmación: cargar `supabase/templates/confirmation.html` en los proyectos de staging y producción, y configurar SMTP con Resend (etapa 10). En local los correos se ven en Mailpit (`127.0.0.1:54324`).
+- Correo de confirmación e invitación: en staging ya salen por Resend (SMTP de `vidri.ar`, remitente `no-responder@vidri.ar`) con las plantillas del repo. Falta repetirlo en producción. Supabase no deja editar plantillas sin SMTP propio. En local los correos se ven en Mailpit (`127.0.0.1:54324`).
 - Staff: Storage le permite subir archivos a la carpeta `branding` de su comercio (la política es por miembro), pero no cambiar el logo ni la portada, que es una columna solo del dueño. Como mucho deja archivos huérfanos, que limpia el barrido de la tarea diaria.
 - `npm audit`: 17 alertas en herramientas de desarrollo (`picomatch` y `minimatch`, dentro de ESLint y Vitest). Producción tiene 0 (`npm audit --omit=dev`). `picomatch` no tiene versión corregida todavía. CI ya frena con `npm audit --omit=dev`; revisar las de desarrollo cuando salgan versiones corregidas. Nunca correr `npm audit fix --force` (baja ESLint y Vitest de versión mayor).
 - Las pruebas pgTAP de pedidos y alta cuentan sobre los datos del seed: correr `npm run db:test` justo después de `npm run db:reset`. Las de integración y el uso en el navegador suman datos.
 - Pedidos: el límite por IP usa `x-forwarded-for`, que en Vercel arma la plataforma. Fuera de Vercel ese header se puede falsificar (el límite de 200 por hora por comercio sigue valiendo). No servir la app detrás de otro proxy sin revisar esto.
-- Pedidos: Turnstile usa las claves de prueba públicas en local. Crear las claves reales de staging y producción en Cloudflare (etapa 10).
+- Pedidos: Turnstile usa las claves de prueba públicas en local. Staging tiene su sitio en Cloudflare; falta el de producción.
 - Pedidos: notas internas del comercio en cada pedido. El diseño las menciona pero no tienen columna; ver `docs/decisions/0002-pedidos-implementacion.md`.
 - Pedidos: Playwright cubre carrito → WhatsApp; la parte del panel (el pedido aparece y cambia de estado) sigue a mano.
 - Panel central: avisos por correo de prueba por vencer (la tarea diaria ya calcula a quién avisar) y resumen diario para vos. Requieren Resend (etapa 10).
 - Panel central: edición como soporte (cambiar catálogo o ajustes en nombre del comercio, auditada). Hoy el modo soporte es solo lectura.
-- Panel central: cargar `supabase/templates/invite.html`, activar MFA TOTP y configurar `CRON_SECRET` en staging y producción (etapa 10).
+- Panel central: en staging ya están la plantilla de invitación, MFA TOTP, `CRON_SECRET` y el administrador (sin seed). Falta producción.
 - Panel central: el título de la pestaña de un 404 dice el nombre de la pantalla (por ejemplo, "Comercios · Panel central"). No muestra datos, pero confirma que la pantalla existe.
+
+## Staging (cómo está armado)
+
+- Guía completa y checklist: `docs/runbooks/staging.md`. Dominio `vidri.ar` (NIC Argentina, DNS en Vercel). Staging en `staging.vidri.ar`, `app.`, `admin.` y `{slug}.staging.vidri.ar`.
+- Vercel: proyecto `vidri-staging` con rama de producción `staging` (así corren los crons). Supabase: proyecto `vidri-staging` (Free, Oregon; producción va en São Paulo). Correo: Resend con SMTP en Supabase. Turnstile: sitio propio.
+- Migraciones: job `migrate-staging` de `ci.yml`, después de CI, por el session pooler (la conexión directa de Supabase es solo IPv6 y GitHub no tiene IPv6) y con `--yes` (sin eso la CLI cancela al no poder confirmar).
+- Datos: sin seed. Los comercios de prueba se crean desde la app; el administrador se dio de alta con un `insert` en `platform_admins` desde el editor SQL.
+- Las claves secretas las carga siempre el usuario en cada panel (Vercel, Supabase, GitHub); nunca pasan por el chat ni por el repo.
 
 ## CI y E2E (cómo está armado)
 

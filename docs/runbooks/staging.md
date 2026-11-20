@@ -48,12 +48,12 @@ Las claves secretas se copian directo del panel de cada servicio a Vercel. No se
 4. [x] Agregar `staging.vidri.ar` y `*.staging.vidri.ar` en Vercel → Domains.
 5. [x] Delegar `vidri.ar` en NIC a los nameservers de Vercel.
 6. [x] Crear organización y proyecto en Supabase y aplicar las migraciones (12 aplicadas por `migrate-staging`).
-7. [ ] Configurar Auth en Supabase:
+7. [x] Configurar Auth en Supabase:
    - [x] Site URL `https://app.staging.vidri.ar`; redirecciones `https://app.staging.vidri.ar/auth/callback` y `https://admin.staging.vidri.ar/auth/callback`.
    - [x] Contraseña mínima 10 y "Secure password change" activado (igual que `config.toml`).
    - [x] MFA TOTP activado.
-   - [ ] Plantillas de correo (`supabase/templates/`): Supabase no deja editarlas sin SMTP propio. Con el SMTP por defecto manda las plantillas en inglés, cuyo enlace no lleva a `/nuevo`, y solo entrega correos a miembros de la organización de Supabase. Requiere Resend.
+   - [x] Plantillas de correo (`supabase/templates/`, sin el comentario inicial). Supabase no deja editarlas sin SMTP propio: SMTP de Resend (`smtp.resend.com`, puerto 465, usuario `resend`, contraseña = API key `supabase-staging` con permiso de solo envío) y remitente `Vidri <no-responder@vidri.ar>`. Dominio `vidri.ar` verificado en Resend (región São Paulo) con DKIM, SPF (`send`, `rsend`) y DMARC cargados en Vercel DNS.
 8. [x] Crear el sitio de Turnstile.
 9. [x] Cargar las variables de entorno en Vercel y volver a desplegar.
-10. [ ] Crear el usuario administrador (sin el seed: sus contraseñas están en el repo).
-11. [ ] Recorrer la plataforma en `staging.vidri.ar` y anotar lo que falle.
+10. [x] Crear el usuario administrador: "Invite user" desde Supabase y después, en el editor SQL, `insert into public.platform_admins (user_id, role) select id, 'superadmin' from auth.users where email = '…'`. MFA TOTP activado al primer ingreso.
+11. [x] Recorrer la plataforma: registro → correo → asistente → producto con foto → publicar → pedido por WhatsApp → panel de pedidos; panel central con MFA, pago registrado y auditoría. `www` redirige bien. Caché revisada con un comercio, sin filtraciones.
