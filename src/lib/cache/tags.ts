@@ -10,4 +10,9 @@ export const cacheTags = {
   tenantCatalog: (tenantId: string) => `tenant:${tenantId}:catalog`,
   /** Configuración pública y horarios de un comercio (getStorefront). */
   tenantSettings: (tenantId: string) => `tenant:${tenantId}:settings`,
+  /**
+   * Planes públicos de la página principal. Único tag global: los planes son datos de la
+   * plataforma, no de un comercio. Se invalida solo al desplegar (los precios cambian por migración).
+   */
+  plans: () => "plans",
 };
