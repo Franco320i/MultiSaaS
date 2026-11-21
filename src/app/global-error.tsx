@@ -10,7 +10,7 @@ import { sentryEnabled } from "@/lib/observability/sentry-options";
 export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   useEffect(() => {
     if (!sentryEnabled) return;
-    import("@sentry/nextjs")
+    import("@/lib/observability/sentry-client")
       .then((Sentry) => Sentry.captureException(error))
       .catch(() => {});
   }, [error]);
