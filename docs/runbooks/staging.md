@@ -60,8 +60,9 @@ Las claves secretas se copian directo del panel de cada servicio a Vercel. No se
 9. [x] Cargar las variables de entorno en Vercel y volver a desplegar.
 10. [x] Crear el usuario administrador: "Invite user" desde Supabase y después, en el editor SQL, `insert into public.platform_admins (user_id, role) select id, 'superadmin' from auth.users where email = '…'`. MFA TOTP activado al primer ingreso.
 11. [x] Recorrer la plataforma: registro → correo → asistente → producto con foto → publicar → pedido por WhatsApp → panel de pedidos; panel central con MFA, pago registrado y auditoría. `www` redirige bien. Caché revisada con un comercio, sin filtraciones.
-12. [ ] Sentry (10d):
-   - [ ] Crear la cuenta gratis en sentry.io (plan Developer) y un proyecto de tipo Next.js llamado `vidri`. Saltear el asistente de instalación: el código ya está.
-   - [ ] Copiar el DSN y cargar `NEXT_PUBLIC_SENTRY_DSN` y `NEXT_PUBLIC_SENTRY_ENVIRONMENT=staging` en Vercel; volver a desplegar.
-   - [ ] Revisar que la alerta de "problema nuevo" mande correo (Alerts; viene activa por defecto).
-   - [ ] Probar: un error real llega a Sentry con el host del comercio y sin teléfonos, correos ni direcciones.
+12. [x] Sentry (10d):
+   - [x] Crear la cuenta gratis en sentry.io (plan Developer, organización `vidri`) y un proyecto de tipo Next.js llamado `vidri`. Saltear el asistente de instalación: el código ya está.
+   - [x] Copiar el DSN y cargar `NEXT_PUBLIC_SENTRY_DSN` y `NEXT_PUBLIC_SENTRY_ENVIRONMENT=staging` en Vercel. Después hay que volver a publicar **la versión más nueva**: "Redeploy" sobre una publicación vieja vuelve a poner código viejo en línea (pasó el 2026-11-21).
+   - [x] Organization Settings → Security & Privacy → **Prevent Storing of IP Addresses** activado: Sentry anota la IP de quien tuvo el error al recibirlo, aunque la app no la mande. Queda la ciudad aproximada.
+   - [x] Alerta de "problema nuevo" por correo (viene activa por defecto).
+   - [x] Probado el 2026-11-21: un error del navegador en staging llegó con `host` = staging.vidri.ar, entorno `staging`, teléfono y correo tachados, sin parámetros de la URL, sin cookies e IP `<redacted>`.
