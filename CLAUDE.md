@@ -26,7 +26,7 @@ Idioma: el usuario habla español rioplatense. Código, nombres de tablas y colu
 | 7 | Pedidos + WhatsApp | Hecha |
 | 8 | Alta de comercios (`provision_tenant` + asistente) | Hecha |
 | 9 | Panel central | Hecha |
-| 10 | CI, staging, producción, migración de clientes actuales | En curso: 10a (CI y E2E), 10b (GitHub) y 10c (staging) hechas; sigue 10d (avisos por correo y Sentry) |
+| 10 | CI, staging, producción, migración de clientes actuales | En curso: 10a (CI y E2E), 10b (GitHub), 10c (staging) y 10d (Sentry y tarea diaria sin suspensión) hechas; sigue 10e (producción, desde el 2026-11-23) |
 
 ## Skills y hooks del proyecto
 
@@ -129,7 +129,7 @@ Funciones auxiliares de RLS: `private.my_tenant_ids(roles)`, `private.my_teammat
 - Invitaciones de staff (crear, enviar correo, `accept_invitation`): quedan para cuando exista la pantalla de equipo.
 - Sistema visual "Sobremesa" (`docs/design/sistema-visual.md`): lo usan el catálogo, el asistente, Ajustes y Pedidos. Falta llevar a esos tokens las pantallas viejas del panel del comercio (productos, categorías, inicio). El panel central usa "Grafito" y la página principal, el registro y los legales usan "Noche".
 - Catálogo público: en local el HTML sale con `Cache-Control: private, no-store`; en Vercel sale `public, max-age=0, must-revalidate` y `X-Vercel-Cache: HIT` (la CDN guarda la página por host). Verificado en staging con un comercio: su catálogo no aparece en otros hosts y los cambios del panel se ven. Repetir con dos comercios a la vez y medir si conviene `use cache: remote` (la caché de datos `'use cache'` vive por instancia).
-- Página principal (`src/app/(marketing)`, estilo "Noche"): los precios son provisorios (salen de la tabla `plans`, se cambian por migración y se ven al desplegar). Términos y privacidad tienen los datos del responsable como `[PENDIENTE]` y `noindex`: completarlos, que los revise un abogado y sacar el `noindex` antes de producción. El botón "Mirá un catálogo de ejemplo" aparece solo con `DEMO_CATALOG_SLUG` y `DEMO_TENANT_ID` cargados en Vercel y ese comercio publicado (el id evita que otro que registre el mismo slug quede anunciado): crear el comercio de ejemplo desde la app y cargar las dos variables. La pregunta del fin de la prueba no promete aviso: sumarlo cuando estén los correos de 10d.
+- Página principal (`src/app/(marketing)`, estilo "Noche"): los precios son provisorios (salen de la tabla `plans`, se cambian por migración y se ven al desplegar). Términos y privacidad tienen los datos del responsable como `[PENDIENTE]` y `noindex`: completarlos, que los revise un abogado y sacar el `noindex` antes de producción. El botón "Mirá un catálogo de ejemplo" aparece solo con `DEMO_CATALOG_SLUG` y `DEMO_TENANT_ID` cargados en Vercel y ese comercio publicado (el id evita que otro que registre el mismo slug quede anunciado): crear el comercio de ejemplo desde la app y cargar las dos variables. La pregunta del fin de la prueba no promete aviso, y está bien: no hay correos de vencimiento (decisión 0005).
 - Catálogo público: ficha de producto con link propio (para compartir). No está en ninguna etapa del diseño; decidir cuándo.
 - Correo de confirmación e invitación: en staging ya salen por Resend (SMTP de `vidri.ar`, remitente `no-responder@vidri.ar`) con las plantillas del repo. Falta repetirlo en producción. Supabase no deja editar plantillas sin SMTP propio. En local los correos se ven en Mailpit (`127.0.0.1:54324`).
 - Staff: Storage le permite subir archivos a la carpeta `branding` de su comercio (la política es por miembro), pero no cambiar el logo ni la portada, que es una columna solo del dueño. Como mucho deja archivos huérfanos, que limpia el barrido de la tarea diaria.
@@ -139,7 +139,9 @@ Funciones auxiliares de RLS: `private.my_tenant_ids(roles)`, `private.my_teammat
 - Pedidos: Turnstile usa las claves de prueba públicas en local. Staging tiene su sitio en Cloudflare; falta el de producción.
 - Pedidos: notas internas del comercio en cada pedido. El diseño las menciona pero no tienen columna; ver `docs/decisions/0002-pedidos-implementacion.md`.
 - Pedidos: Playwright cubre carrito → WhatsApp; la parte del panel (el pedido aparece y cambia de estado) sigue a mano.
-- Panel central: avisos por correo de prueba por vencer (la tarea diaria ya calcula a quién avisar) y resumen diario para vos. Requieren Resend (etapa 10).
+- Cobro manual y sin correos automáticos (decisión `docs/decisions/0005-avisos-y-errores.md`): la tarea diaria solo pasa a `past_due` y nunca suspende; suspender es a mano desde el panel central. Si llega el cobro automático (Mercado Pago), revisar si vuelve la suspensión automática.
+- Sentry: falta crear la cuenta y cargar `NEXT_PUBLIC_SENTRY_DSN` y `NEXT_PUBLIC_SENTRY_ENVIRONMENT` en Vercel (staging y después producción; paso 12 de `docs/runbooks/staging.md`). Sin mapas de código: los errores del navegador llegan minificados (se agregan con `SENTRY_AUTH_TOKEN` si hace falta).
+- Vercel `vidri-staging` arma una vista previa de cada push a `main`, que falla por no tener claves y manda un correo de error: Settings → Git → Ignored Build Step → "Only build production". No ponerlo en `vercel.json`: el proyecto de producción lee el mismo archivo.
 - Panel central: edición como soporte (cambiar catálogo o ajustes en nombre del comercio, auditada). Hoy el modo soporte es solo lectura.
 - Panel central: en staging ya están la plantilla de invitación, MFA TOTP, `CRON_SECRET` y el administrador (sin seed). Falta producción.
 - Panel central: el título de la pestaña de un 404 dice el nombre de la pantalla (por ejemplo, "Comercios · Panel central"). No muestra datos, pero confirma que la pantalla existe.
@@ -204,7 +206,8 @@ Funciones auxiliares de RLS: `private.my_tenant_ids(roles)`, `private.my_teammat
 - Acceso: `requirePlatformAdmin(ruta, rol)` (`src/core/admin/access.ts`) dentro de cada página y acción: sesión + `platform_admins` + MFA (aal2). `/mfa` para activarlo o pedir el código. Sin acceso → 404.
 - Datos: `src/core/admin/service.ts` (único archivo del panel con la clave secreta). Lecturas `admin_tenants` y `admin_overview`. Escrituras `admin_*`, auditadas y con motivo.
 - Pantallas en `src/app/admin/(panel)`: Resumen, Comercios (`?q=`, `?filtro=`, `?pagina=`), Ficha (cobros, estado, plan, extensión), Modo soporte (solo lectura, auditado), Alta asistida y Auditoría. Acciones en `actions.ts`, que al cambiar estado o vigencia invalidan el catálogo del comercio.
-- Tarea diaria: `GET /api/cron/daily` con `Authorization: Bearer <CRON_SECRET>` (vercel.json). Para probarla en local:
+- Errores: Sentry (`src/instrumentation.ts`, `src/instrumentation-client.ts`, `src/app/global-error.tsx`) con el filtro de privacidad `src/lib/observability/scrub.ts`. Sin `NEXT_PUBLIC_SENTRY_DSN` no se envía nada. Un dato nuevo que pueda traer datos de clientes en errores se agrega al filtro, con su prueba.
+- Tarea diaria (solo marca `past_due`, nunca suspende): `GET /api/cron/daily` con `Authorization: Bearer <CRON_SECRET>` (vercel.json). Para probarla en local:
 
 ```bash
 curl -H "Authorization: Bearer $(grep '^CRON_SECRET=' .env.local | cut -d= -f2)" http://localhost:3000/api/cron/daily

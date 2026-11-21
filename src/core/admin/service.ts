@@ -235,12 +235,8 @@ export async function runDailyMaintenance() {
   const supabase = createSupabaseServiceClient();
   const { data, error } = await supabase.rpc("daily_maintenance");
   if (error) throw new Error(`La tarea diaria falló: ${error.message}`);
-  return data as {
-    past_due: string[];
-    suspended: string[];
-    rate_limits_cleaned: number;
-    notify_trial_ending: { tenant_id: string; name: string; days_left: number }[];
-  };
+  // Solo marca lo vencido como pago pendiente; nunca suspende (migración 20261121174420).
+  return data as { past_due: string[]; rate_limits_cleaned: number };
 }
 
 // -----------------------------------------------------------------------------

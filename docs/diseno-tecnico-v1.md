@@ -57,7 +57,7 @@ proyecto/
 │  │  └─ api/
 │  │     ├─ orders/route.ts         # crear pedido (host del catálogo)
 │  │     ├─ uploads/route.ts        # subir y procesar imágenes
-│  │     └─ cron/daily/route.ts     # vencimientos, suspensiones, avisos
+│  │     └─ cron/daily/route.ts     # vencimientos (sin suspender) y limpieza
 │  ├─ core/                         # núcleo compartido, sin UI de negocio
 │  │  ├─ tenancy/                   # resolver host, requireTenantAccess, límites de plan
 │  │  ├─ auth/                      # sesión, roles, permisos (can)
@@ -422,7 +422,9 @@ Re-codificar en el servidor garantiza que lo que se publica es una imagen limpia
 
 ### Trabajo automático diario
 
-Un cron de Vercel llama una vez por día a `/api/cron/daily`, protegido con `CRON_SECRET`. Hace cuatro cosas: avisa por email a las pruebas que vencen en 4 días y en 1 día; pasa a `past_due` lo vencido sin pago; suspende lo que lleva 5 días en `past_due`; y te envía un resumen. Las transiciones las ejecuta una función de Postgres idempotente: correrla dos veces no cambia el resultado.
+Un cron de Vercel llama una vez por día a `/api/cron/daily`, protegido con `CRON_SECRET`. Pasa a `past_due` lo vencido sin pago (el catálogo sigue visible) y limpia límites de frecuencia viejos y fotos huérfanas. La transición la ejecuta una función de Postgres idempotente: correrla dos veces no cambia el resultado.
+
+**Cambio del 2026-11-21 (etapa 10d, ver `docs/decisions/0005-avisos-y-errores.md`):** con cobro manual, la tarea diaria **nunca suspende sola** (suspender es una acción del panel central, con motivo) y **no se envían correos**: ni avisos de prueba por vencer a los comercios ni resumen diario. Lo vencido y lo atrasado se ve en el panel central (Resumen y filtros "Pruebas que vencen en 7 días" y "Pago pendiente"). Los errores de la app llegan por Sentry.
 
 ## 10. Flujo desde el registro hasta el catálogo en uso
 
@@ -463,7 +465,7 @@ Si la transacción del paso 3 falla, no queda nada a medias. Si el usuario vuelv
 | --- | --- | --- | --- |
 | `trial` | Visible si está publicado | Completo, con aviso de días restantes | `active` al registrarse un pago; `past_due` al vencer sin pago |
 | `active` | Visible | Completo | `past_due` al vencer el período sin pago |
-| `past_due` | Visible (5 días de gracia) | Completo, con aviso de pago | `active` con pago; `suspended` a los 5 días |
+| `past_due` | Visible | Completo, con aviso de pago | `active` con pago; `suspended` solo a mano desde el panel central (desde el 2026-11-21 no hay suspensión automática) |
 | `suspended` | "Catálogo no disponible" | Solo lectura, con aviso y link de pago | `active` con pago; `cancelled` a pedido o a los 90 días |
 | `cancelled` | 404 | Sin acceso | Purga manual de datos según política publicada |
 
@@ -552,7 +554,7 @@ Los tags se arman solo en `lib/cache/tags.ts` y cada server action que modifica 
 6. **Rutas del panel siempre dinámicas:** una prueba de CI revisa la salida de `next build` y falla si alguna ruta de `/panel` o `/admin` sale como estática.
 7. **Invalidar después de confirmar:** primero termina la escritura, después se invalida; nunca con un ID que mandó el navegador.
 8. **Errores públicos genéricos:** "producto no disponible", nunca "el producto pertenece a otro comercio".
-9. **Logs sin datos personales:** Sentry etiqueta `tenant_id` y borra teléfonos, direcciones y cuerpos de petición.
+9. **Logs sin datos personales:** Sentry etiqueta el comercio por su host y borra teléfonos, correos, cuerpos de petición, cookies, headers, parámetros de las URLs y variables locales (`src/lib/observability/scrub.ts`).
 10. **Panel y admin con `noindex`** y fuera de `robots.txt` de los catálogos.
 
 La regla 1 es la más importante: un `getCatalog()` que leyera el host de los headers dentro de la caché serviría el catálogo del primer comercio que lo pidió a todos los demás. La prueba E2E de la sección 13 que edita Alfa y mira Beta existe para detectar exactamente eso.
@@ -635,10 +637,10 @@ Los previews de Vercel por PR sirven para probar panel y admin; los catálogos s
 | `ROOT_DOMAIN` | No | `tuapp.com.ar`, `staging.tuapp.com.ar` o `localhost` |
 | `NEXT_PUBLIC_IMAGES_BASE_URL` | Sí | Base de URLs de imágenes |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY` | Sí / No | Anti-bots |
-| `RESEND_API_KEY` | No | Correos propios (avisos de vencimiento, invitaciones) |
+| `RESEND_API_KEY` | No | Correos propios (hoy los de Supabase Auth salen por SMTP de Resend; sin avisos de vencimiento desde el 2026-11-21) |
 | `CRON_SECRET` | No | Protege `/api/cron/daily` |
 | `IP_HASH_SALT` | No | Hash de IPs para límites de frecuencia |
-| `SENTRY_DSN` | Sí | Errores |
+| `NEXT_PUBLIC_SENTRY_DSN` / `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | Sí / Sí | Errores (opcionales: sin DSN no se envía nada) |
 
 Todas se validan con Zod al arrancar (`lib/env.ts`): si falta una, la app no levanta. Cada entorno tiene claves propias; MFA en GitHub, Vercel, Supabase, el registrador del dominio y tu correo.
 

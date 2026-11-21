@@ -174,7 +174,9 @@ reset role;
 -- =============================================================================
 -- Tarea diaria
 -- =============================================================================
--- Alfa: período vencido ayer → past_due. Gamma: vencida hace 6 días y en past_due → suspended.
+-- Alfa: período vencido ayer → past_due. Gamma: vencida hace 6 días y en past_due → sigue en
+-- past_due: la tarea diaria nunca suspende sola (cobro manual, decisión del 2026-11-21);
+-- suspender es una acción del panel central.
 update public.subscriptions set current_period_end = now() - interval '1 day' where tenant_id = pg_temp.k('alfa');
 update public.tenants set status = 'past_due' where id = pg_temp.k('gamma');
 update public.subscriptions set current_period_end = now() - interval '6 days', status = 'past_due' where tenant_id = pg_temp.k('gamma');
@@ -184,18 +186,21 @@ set local role service_role;
 create temp table run1 on commit drop as select public.daily_maintenance() as r;
 reset role;
 select is((select r -> 'past_due' from run1), jsonb_build_array(pg_temp.k('alfa')), 'tarea diaria: Alfa pasa a pago pendiente');
-select is((select r -> 'suspended' from run1), jsonb_build_array(pg_temp.k('gamma')), 'tarea diaria: Gamma se suspende');
+select is((select r ? 'suspended' from run1), false, 'tarea diaria: ya no informa suspensiones');
+select is((select r ? 'notify_trial_ending' from run1), false, 'tarea diaria: ya no calcula avisos por correo');
 select ok((select (r ->> 'rate_limits_cleaned')::int >= 1 from run1), 'tarea diaria: limpia rate_limits viejos');
 select is((select status from public.tenants where id = pg_temp.k('alfa')), 'past_due', 'Alfa en past_due');
-select is((select status || ' / ' || status_reason from public.tenants where id = pg_temp.k('gamma')),
-          'suspended / Falta de pago (suspensión automática)', 'Gamma suspendida con motivo automático');
-select is((select count(*)::int from public.audit_log where actor_kind = 'system' and action in ('tenant.past_due', 'tenant.suspended')), 2,
-          'los cambios automáticos quedan auditados como system');
+select is((select status from public.tenants where id = pg_temp.k('gamma')), 'past_due',
+          'Gamma sigue en pago pendiente: la tarea diaria no suspende');
+select is((select count(*)::int from public.audit_log where actor_kind = 'system' and action = 'tenant.suspended'), 0,
+          'ninguna suspensión automática');
+select is((select count(*)::int from public.audit_log where actor_kind = 'system' and action = 'tenant.past_due'), 1,
+          'el paso a pago pendiente queda auditado como system');
 
 set local role service_role;
 create temp table run2 on commit drop as select public.daily_maintenance() as r;
 reset role;
-select is((select (r -> 'past_due') || (r -> 'suspended') from run2), '[]'::jsonb, 'correrla de nuevo no cambia nada (idempotente)');
+select is((select r -> 'past_due' from run2), '[]'::jsonb, 'correrla de nuevo no cambia nada (idempotente)');
 
 -- =============================================================================
 -- Alta asistida

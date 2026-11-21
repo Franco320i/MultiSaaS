@@ -8,11 +8,10 @@ import { env } from "@/lib/env";
  * GET /api/cron/daily · Tarea diaria (diseño, sección 9). La llama Vercel Cron una vez
  * por día (vercel.json) con "Authorization: Bearer <CRON_SECRET>".
  *
- * 1. Vencimientos: prueba o período vencido → pago pendiente; 5 días después → suspendido
- *    (private.daily_maintenance, idempotente). Invalida el catálogo de cada comercio que cambió.
+ * 1. Vencimientos: prueba o período vencido sin pago → pago pendiente (private.daily_maintenance,
+ *    idempotente). El catálogo sigue visible y nunca se suspende solo: con cobro manual, suspender
+ *    es una decisión del panel central (decisión del 2026-11-21). Sin correos a los comercios.
  * 2. Limpieza: rate_limits viejos (en la misma función) y fotos huérfanas en Storage.
- * 3. Avisos de prueba por vencer: por ahora quedan en el log y en la respuesta; el envío
- *    por correo se conecta con Resend en la etapa 10.
  */
 
 function authorized(request: Request): boolean {
@@ -28,26 +27,18 @@ export async function GET(request: Request) {
   }
 
   const maintenance = await runDailyMaintenance();
-  const changed = [...maintenance.past_due, ...maintenance.suspended];
-  for (const tenantId of changed) {
-    // Lo suspendido tiene que dejar de verse ya: sin servir la versión vieja.
+  for (const tenantId of maintenance.past_due) {
+    // El estado del comercio cambió: que el catálogo cacheado lo refleje.
     revalidateTag(cacheTags.tenantSettings(tenantId), { expire: 0 });
     for (const host of await tenantHosts(tenantId)) revalidateTag(cacheTags.host(host), { expire: 0 });
   }
 
   const sweep = await sweepOrphanImages();
 
-  if (maintenance.notify_trial_ending.length > 0) {
-    // TODO etapa 10: enviar con Resend. Sin datos personales en el log: solo id y días.
-    console.info("Pruebas por vencer (avisar por correo)", maintenance.notify_trial_ending.map((t) => ({ tenant: t.tenant_id, days: t.days_left })));
-  }
-
   return Response.json(
     {
       pastDue: maintenance.past_due.length,
-      suspended: maintenance.suspended.length,
       rateLimitsCleaned: maintenance.rate_limits_cleaned,
-      trialEndingNotices: maintenance.notify_trial_ending.length,
       orphanImages: sweep,
     },
     { headers: { "Cache-Control": "no-store" } },

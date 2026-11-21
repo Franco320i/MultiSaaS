@@ -52,8 +52,7 @@ describe("panel central (base real, clave secreta local)", () => {
   it("la tarea diaria es idempotente", async () => {
     await admin.runDailyMaintenance();
     const second = await admin.runDailyMaintenance();
-    expect(second.past_due).toEqual([]);
-    expect(second.suspended).toEqual([]);
+    expect(second).toEqual({ past_due: [], rate_limits_cleaned: 0 });
   });
 
   it("alta asistida: invita al dueño nuevo y crea su comercio en prueba", async () => {

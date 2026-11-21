@@ -18,7 +18,8 @@ Dominio de la plataforma: `vidri.ar` (registrado en NIC Argentina).
 - **Supabase:** organización `vidri-staging` (plan Free, separada de producción) con el proyecto `vidri-staging` (ref `eysiaanpcwbxmxiwiscy`). Quedó en West US (Oregon), no en São Paulo: para staging alcanza; producción va en São Paulo. Se pausa tras una semana sin uso.
 - **Migraciones:** las aplica el job `migrate-staging` de `ci.yml` después de CI, por el session pooler (`aws-0-us-west-2.pooler.supabase.com`): la conexión directa es solo IPv6 y GitHub no tiene IPv6. Secretos del repo: `STAGING_PROJECT_REF` y `STAGING_DB_PASSWORD`.
 - **Cloudflare Turnstile:** un sitio para `staging.vidri.ar` con sus dos claves.
-- **Correos:** el SMTP propio de Supabase alcanza para probar (pocos por hora). Resend llega en 10d.
+- **Correos:** los de Supabase Auth (confirmación, invitación) salen por el SMTP de Resend (paso 7). La app no manda otros correos (decisión 0005).
+- **Sentry:** avisos de errores (etapa 10d). Una cuenta gratis, un proyecto Next.js para staging y producción; el entorno los separa. Sin datos personales (decisión 0005).
 
 ## Variables de entorno en Vercel (entorno Production del proyecto `vidri-staging`)
 
@@ -33,6 +34,8 @@ Dominio de la plataforma: `vidri.ar` (registrado en NIC Argentina).
 | `TURNSTILE_SECRET_KEY` | Cloudflare Turnstile → clave secreta. Sensitive |
 | `IP_HASH_SALT` | Generar una por entorno (comando abajo). Sensitive |
 | `CRON_SECRET` | Generar una por entorno (comando abajo). Sensitive |
+| `NEXT_PUBLIC_SENTRY_DSN` | Sentry → proyecto → Settings → Client Keys (DSN). No es secreta |
+| `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | `staging` |
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(24).toString('base64url'))"
@@ -57,3 +60,8 @@ Las claves secretas se copian directo del panel de cada servicio a Vercel. No se
 9. [x] Cargar las variables de entorno en Vercel y volver a desplegar.
 10. [x] Crear el usuario administrador: "Invite user" desde Supabase y después, en el editor SQL, `insert into public.platform_admins (user_id, role) select id, 'superadmin' from auth.users where email = '…'`. MFA TOTP activado al primer ingreso.
 11. [x] Recorrer la plataforma: registro → correo → asistente → producto con foto → publicar → pedido por WhatsApp → panel de pedidos; panel central con MFA, pago registrado y auditoría. `www` redirige bien. Caché revisada con un comercio, sin filtraciones.
+12. [ ] Sentry (10d):
+   - [ ] Crear la cuenta gratis en sentry.io (plan Developer) y un proyecto de tipo Next.js llamado `vidri`. Saltear el asistente de instalación: el código ya está.
+   - [ ] Copiar el DSN y cargar `NEXT_PUBLIC_SENTRY_DSN` y `NEXT_PUBLIC_SENTRY_ENVIRONMENT=staging` en Vercel; volver a desplegar.
+   - [ ] Revisar que la alerta de "problema nuevo" mande correo (Alerts; viene activa por defecto).
+   - [ ] Probar: un error real llega a Sentry con el host del comercio y sin teléfonos, correos ni direcciones.
