@@ -540,6 +540,9 @@ isOneToOne: false
                            },
 "storefront_by_host":
 { Args: { "p_host": string }; Returns: Json
+                           },
+"tenant_order_stats":
+{ Args: { "p_now"?: string,"p_tenant_id": string }; Returns: Json
                            }
           }
           Enums: {

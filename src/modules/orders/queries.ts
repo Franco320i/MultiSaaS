@@ -2,6 +2,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database";
 import { CLOSED_STATUSES, OPEN_STATUSES, type OrderStatus } from "./status";
+import { parseOrderStats, type OrderStats } from "./stats";
 
 /**
  * Lecturas de pedidos para el panel, con la SESIÓN del usuario (RLS actúa).
@@ -108,4 +109,14 @@ export async function getOrder(supabase: Client, tenantId: string, id: string): 
 export async function getTenantTimeZone(supabase: Client, tenantId: string): Promise<string> {
   const { data } = await supabase.from("tenant_settings").select("timezone").eq("tenant_id", tenantId).maybeSingle();
   return data?.timezone ?? "America/Argentina/Buenos_Aires";
+}
+
+/**
+ * Números del mes para la tarjeta del inicio (public.tenant_order_stats, SECURITY INVOKER:
+ * RLS deja ver solo los comercios del usuario). null si falla: el inicio sigue sin la tarjeta.
+ */
+export async function getOrderStats(supabase: Client, tenantId: string): Promise<OrderStats | null> {
+  const { data, error } = await supabase.rpc("tenant_order_stats", { p_tenant_id: tenantId });
+  if (error) return null;
+  return parseOrderStats(data);
 }
