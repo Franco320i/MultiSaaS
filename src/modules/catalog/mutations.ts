@@ -5,6 +5,9 @@ import type { Database } from "@/types/database";
 import { productImageObjects, removeObjects } from "./images";
 import type { CategoryForm, ProductFlag, ProductForm } from "./schemas";
 
+/** Lo que guarda un producto. Etiquetas y características son opcionales: el importador no las toca. */
+export type ProductInput = Omit<ProductForm, "tags" | "specs"> & Partial<Pick<ProductForm, "tags" | "specs">>;
+
 /**
  * Escrituras del catálogo. Sin dependencias de Next.js para poder probarlas contra
  * la base local con sesiones reales. Reciben el tenantId YA verificado por
@@ -106,7 +109,7 @@ export async function deleteCategory(supabase: Client, tenantId: string, id: str
 // Productos
 // -----------------------------------------------------------------------------
 
-function productValues(form: ProductForm) {
+function productValues(form: ProductInput) {
   return {
     name: form.name,
     description: form.description,
@@ -116,10 +119,12 @@ function productValues(form: ProductForm) {
     is_published: form.is_published,
     is_available: form.is_available,
     is_featured: form.is_featured,
+    ...(form.tags ? { tags: form.tags } : {}),
+    ...(form.specs ? { specs: form.specs } : {}),
   };
 }
 
-export async function createProduct(supabase: Client, tenantId: string, form: ProductForm): Promise<MutationResult> {
+export async function createProduct(supabase: Client, tenantId: string, form: ProductInput): Promise<MutationResult> {
   const base = slugify(form.name, 120);
   const position = await nextPosition(supabase, "catalog_products", tenantId);
 
@@ -139,7 +144,7 @@ export async function updateProduct(
   supabase: Client,
   tenantId: string,
   id: string,
-  form: ProductForm,
+  form: ProductInput,
 ): Promise<MutationResult> {
   const { data, error } = await supabase
     .from("catalog_products")

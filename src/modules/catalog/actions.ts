@@ -15,6 +15,7 @@ import {
   firstError,
   idSchema,
   productFlagSchema,
+  productFormFromData,
   productFormSchema,
 } from "./schemas";
 
@@ -42,6 +43,10 @@ function submitted(formData: FormData): Record<string, string> {
     const value = formData.get(key);
     if (typeof value === "string") fields[key] = value.slice(0, 2000);
   }
+  // Campos repetidos: etiquetas separadas por coma y filas de características en JSON.
+  const raw = productFormFromData(formData);
+  if (Array.isArray(raw.tags) && raw.tags.length > 0) fields.tags = raw.tags.join(",");
+  if (Array.isArray(raw.specs) && raw.specs.length > 0) fields.specs = JSON.stringify(raw.specs).slice(0, 4000);
   return fields;
 }
 
@@ -112,7 +117,7 @@ export async function moveCategoryAction(tenantSlug: string, categoryId: string,
 
 export async function createProductAction(tenantSlug: string, _prev: FormState, formData: FormData): Promise<FormState> {
   const { access, supabase } = await context(tenantSlug);
-  const parsed = productFormSchema.safeParse(Object.fromEntries(formData));
+  const parsed = productFormSchema.safeParse(productFormFromData(formData));
   if (!parsed.success) return { error: firstError(parsed.error), fields: submitted(formData) };
 
   const result = await mutations.createProduct(supabase, access.tenantId, parsed.data);
@@ -129,7 +134,7 @@ export async function updateProductAction(
 ): Promise<FormState> {
   const { access, supabase } = await context(tenantSlug);
   const id = idSchema.safeParse(productId);
-  const parsed = productFormSchema.safeParse(Object.fromEntries(formData));
+  const parsed = productFormSchema.safeParse(productFormFromData(formData));
   if (!id.success) return { error: "El producto no existe." };
   if (!parsed.success) return { error: firstError(parsed.error), fields: submitted(formData) };
 

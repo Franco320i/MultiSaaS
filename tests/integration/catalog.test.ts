@@ -1,7 +1,7 @@
 import { afterAll, describe, expect, it } from "vitest";
 import * as mutations from "@/modules/catalog/mutations";
 import { listProducts } from "@/modules/catalog/queries";
-import type { ProductForm } from "@/modules/catalog/schemas";
+import type { ProductInput } from "@/modules/catalog/mutations";
 import { SEED, signInAs } from "./helpers";
 
 const ALFA = SEED.tenants.alfa;
@@ -13,7 +13,7 @@ const ALFA_BURGERS = "a1000000-0000-4000-8000-000000000001";
 const tag = `prueba-${Date.now()}`;
 const created: string[] = [];
 
-function product(overrides: Partial<ProductForm> = {}): ProductForm {
+function product(overrides: Partial<ProductInput> = {}): ProductInput {
   return {
     name: `Producto ${tag}`,
     description: null,

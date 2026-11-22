@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { categoryFormSchema, firstError, productFormSchema } from "./schemas";
+import { categoryFormSchema, firstError, productFormFromData, productFormSchema } from "./schemas";
 
 /** Igual que hacen las Server Actions: Object.fromEntries(formData). */
 function form(fields: Record<string, string>) {
@@ -64,5 +64,67 @@ describe("categoryFormSchema", () => {
   it("acepta una categoría oculta (casilla sin tildar)", () => {
     const parsed = categoryFormSchema.safeParse(form({ name: "Postres", description: "" }));
     expect(parsed.data).toEqual({ name: "Postres", description: null, is_visible: false });
+  });
+});
+
+describe("etiquetas y características del producto", () => {
+  function data(extra: [string, string][]) {
+    const fd = new FormData();
+    fd.append("name", "Vestido Mar");
+    fd.append("price", "42.000");
+    for (const [k, v] of extra) fd.append(k, v);
+    return fd;
+  }
+
+  it("productFormFromData junta las etiquetas tildadas y las filas con datos", () => {
+    const raw = productFormFromData(
+      data([
+        ["tags", "nuevo"],
+        ["tags", "ultimas_unidades"],
+        ["spec_label", " Material "],
+        ["spec_value", "Lino"],
+        ["spec_label", ""],
+        ["spec_value", ""],
+        ["spec_label", "Talle"],
+        ["spec_value", "Único"],
+      ]),
+    );
+    const parsed = productFormSchema.parse(raw);
+    expect(parsed.tags).toEqual(["nuevo", "ultimas_unidades"]);
+    expect(parsed.specs).toEqual([
+      { label: "Material", value: "Lino" },
+      { label: "Talle", value: "Único" },
+    ]);
+  });
+
+  it("sin etiquetas ni características quedan vacías", () => {
+    const parsed = productFormSchema.parse(productFormFromData(data([])));
+    expect(parsed.tags).toEqual([]);
+    expect(parsed.specs).toEqual([]);
+  });
+
+  it("rechaza más de 3 etiquetas", () => {
+    const tags: [string, string][] = ["nuevo", "vegano", "picante", "sin_tacc"].map((t) => ["tags", t]);
+    const result = productFormSchema.safeParse(productFormFromData(data(tags)));
+    expect(result.success).toBe(false);
+    expect(firstError(result.error!)).toBe("Elegí hasta 3 etiquetas.");
+  });
+
+  it("rechaza una etiqueta fuera de la lista", () => {
+    expect(productFormSchema.safeParse(productFormFromData(data([["tags", "oferta"]]))).success).toBe(false);
+  });
+
+  it("pide el valor de una característica que tiene nombre", () => {
+    const result = productFormSchema.safeParse(productFormFromData(data([["spec_label", "Material"], ["spec_value", " "]])));
+    expect(result.success).toBe(false);
+    expect(firstError(result.error!)).toBe("Completá el valor de «Material».");
+  });
+
+  it("rechaza más de 8 características", () => {
+    const rows: [string, string][] = Array.from({ length: 9 }, (_, i) => [
+      ["spec_label", `L${i}`],
+      ["spec_value", "v"],
+    ]).flat() as [string, string][];
+    expect(productFormSchema.safeParse(productFormFromData(data(rows))).success).toBe(false);
   });
 });

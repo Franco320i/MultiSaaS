@@ -1,10 +1,12 @@
 "use client";
 
 import { useActionState } from "react";
+import { MAX_TAGS, PRODUCT_TAGS, type ProductSpec } from "@/lib/catalog-options";
 import { centsToInput } from "@/lib/money";
 import { Checkbox, FormError, Select, SubmitButton, TextArea, TextField } from "@/ui/form";
 import type { FormState } from "../actions";
 import type { Category, Product } from "../queries";
+import { SpecsEditor } from "./specs-editor";
 
 export function ProductForm({
   action,
@@ -23,6 +25,8 @@ export function ProductForm({
   const sent = state.fields;
   const value = (key: string, saved: string | null | undefined) => (sent ? (sent[key] ?? "") : (saved ?? ""));
   const checked = (key: string, saved: boolean) => (sent ? sent[key] === "on" : saved);
+  const tags = sent ? (sent.tags ?? "").split(",") : (product?.tags ?? []);
+  const specs: ProductSpec[] = sent ? parseSpecs(sent.specs) : ((product?.specs as ProductSpec[] | undefined) ?? []);
 
   return (
     // La key vuelve a montar el formulario tras un envío fallido: así un <select> también
@@ -73,6 +77,24 @@ export function ProductForm({
         defaultChecked={checked("is_available", product?.is_available ?? true)}
         hint="Destildalo cuando no haya stock: se muestra como agotado."
       />
+      <fieldset className="flex flex-col gap-2">
+        <legend className="mb-1 font-medium">
+          Etiquetas <span className="font-normal opacity-70">(hasta {MAX_TAGS})</span>
+        </legend>
+        <div className="flex flex-wrap gap-2">
+          {PRODUCT_TAGS.map((tag) => (
+            <label
+              key={tag.value}
+              className="flex min-h-11 items-center gap-2 rounded-full border border-foreground/20 px-4 has-[:checked]:border-foreground has-[:checked]:font-semibold"
+            >
+              <input type="checkbox" name="tags" value={tag.value} defaultChecked={tags.includes(tag.value)} className="size-4" />
+              {tag.label}
+            </label>
+          ))}
+        </div>
+        <p className="text-sm opacity-70">«Oferta» aparece sola cuando cargás un precio anterior.</p>
+      </fieldset>
+      <SpecsEditor initial={specs} />
       <Checkbox label="Destacado" name="is_featured" defaultChecked={checked("is_featured", product?.is_featured ?? false)} />
       <FormError message={state.error} />
       <div>
@@ -80,4 +102,14 @@ export function ProductForm({
       </div>
     </form>
   );
+}
+
+function parseSpecs(json: string | undefined): ProductSpec[] {
+  if (!json) return [];
+  try {
+    const rows: unknown = JSON.parse(json);
+    return Array.isArray(rows) ? rows.filter((r): r is ProductSpec => typeof r?.label === "string" && typeof r?.value === "string") : [];
+  } catch {
+    return [];
+  }
 }

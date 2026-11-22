@@ -27,11 +27,13 @@ export type Product = Pick<
   | "is_available"
   | "is_featured"
   | "position"
+  | "tags"
+  | "specs"
 >;
 
 const CATEGORY_COLUMNS = "id, name, slug, description, position, is_visible";
 const PRODUCT_COLUMNS =
-  "id, category_id, name, slug, description, price, compare_at_price, is_published, is_available, is_featured, position";
+  "id, category_id, name, slug, description, price, compare_at_price, is_published, is_available, is_featured, position, tags, specs";
 
 export async function listCategories(supabase: Client, tenantId: string): Promise<Category[]> {
   const { data, error } = await supabase
