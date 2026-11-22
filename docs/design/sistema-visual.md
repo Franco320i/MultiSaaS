@@ -59,15 +59,21 @@ Los tokens viven en `src/app/globals.css` (bloque `@theme` de Tailwind 4). Usalo
 
 ## Catálogo público
 
-- Diseñado a 375 px. En pantallas grandes, una columna de hasta 672 px centrada (se lee como una carta, no como una tienda en grilla).
-- Portada: foto del comercio o, si no tiene, un degradé de su color. Encima: nombre en `font-display`, frase y estado (abierto o cerrado).
-- Categorías: barra fija arriba, con desplazamiento horizontal. Cada una lleva a su sección.
-- Producto: nombre, descripción en 2 líneas, precio (y el anterior tachado si tiene) y foto cuadrada a la derecha. "Sin stock": etiqueta roja y el producto atenuado, pero visible.
+**Una sola plantilla para todos los locales** (decidido el 2026-11-22, `docs/superpowers/specs/2026-11-22-catalogo-nuevo-design.md`). Cada local personaliza portada, logo, nombre, frase y color; el resto es igual.
+
+- Diseñado a 375 px. Grilla de 2 columnas; 3 desde 640 px y 4 desde 1024 px, centrada hasta 1024 px.
+- Portada: foto del comercio o, si no tiene, un degradé de su color. Encima: nombre en `font-display` y frase.
+- Debajo: estado (abierto o cerrado), dirección con botón **"Cómo llegar"** (píldora con borde, ícono de mapa, abre Google Maps), "Ver horarios", chips de envío / mínimo / medios de pago (fila que se desliza) y el recuadro **"Todos los pedidos incluyen"** (superficie con borde, tildes del color de la marca, hasta 4 frases).
+- Buscador redondeado con lupa y, al lado, "Ordenar" (menor o mayor precio). Con búsqueda u orden activos se muestra una sola grilla de resultados; sin resultados, "No encontramos «…»" y "Borrar la búsqueda".
+- Categorías: **píldoras** fijas arriba (la activa rellena con la marca, las demás con borde), con desplazamiento horizontal. Cada una lleva a su sección. Primera sección: "Destacados".
+- Tarjeta: foto 4:5 (`rounded-xl`; sin foto, bloque de la marca con el nombre en `font-display`), contador "N fotos" si tiene varias, etiquetas (Oferta rellena con la marca, el resto en `surface-muted`), nombre, precio, anterior tachado y **"Ahorrás $ …"** en `accent`, y "Agregar" a lo ancho. "Sin stock": etiqueta roja, foto atenuada, sin botón.
+- **Ficha del producto** (`<dialog>`): sube desde abajo en el celular (hasta 92 % del alto, esquinas de arriba redondeadas) y es una ventana centrada de hasta 512 px en pantallas grandes. Fotos con desplazamiento y puntitos, X redonda arriba a la derecha, etiquetas, nombre en `font-display`, precio grande, descripción completa, tabla de características (nombre en `muted`, valor en negrita) y abajo, fijo, el botón principal **"Agregar · $ precio"** relleno con la marca. "Atrás" del celular la cierra.
+- Íconos SVG dibujados (`components/storefront/icons.tsx`), nunca emojis.
 - Sin datos de la plataforma arriba. La marca es la del comercio.
 
 ### Pedido (etapa 7)
 
-- **Agregar:** botón de píldora con borde del color del comercio, debajo del precio. Cuando el producto ya está en el pedido, pasa a un selector `− cantidad +` relleno con la marca. Botones de 44 px. Los productos sin stock no tienen botón.
+- **Agregar:** en la tarjeta, botón de píldora a lo ancho con borde del color del comercio; en la ficha, botón principal relleno con el precio. Cuando el producto ya está en el pedido, pasa a un selector `− cantidad +` relleno con la marca. Botones de 44 px. Los productos sin stock no tienen botón.
 - **Barra "Ver pedido · N"**: fija abajo, del color del comercio, con el total a la derecha y un degradé del fondo detrás para que no tape el contenido de golpe. Es la única sombra del catálogo. Se oculta con el pedido vacío o con la hoja abierta.
 - **Hoja del pedido** (`<dialog>`): pantalla completa en el celular y ventana centrada de hasta 512 px en pantallas grandes. Contiene líneas con selector, "¿Cómo lo recibís?" (dos opciones grandes: retiro o envío con su costo), datos del cliente, resumen y un único botón principal abajo, "Enviar pedido por WhatsApp".
 - Los avisos que bloquean el envío (cerrado, pedido mínimo) van en una línea sobre el botón, en `muted`. Los errores del servidor van en `danger` sobre `danger-soft` con `role="alert"`.
