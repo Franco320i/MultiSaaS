@@ -80,3 +80,28 @@ describe("horarios", () => {
     expect(hoursSchema.safeParse([{ weekday: 1, opens_at: "25:00", closes_at: "09:00" }]).success).toBe(false);
   });
 });
+
+describe("contactSchema: medios de pago y Todos los pedidos incluyen", () => {
+  const base = { whatsapp_phone: "+5492954123456", instagram: "" };
+  it("acepta medios de la lista y descarta frases vacías", () => {
+    const parsed = contactSchema.parse({ ...base, payment_methods: ["efectivo", "mercado_pago"], highlights: ["Funda de regalo", "", "  "] });
+    expect(parsed.payment_methods).toEqual(["efectivo", "mercado_pago"]);
+    expect(parsed.highlights).toEqual(["Funda de regalo"]);
+  });
+  it("sin nada tildado queda vacío", () => {
+    const parsed = contactSchema.parse(base);
+    expect(parsed.payment_methods).toEqual([]);
+    expect(parsed.highlights).toEqual([]);
+  });
+  it("rechaza un medio de pago fuera de la lista", () => {
+    expect(contactSchema.safeParse({ ...base, payment_methods: ["cheque"] }).success).toBe(false);
+  });
+  it("rechaza una frase de más de 60 letras con un mensaje claro", () => {
+    const result = contactSchema.safeParse({ ...base, highlights: ["x".repeat(61)] });
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0]?.message).toBe("Cada frase puede tener hasta 60 letras.");
+  });
+  it("rechaza más de 4 frases", () => {
+    expect(contactSchema.safeParse({ ...base, highlights: ["a", "b", "c", "d", "e"] }).success).toBe(false);
+  });
+});

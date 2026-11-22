@@ -37,6 +37,9 @@ function fieldsOf(formData: FormData): Record<string, string> {
   for (const [key, value] of formData.entries()) {
     if (typeof value === "string" && !key.startsWith("$")) fields[key] = value.slice(0, 600);
   }
+  // Casillas con el mismo nombre: se guardan todas, separadas por coma.
+  const payments = formData.getAll("payment_methods").filter((v) => typeof v === "string");
+  if (payments.length > 0) fields.payment_methods = payments.join(",");
   return fields;
 }
 
@@ -126,6 +129,8 @@ export async function saveContactAction(slug: string, _prev: SettingsFormState, 
     instagram: formData.get("instagram") ?? "",
     address: formData.get("address") ?? undefined,
     city: formData.get("city") ?? undefined,
+    payment_methods: formData.getAll("payment_methods"),
+    highlights: [0, 1, 2, 3].map((i) => formData.get(`highlight_${i}`) ?? ""),
   });
   if (!contact.success) return { error: contact.error.issues[0]?.message, fields: fieldsOf(formData) };
   const delivery = deliverySchema.safeParse({

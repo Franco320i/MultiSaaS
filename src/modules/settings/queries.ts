@@ -27,6 +27,8 @@ export type TenantSettings = Pick<
   | "accepts_delivery"
   | "delivery_fee"
   | "min_order_amount"
+  | "payment_methods"
+  | "highlights"
 >;
 
 export type BusinessTemplate = { key: string; name: string; brand: string | null };
@@ -41,7 +43,7 @@ export type SetupStatus = {
 };
 
 const SETTINGS_COLUMNS =
-  "display_name, tagline, description, logo_path, cover_path, theme, template_key, whatsapp_phone, instagram, address, city, currency, accepts_pickup, accepts_delivery, delivery_fee, min_order_amount";
+  "display_name, tagline, description, logo_path, cover_path, theme, template_key, whatsapp_phone, instagram, address, city, currency, accepts_pickup, accepts_delivery, delivery_fee, min_order_amount, payment_methods, highlights";
 
 export async function getSettings(supabase: Client, tenantId: string): Promise<TenantSettings> {
   const { data, error } = await supabase.from("tenant_settings").select(SETTINGS_COLUMNS).eq("tenant_id", tenantId).single();

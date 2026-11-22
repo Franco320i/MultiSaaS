@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { isValidSlug } from "@/core/tenancy/slug";
+import { HIGHLIGHT_MAX, MAX_HIGHLIGHTS, PAYMENT_METHOD_VALUES } from "@/lib/catalog-options";
 import { parseAmountToCents } from "@/lib/money";
 
 /**
@@ -78,6 +79,21 @@ export const contactSchema = z.object({
     .transform((value) => (value ? value : null)),
   address: optionalText(200),
   city: optionalText(80),
+  // Casillas: llegan con formData.getAll (vacío si no se tildó ninguna).
+  payment_methods: z
+    .array(z.enum(PAYMENT_METHOD_VALUES, { message: "Elegí medios de pago de la lista." }))
+    .default([])
+    .transform((list) => [...new Set(list)]),
+  // "Todos los pedidos incluyen": los campos vacíos se descartan.
+  highlights: z
+    .array(z.string())
+    .default([])
+    .transform((list) => list.map((h) => h.trim()).filter(Boolean))
+    .pipe(
+      z
+        .array(z.string().max(HIGHLIGHT_MAX, `Cada frase puede tener hasta ${HIGHLIGHT_MAX} letras.`))
+        .max(MAX_HIGHLIGHTS, `Podés poner hasta ${MAX_HIGHLIGHTS} frases.`),
+    ),
 });
 
 const money = (label: string) =>

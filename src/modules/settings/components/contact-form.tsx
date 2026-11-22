@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
+import { HIGHLIGHT_MAX, MAX_HIGHLIGHTS, PAYMENT_METHODS } from "@/lib/catalog-options";
 import { centsToInput } from "@/lib/money";
 import type { SettingsFormState } from "../actions";
 import { Field, inputClass, SettingsForm } from "./fields";
@@ -24,6 +25,8 @@ export function ContactForm({
     accepts_delivery: boolean;
     delivery_fee: number;
     min_order_amount: number;
+    payment_methods: string[];
+    highlights: string[];
   };
 }) {
   const id = useId();
@@ -96,6 +99,52 @@ export function ContactForm({
               />
             </Field>
           </div>
+
+          <fieldset className="flex flex-col gap-3">
+            <legend className="mb-1.5 text-[15px] font-semibold">
+              ¿Cómo te pagan? <span className="font-normal text-muted">(se muestra en tu catálogo)</span>
+            </legend>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {PAYMENT_METHODS.map((method) => (
+                <label
+                  key={method.value}
+                  className="flex min-h-12 items-center gap-3 rounded-xl border border-line px-4 has-[:checked]:border-accent"
+                >
+                  <input
+                    type="checkbox"
+                    name="payment_methods"
+                    value={method.value}
+                    defaultChecked={
+                      fields
+                        ? (fields.payment_methods ?? "").split(",").includes(method.value)
+                        : values.payment_methods.includes(method.value)
+                    }
+                    className="size-5 accent-[var(--accent)]"
+                  />
+                  <span className="font-semibold">{method.label}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          <fieldset className="flex flex-col gap-2">
+            <legend className="mb-1.5 text-[15px] font-semibold">
+              Todos los pedidos incluyen <span className="font-normal text-muted">(opcional)</span>
+            </legend>
+            <p className="text-[14px] text-muted">
+              Hasta {MAX_HIGHLIGHTS} frases cortas que aparecen en un recuadro de tu catálogo. Por ejemplo: «Funda de regalo» o «Cambios hasta 30 días».
+            </p>
+            {Array.from({ length: MAX_HIGHLIGHTS }, (_, i) => (
+              <input
+                key={i}
+                name={`highlight_${i}`}
+                aria-label={`Frase ${i + 1}`}
+                maxLength={HIGHLIGHT_MAX}
+                defaultValue={fields?.[`highlight_${i}`] ?? values.highlights[i] ?? ""}
+                className={inputClass}
+              />
+            ))}
+          </fieldset>
         </>
       )}
     </SettingsForm>

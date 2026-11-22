@@ -56,6 +56,9 @@ const availableSchema = z.object({
   min_order_amount: z.number().int(),
   open_mode: z.enum(["auto", "open", "closed"]),
   closed_message: z.string().nullable(),
+  // Catálogo nuevo (parte 2). Por defecto vacíos: un despliegue que llega antes que la migración no se rompe.
+  payment_methods: z.array(z.string()).default([]),
+  highlights: z.array(z.string()).default([]),
   hours: hoursSchema,
 });
 
