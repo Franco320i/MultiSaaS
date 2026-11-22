@@ -127,14 +127,14 @@ isOneToOne: false
                   ]
                 },"catalog_products": {
                   Row: {
-                    "category_id": string | null,"compare_at_price": number | null,"created_at": string,"description": string | null,"id": string,"is_available": boolean,"is_featured": boolean,"is_published": boolean,"name": string,"position": number,"price": number,"slug": string,"tenant_id": string,"updated_at": string
+                    "category_id": string | null,"compare_at_price": number | null,"created_at": string,"description": string | null,"id": string,"is_available": boolean,"is_featured": boolean,"is_published": boolean,"name": string,"position": number,"price": number,"slug": string,"specs": NonNullable<Json>,"tags": (string)[],"tenant_id": string,"updated_at": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "category_id"?: string | null,"compare_at_price"?: number | null,"created_at"?: string,"description"?: string | null,"id"?: string,"is_available"?: boolean,"is_featured"?: boolean,"is_published"?: boolean,"name": string,"position"?: number,"price": number,"slug": string,"tenant_id": string,"updated_at"?: string
+                    "category_id"?: string | null,"compare_at_price"?: number | null,"created_at"?: string,"description"?: string | null,"id"?: string,"is_available"?: boolean,"is_featured"?: boolean,"is_published"?: boolean,"name": string,"position"?: number,"price": number,"slug": string,"specs"?: NonNullable<Json>,"tags"?: (string)[],"tenant_id": string,"updated_at"?: string
                   }
                   Update: {
-                    "category_id"?: string | null,"compare_at_price"?: number | null,"created_at"?: string,"description"?: string | null,"id"?: string,"is_available"?: boolean,"is_featured"?: boolean,"is_published"?: boolean,"name"?: string,"position"?: number,"price"?: number,"slug"?: string,"tenant_id"?: string,"updated_at"?: string
+                    "category_id"?: string | null,"compare_at_price"?: number | null,"created_at"?: string,"description"?: string | null,"id"?: string,"is_available"?: boolean,"is_featured"?: boolean,"is_published"?: boolean,"name"?: string,"position"?: number,"price"?: number,"slug"?: string,"specs"?: NonNullable<Json>,"tags"?: (string)[],"tenant_id"?: string,"updated_at"?: string
                   }
                   Relationships: [
                     {
@@ -441,14 +441,14 @@ isOneToOne: false
                   ]
                 },"tenant_settings": {
                   Row: {
-                    "accepts_delivery": boolean,"accepts_pickup": boolean,"address": string | null,"city": string | null,"closed_message": string | null,"cover_path": string | null,"currency": string,"delivery_fee": number,"description": string | null,"display_name": string,"instagram": string | null,"logo_path": string | null,"min_order_amount": number,"open_mode": string,"tagline": string | null,"template_key": string,"tenant_id": string,"theme": NonNullable<Json>,"timezone": string,"updated_at": string,"whatsapp_phone": string | null
+                    "accepts_delivery": boolean,"accepts_pickup": boolean,"address": string | null,"city": string | null,"closed_message": string | null,"cover_path": string | null,"currency": string,"delivery_fee": number,"description": string | null,"display_name": string,"highlights": (string)[],"instagram": string | null,"logo_path": string | null,"min_order_amount": number,"open_mode": string,"payment_methods": (string)[],"tagline": string | null,"template_key": string,"tenant_id": string,"theme": NonNullable<Json>,"timezone": string,"updated_at": string,"whatsapp_phone": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "accepts_delivery"?: boolean,"accepts_pickup"?: boolean,"address"?: string | null,"city"?: string | null,"closed_message"?: string | null,"cover_path"?: string | null,"currency"?: string,"delivery_fee"?: number,"description"?: string | null,"display_name": string,"instagram"?: string | null,"logo_path"?: string | null,"min_order_amount"?: number,"open_mode"?: string,"tagline"?: string | null,"template_key": string,"tenant_id": string,"theme"?: NonNullable<Json>,"timezone"?: string,"updated_at"?: string,"whatsapp_phone"?: string | null
+                    "accepts_delivery"?: boolean,"accepts_pickup"?: boolean,"address"?: string | null,"city"?: string | null,"closed_message"?: string | null,"cover_path"?: string | null,"currency"?: string,"delivery_fee"?: number,"description"?: string | null,"display_name": string,"highlights"?: (string)[],"instagram"?: string | null,"logo_path"?: string | null,"min_order_amount"?: number,"open_mode"?: string,"payment_methods"?: (string)[],"tagline"?: string | null,"template_key": string,"tenant_id": string,"theme"?: NonNullable<Json>,"timezone"?: string,"updated_at"?: string,"whatsapp_phone"?: string | null
                   }
                   Update: {
-                    "accepts_delivery"?: boolean,"accepts_pickup"?: boolean,"address"?: string | null,"city"?: string | null,"closed_message"?: string | null,"cover_path"?: string | null,"currency"?: string,"delivery_fee"?: number,"description"?: string | null,"display_name"?: string,"instagram"?: string | null,"logo_path"?: string | null,"min_order_amount"?: number,"open_mode"?: string,"tagline"?: string | null,"template_key"?: string,"tenant_id"?: string,"theme"?: NonNullable<Json>,"timezone"?: string,"updated_at"?: string,"whatsapp_phone"?: string | null
+                    "accepts_delivery"?: boolean,"accepts_pickup"?: boolean,"address"?: string | null,"city"?: string | null,"closed_message"?: string | null,"cover_path"?: string | null,"currency"?: string,"delivery_fee"?: number,"description"?: string | null,"display_name"?: string,"highlights"?: (string)[],"instagram"?: string | null,"logo_path"?: string | null,"min_order_amount"?: number,"open_mode"?: string,"payment_methods"?: (string)[],"tagline"?: string | null,"template_key"?: string,"tenant_id"?: string,"theme"?: NonNullable<Json>,"timezone"?: string,"updated_at"?: string,"whatsapp_phone"?: string | null
                   }
                   Relationships: [
                     {

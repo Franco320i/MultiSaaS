@@ -54,7 +54,7 @@ select is_empty(
                      'logo_path', 'cover_path', 'theme', 'template_key', 'whatsapp_phone',
                      'instagram', 'address', 'city', 'currency', 'timezone', 'accepts_pickup',
                      'accepts_delivery', 'delivery_fee', 'min_order_amount', 'open_mode',
-                     'closed_message', 'hours') $$,
+                     'closed_message', 'payment_methods', 'highlights', 'hours') $$,
   'anon: solo se devuelven campos públicos (lista cerrada)'
 );
 
