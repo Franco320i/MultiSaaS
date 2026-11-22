@@ -24,7 +24,10 @@ export function SetupChecklist({ slug, status, title }: { slug: string; status: 
   return (
     <section aria-labelledby="pendientes" className="flex flex-col gap-3 rounded-2xl bg-surface p-5">
       <h2 id="pendientes" className="font-display text-[22px] leading-tight">
-        {title ?? `Te faltan ${pending} ${pending === 1 ? "cosa" : "cosas"} para tener tu catálogo completo`}
+        {title ??
+          (pending === 1
+            ? "Te falta 1 cosa para tener tu catálogo completo"
+            : `Te faltan ${pending} cosas para tener tu catálogo completo`)}
       </h2>
       <ul className="flex flex-col divide-y divide-line">
         {items.map((item) => (

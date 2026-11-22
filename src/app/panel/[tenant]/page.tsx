@@ -51,7 +51,7 @@ async function TenantDashboard({ params }: Pick<PageProps<"/panel/[tenant]">, "p
       detail: newOrders > 0 ? `${newOrders} ${newOrders === 1 ? "nuevo" : "nuevos"} sin atender` : "Los que llegan desde tu catálogo",
       highlight: newOrders > 0,
     },
-    { href: `/${access.slug}/productos`, label: "Productos", detail: `${productCount} cargados`, highlight: false },
+    { href: `/${access.slug}/productos`, label: "Productos", detail: productCount === 1 ? "1 cargado" : `${productCount} cargados`, highlight: false },
     { href: `/${access.slug}/categorias`, label: "Categorías", detail: "Ordená y agrupá tu catálogo", highlight: false },
     ...(access.role === "owner"
       ? [{ href: `/${access.slug}/ajustes`, label: "Ajustes", detail: "Marca, contacto, horarios y envíos", highlight: false }]
