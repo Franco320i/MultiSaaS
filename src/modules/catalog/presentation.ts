@@ -1,0 +1,78 @@
+import { MAX_TAGS, PAYMENT_METHODS, PRODUCT_TAGS } from "@/lib/catalog-options";
+import { formatCents } from "@/lib/money";
+
+/**
+ * Lógica de presentación del catálogo público (sin React ni Next: se prueba sola).
+ * docs/superpowers/specs/2026-11-22-catalogo-nuevo-design.md
+ */
+
+/** Etiquetas visibles: "Oferta" primero si hay precio anterior, después las del producto en el orden de la lista. */
+export function visibleTags(p: { tags: readonly string[]; price: number; compareAtPrice: number | null }): string[] {
+  const labels: string[] = [];
+  if (p.compareAtPrice !== null && p.compareAtPrice > p.price) labels.push("Oferta");
+  for (const tag of PRODUCT_TAGS) if (p.tags.includes(tag.value)) labels.push(tag.label);
+  return labels.slice(0, MAX_TAGS);
+}
+
+export function savingsLabel(price: number, compareAtPrice: number | null, currency: string): string | null {
+  if (compareAtPrice === null || compareAtPrice <= price) return null;
+  return `Ahorrás ${formatCents(compareAtPrice - price, currency)}`;
+}
+
+export function normalizeSearch(text: string): string {
+  return text
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+export type SearchableProduct = { name: string; description: string | null; tags: readonly string[] };
+
+/** Cada palabra buscada tiene que aparecer en el nombre, la descripción o el nombre de una etiqueta. */
+export function filterProducts<T extends SearchableProduct>(products: T[], query: string): T[] {
+  const words = normalizeSearch(query).split(" ").filter(Boolean);
+  if (words.length === 0) return products;
+  return products.filter((p) => {
+    const tagLabels = PRODUCT_TAGS.filter((t) => p.tags.includes(t.value)).map((t) => t.label);
+    const haystack = normalizeSearch([p.name, p.description ?? "", ...tagLabels].join(" "));
+    return words.every((w) => haystack.includes(w));
+  });
+}
+
+export type PriceOrder = "none" | "asc" | "desc";
+
+export function sortByPrice<T extends { price: number }>(products: T[], order: PriceOrder): T[] {
+  if (order === "none") return products.slice();
+  const sign = order === "asc" ? 1 : -1;
+  return products
+    .map((p, i) => ({ p, i }))
+    .sort((a, b) => sign * (a.p.price - b.p.price) || a.i - b.i)
+    .map(({ p }) => p);
+}
+
+/** Chips de la cabecera: envío (o solo retiro), mínimo y medios de pago. */
+export function storeChips(s: {
+  accepts_delivery: boolean;
+  accepts_pickup: boolean;
+  delivery_fee: number;
+  min_order_amount: number;
+  payment_methods: readonly string[];
+  currency: string;
+}): string[] {
+  const chips: string[] = [];
+  if (s.accepts_delivery) chips.push(s.delivery_fee > 0 ? `Envío ${formatCents(s.delivery_fee, s.currency)}` : "Envío gratis");
+  else if (s.accepts_pickup) chips.push("Solo retiro");
+  if (s.min_order_amount > 0) chips.push(`Mínimo ${formatCents(s.min_order_amount, s.currency)}`);
+  const payments = PAYMENT_METHODS.filter((m) => s.payment_methods.includes(m.value)).map((m) => m.label);
+  if (payments.length > 0) chips.push(payments.join(" · "));
+  return chips;
+}
+
+export function mapsUrl(address: string | null, city: string | null): string | null {
+  const street = address?.trim();
+  if (!street) return null;
+  const query = [street, city?.trim()].filter(Boolean).join(", ");
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+}
