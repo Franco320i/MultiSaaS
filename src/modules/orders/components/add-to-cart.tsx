@@ -2,24 +2,52 @@
 
 import { setQuantity, useCart } from "./cart-store";
 
-/** "Agregar" o, si ya está en el pedido, − cantidad +. Objetivos táctiles de 44 px. */
-export function AddToCartButton({ productId, name }: { productId: string; name: string }) {
+/**
+ * "Agregar" o, si ya está en el pedido, − cantidad +. Objetivos táctiles de 44 px.
+ * - `card`: ocupa el ancho de la tarjeta de la grilla.
+ * - `sheet`: botón principal de la ficha, con el precio ("Agregar · $ 9.000").
+ */
+export function AddToCartButton({
+  productId,
+  name,
+  variant = "card",
+  priceLabel,
+}: {
+  productId: string;
+  name: string;
+  variant?: "card" | "sheet";
+  priceLabel?: string;
+}) {
   const quantity = useCart().find((l) => l.productId === productId)?.quantity ?? 0;
 
   if (quantity === 0) {
-    return (
+    return variant === "sheet" ? (
       <button
         type="button"
         onClick={() => setQuantity(productId, 1)}
         aria-label={`Agregar ${name} al pedido`}
-        className="min-h-11 rounded-full border border-brand px-4 text-[15px] font-semibold text-foreground transition-colors hover:bg-brand hover:text-brand-foreground"
+        className="min-h-12 w-full rounded-full bg-brand px-5 text-[16px] font-semibold text-brand-foreground tabular-nums"
+      >
+        {priceLabel ? `Agregar · ${priceLabel}` : "Agregar"}
+      </button>
+    ) : (
+      <button
+        type="button"
+        onClick={() => setQuantity(productId, 1)}
+        aria-label={`Agregar ${name} al pedido`}
+        className="min-h-11 w-full rounded-full border border-brand px-4 text-[15px] font-semibold text-foreground transition-colors hover:bg-brand hover:text-brand-foreground"
       >
         Agregar
       </button>
     );
   }
 
-  return <Stepper productId={productId} name={name} quantity={quantity} />;
+  return (
+    <div className={variant === "sheet" ? "flex items-center justify-between gap-3" : undefined}>
+      {variant === "sheet" ? <span className="font-semibold">En tu pedido</span> : null}
+      <Stepper productId={productId} name={name} quantity={quantity} />
+    </div>
+  );
 }
 
 export function Stepper({ productId, name, quantity }: { productId: string; name: string; quantity: number }) {

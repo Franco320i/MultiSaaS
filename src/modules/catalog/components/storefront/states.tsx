@@ -26,22 +26,20 @@ export function StorefrontSkeleton() {
   return (
     <div aria-busy="true" aria-label="Cargando el catálogo" className="flex flex-1 flex-col">
       <div className="h-44 bg-surface-muted sm:h-56" />
-      <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 py-4">
+      <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 px-4 py-4">
         <div className="h-4 w-40 rounded-full bg-surface-muted" />
-        <div className="flex gap-6 border-b border-line pb-3">
+        <div className="h-12 rounded-full bg-surface-muted" />
+        <div className="flex gap-2">
           {[0, 1, 2].map((i) => (
-            <div key={i} className="h-4 w-24 rounded-full bg-surface-muted" />
+            <div key={i} className="h-11 w-28 rounded-full bg-surface-muted" />
           ))}
         </div>
-        <ul className="flex flex-col divide-y divide-line">
+        <ul className="grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 lg:grid-cols-4">
           {[0, 1, 2, 3].map((i) => (
-            <li key={i} className="flex gap-4 py-4">
-              <div className="flex flex-1 flex-col gap-2">
-                <div className="h-4 w-2/3 rounded-full bg-surface-muted" />
-                <div className="h-3 w-full rounded-full bg-surface-muted" />
-                <div className="h-4 w-20 rounded-full bg-surface-muted" />
-              </div>
-              <div className="size-24 rounded-xl bg-surface-muted" />
+            <li key={i} className="flex flex-col gap-2">
+              <div className="aspect-[4/5] rounded-xl bg-surface-muted" />
+              <div className="h-4 w-3/4 rounded-full bg-surface-muted" />
+              <div className="h-4 w-1/3 rounded-full bg-surface-muted" />
             </li>
           ))}
         </ul>

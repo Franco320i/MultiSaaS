@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { getStorefront } from "@/core/tenancy/storefront";
 import { publicEnv } from "@/lib/env.public";
+import { formatCents } from "@/lib/money";
 import { getPublicCatalog, StorefrontSkeleton, StorefrontUnavailable, StorefrontView } from "@/modules/catalog";
 import { AddToCartButton, Ordering, type OrderingConfig } from "@/modules/orders";
 
@@ -71,7 +72,14 @@ async function Storefront({ params }: Pick<Props, "params">) {
     <StorefrontView
       storefront={storefront}
       catalog={catalog}
-      productAction={(product) => <AddToCartButton productId={product.id} name={product.name} />}
+      productAction={(product, variant) => (
+        <AddToCartButton
+          productId={product.id}
+          name={product.name}
+          variant={variant}
+          priceLabel={variant === "sheet" ? formatCents(product.price, storefront.currency) : undefined}
+        />
+      )}
     >
       <Ordering config={ordering} />
     </StorefrontView>

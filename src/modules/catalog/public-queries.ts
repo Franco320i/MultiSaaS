@@ -1,6 +1,7 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { cacheTags } from "@/lib/cache/tags";
+import type { ProductSpec } from "@/lib/catalog-options";
 import { createSupabasePublicClient } from "@/lib/supabase/public";
 
 /**
@@ -25,9 +26,10 @@ export type PublicProduct = {
   compareAtPrice: number | null;
   isAvailable: boolean;
   isFeatured: boolean;
-  /** Ruta base de la primera foto (`{tenant}/products/{product}/{image}`), o null. */
-  imagePath: string | null;
-  imageAlt: string | null;
+  /** Fotos en orden; cada ruta es la base `{tenant}/products/{product}/{image}`. */
+  images: { path: string; alt: string | null }[];
+  tags: string[];
+  specs: ProductSpec[];
 };
 
 export type PublicCatalog = {
@@ -52,7 +54,7 @@ export async function getPublicCatalog(tenantId: string): Promise<PublicCatalog>
       .order("name"),
     supabase
       .from("catalog_products")
-      .select("id, category_id, name, description, price, compare_at_price, is_available, is_featured")
+      .select("id, category_id, name, description, price, compare_at_price, is_available, is_featured, tags, specs")
       .eq("tenant_id", tenantId)
       .eq("is_published", true)
       .order("position")
@@ -66,7 +68,7 @@ export async function getPublicCatalog(tenantId: string): Promise<PublicCatalog>
   const visible = new Set(categories.data.map((c) => c.id));
   const shown = products.data.filter((p) => p.category_id === null || visible.has(p.category_id));
 
-  const firstImage = new Map<string, { storage_path: string; alt: string | null }>();
+  const imagesByProduct = new Map<string, { path: string; alt: string | null }[]>();
   if (shown.length > 0) {
     const { data: images, error } = await supabase
       .from("catalog_product_images")
@@ -77,7 +79,9 @@ export async function getPublicCatalog(tenantId: string): Promise<PublicCatalog>
       .order("created_at");
     if (error) throw new Error(`No se pudieron leer las fotos: ${error.message}`);
     for (const image of images) {
-      if (!firstImage.has(image.product_id)) firstImage.set(image.product_id, image);
+      const list = imagesByProduct.get(image.product_id) ?? [];
+      list.push({ path: image.storage_path, alt: image.alt });
+      imagesByProduct.set(image.product_id, list);
     }
   }
 
@@ -92,8 +96,17 @@ export async function getPublicCatalog(tenantId: string): Promise<PublicCatalog>
       compareAtPrice: p.compare_at_price,
       isAvailable: p.is_available,
       isFeatured: p.is_featured,
-      imagePath: firstImage.get(p.id)?.storage_path ?? null,
-      imageAlt: firstImage.get(p.id)?.alt ?? null,
+      images: imagesByProduct.get(p.id) ?? [],
+      tags: p.tags,
+      specs: parseSpecs(p.specs),
     })),
   };
+}
+
+/** Las características ya vienen validadas por la base; esto solo descarta algo inesperado. */
+function parseSpecs(raw: unknown): ProductSpec[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.filter(
+    (r): r is ProductSpec => typeof r === "object" && r !== null && typeof r.label === "string" && typeof r.value === "string",
+  );
 }
