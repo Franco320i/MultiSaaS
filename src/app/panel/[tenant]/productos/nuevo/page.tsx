@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { requireTenantAccess } from "@/core/tenancy/require-access";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { listCategories, ProductForm } from "@/modules/catalog";
+import { getTemplateKey, listCategories, ProductForm } from "@/modules/catalog";
 import { createProductAction } from "@/modules/catalog/actions";
 
 export const metadata: Metadata = { title: "Nuevo producto" };
@@ -22,7 +22,10 @@ async function NewProduct({ params }: Pick<PageProps<"/panel/[tenant]/productos/
   const { tenant: slug } = await params;
   const access = await requireTenantAccess(slug, "catalog.write");
   const supabase = await createSupabaseServerClient();
-  const categories = await listCategories(supabase, access.tenantId);
+  const [categories, templateKey] = await Promise.all([
+    listCategories(supabase, access.tenantId),
+    getTemplateKey(supabase, access.tenantId),
+  ]);
 
   return (
     <>
@@ -30,7 +33,7 @@ async function NewProduct({ params }: Pick<PageProps<"/panel/[tenant]/productos/
         ← Productos
       </Link>
       <h1 className="text-2xl font-semibold">Nuevo producto</h1>
-      <ProductForm action={createProductAction.bind(null, access.slug)} categories={categories} submitLabel="Crear producto" />
+      <ProductForm action={createProductAction.bind(null, access.slug)} categories={categories} templateKey={templateKey} submitLabel="Crear producto" />
     </>
   );
 }

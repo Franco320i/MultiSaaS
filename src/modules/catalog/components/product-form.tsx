@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { MAX_TAGS, PRODUCT_TAGS, type ProductSpec } from "@/lib/catalog-options";
+import { MAX_TAGS, tagOptionsFor, type ProductSpec } from "@/lib/catalog-options";
 import { centsToInput } from "@/lib/money";
 import { Checkbox, FormError, Select, SubmitButton, TextArea, TextField } from "@/ui/form";
 import type { FormState } from "../actions";
@@ -12,11 +12,14 @@ export function ProductForm({
   action,
   product,
   categories,
+  templateKey,
   submitLabel,
 }: {
   action: (prev: FormState, formData: FormData) => Promise<FormState>;
   product?: Product;
   categories: Pick<Category, "id" | "name">[];
+  /** Rubro del comercio: define qué etiquetas se ofrecen. */
+  templateKey: string;
   submitLabel: string;
 }) {
   const [state, formAction] = useActionState(action, {});
@@ -82,7 +85,7 @@ export function ProductForm({
           Etiquetas <span className="font-normal opacity-70">(hasta {MAX_TAGS})</span>
         </legend>
         <div className="flex flex-wrap gap-2">
-          {PRODUCT_TAGS.map((tag) => (
+          {tagOptionsFor(templateKey, product?.tags ?? []).map((tag) => (
             <label
               key={tag.value}
               className="flex min-h-11 items-center gap-2 rounded-full border border-foreground/20 px-4 has-[:checked]:border-foreground has-[:checked]:font-semibold"

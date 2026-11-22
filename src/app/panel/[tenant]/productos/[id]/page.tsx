@@ -6,7 +6,7 @@ import { z } from "zod";
 import { requireTenantAccess } from "@/core/tenancy/require-access";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { publicImageUrl } from "@/lib/images/url";
-import { DeleteButton, getProduct, listCategories, listProductImages, ProductForm, ProductImages } from "@/modules/catalog";
+import { DeleteButton, getProduct, getTemplateKey, listCategories, listProductImages, ProductForm, ProductImages } from "@/modules/catalog";
 import {
   deleteProductAction,
   deleteProductImageAction,
@@ -33,10 +33,11 @@ async function EditProduct({ params }: Pick<PageProps<"/panel/[tenant]/productos
   if (!z.uuid().safeParse(id).success) notFound();
 
   const supabase = await createSupabaseServerClient();
-  const [product, categories, images] = await Promise.all([
+  const [product, categories, images, templateKey] = await Promise.all([
     getProduct(supabase, access.tenantId, id),
     listCategories(supabase, access.tenantId),
     listProductImages(supabase, access.tenantId, id),
+    getTemplateKey(supabase, access.tenantId),
   ]);
   if (!product) notFound();
 
@@ -50,6 +51,7 @@ async function EditProduct({ params }: Pick<PageProps<"/panel/[tenant]/productos
         action={updateProductAction.bind(null, access.slug, product.id)}
         product={product}
         categories={categories}
+        templateKey={templateKey}
         submitLabel="Guardar cambios"
       />
       <hr className="border-foreground/10" />

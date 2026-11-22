@@ -13,5 +13,5 @@ export { firstImageByProduct, listProductImages, type ProductImage } from "./ima
 export { StorefrontNotFound, StorefrontSkeleton, StorefrontUnavailable } from "./components/storefront/states";
 export { StorefrontView } from "./components/storefront/storefront-view";
 export { getPublicCatalog, type PublicCatalog, type PublicProduct } from "./public-queries";
-export { countProducts, getCategory, getProduct, listCategories, listProducts } from "./queries";
+export { countProducts, getCategory, getProduct, getTemplateKey, listCategories, listProducts } from "./queries";
 export type { Category, Product } from "./queries";

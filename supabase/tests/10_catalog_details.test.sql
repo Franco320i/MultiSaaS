@@ -84,6 +84,11 @@ select throws_ok($$ update public.catalog_products set specs = '[{"label":"Mater
 select throws_ok($$ update public.catalog_products set specs = '{"label":"Material","value":"Lino"}'
                      where id = 'a2000000-0000-4000-8000-000000000001' $$, '23514', null, 'características que no son una lista');
 
+select lives_ok($$ update public.catalog_products set tags = '{liquidacion,importado}'
+                   where id = 'a2000000-0000-4000-8000-000000000001' $$, 'etiquetas de ropa y tecnología: Liquidación e Importado');
+select lives_ok($$ update public.catalog_products set tags = '{nuevo,picante}'
+                   where id = 'a2000000-0000-4000-8000-000000000001' $$, 'vuelve a las etiquetas de comida');
+
 select pg_temp.login(pg_temp.k('ownerBeta'));
 with u as (update public.catalog_products set tags = '{nuevo}' where id = pg_temp.k('doble') returning 1)
 select is((select count(*)::int from u), 0, 'otro comercio: no cambia etiquetas de Alfa');

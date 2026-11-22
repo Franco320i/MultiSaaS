@@ -91,3 +91,9 @@ export async function countProducts(supabase: Client, tenantId: string): Promise
   if (error) throw new Error(`No se pudieron contar los productos: ${error.message}`);
   return count ?? 0;
 }
+
+/** Rubro del comercio: define qué etiquetas ofrece el formulario de producto. */
+export async function getTemplateKey(supabase: Client, tenantId: string): Promise<string> {
+  const { data } = await supabase.from("tenant_settings").select("template_key").eq("tenant_id", tenantId).maybeSingle();
+  return data?.template_key ?? "general";
+}

@@ -33,6 +33,7 @@ El usuario encontró flojo el catálogo que ven los clientes de cada local. Quie
 ### 3. Etiquetas en los productos
 
 - Lista fija (no texto libre, para que se vean prolijas y no haya faltas): **Nuevo, Últimas unidades, Vegetariano, Vegano, Sin TACC, Picante.**
+- **Según el rubro** (agregado el 2026-11-22, a pedido del usuario): la plantilla es la misma, pero el panel ofrece las etiquetas del rubro. Gastronomía: Nuevo, Vegetariano, Vegano, Sin TACC, Picante. Dietética: Nuevo, Últimas unidades, Vegetariano, Vegano, Sin TACC. Indumentaria y Tecnología: Nuevo, Últimas unidades, **Liquidación**, **Importado**. General: Nuevo, Últimas unidades, Liquidación. La base acepta la lista completa, así un comercio que cambia de rubro no pierde sus etiquetas (`tagOptionsFor` en `src/lib/catalog-options.ts`, migración `20261122231325_catalog_tags_by_business.sql`).
 - **Oferta** aparece sola cuando el producto tiene precio anterior, y debajo del precio se lee **"Ahorrás $ 2.000"** (en la grilla y en la ficha).
 - Hasta 3 por producto. Se eligen con casillas en el formulario del producto.
 - "Más pedido" no es una etiqueta manual: es parte de los destacados de Pro (parte 4), calculado con los pedidos reales.
