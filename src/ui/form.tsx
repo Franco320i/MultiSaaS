@@ -5,7 +5,8 @@ import { useFormStatus } from "react-dom";
 
 /** Componentes de formulario sin lógica de negocio (diseño, sección 2: src/ui). */
 
-const inputClass = "rounded-md border border-foreground/20 bg-transparent px-3 py-2 text-base";
+const inputClass =
+  "min-h-12 rounded-xl border border-line bg-surface px-3 py-2 text-[16px] text-foreground focus:border-accent focus:outline-none";
 
 export function TextField(props: {
   label: string;
@@ -18,8 +19,8 @@ export function TextField(props: {
   hint?: string;
 }) {
   return (
-    <label className="flex flex-col gap-1 text-sm">
-      <span className="font-medium">{props.label}</span>
+    <label className="flex flex-col gap-1.5 text-[15px]">
+      <span className="font-semibold">{props.label}</span>
       <input
         name={props.name}
         defaultValue={props.defaultValue ?? ""}
@@ -29,15 +30,15 @@ export function TextField(props: {
         inputMode={props.inputMode}
         className={inputClass}
       />
-      {props.hint && <span className="opacity-60">{props.hint}</span>}
+      {props.hint && <span className="text-[14px] text-muted">{props.hint}</span>}
     </label>
   );
 }
 
 export function TextArea(props: { label: string; name: string; defaultValue?: string | null; maxLength?: number }) {
   return (
-    <label className="flex flex-col gap-1 text-sm">
-      <span className="font-medium">{props.label}</span>
+    <label className="flex flex-col gap-1.5 text-[15px]">
+      <span className="font-semibold">{props.label}</span>
       <textarea
         name={props.name}
         defaultValue={props.defaultValue ?? ""}
@@ -56,8 +57,8 @@ export function Select(props: {
   options: { value: string; label: string }[];
 }) {
   return (
-    <label className="flex flex-col gap-1 text-sm">
-      <span className="font-medium">{props.label}</span>
+    <label className="flex flex-col gap-1.5 text-[15px]">
+      <span className="font-semibold">{props.label}</span>
       <select name={props.name} defaultValue={props.defaultValue ?? ""} className={inputClass}>
         {props.options.map((option) => (
           <option key={option.value} value={option.value}>
@@ -71,12 +72,34 @@ export function Select(props: {
 
 export function Checkbox(props: { label: string; name: string; defaultChecked?: boolean; hint?: string }) {
   return (
-    <label className="flex items-start gap-2 text-sm">
-      <input type="checkbox" name={props.name} defaultChecked={props.defaultChecked} className="mt-1" />
+    <label className="flex min-h-11 items-start gap-3 text-[15px]">
+      <input type="checkbox" name={props.name} defaultChecked={props.defaultChecked} className="mt-0.5 size-5 accent-[var(--accent)]" />
       <span>
-        <span className="font-medium">{props.label}</span>
-        {props.hint && <span className="block opacity-60">{props.hint}</span>}
+        <span className="font-semibold">{props.label}</span>
+        {props.hint && <span className="block text-[14px] text-muted">{props.hint}</span>}
       </span>
+    </label>
+  );
+}
+
+/**
+ * Interruptor (casilla con forma de interruptor): se envía igual que un checkbox ("on" o nada).
+ * Con explicación debajo del título, para que se entienda sin conocer la palabra técnica.
+ */
+export function Switch(props: { label: string; name: string; defaultChecked?: boolean; hint?: string }) {
+  return (
+    <label className="flex min-h-12 cursor-pointer items-center justify-between gap-4">
+      <span className="flex flex-col">
+        <span className="text-[16px] font-semibold">{props.label}</span>
+        {props.hint && <span className="text-[14px] text-muted">{props.hint}</span>}
+      </span>
+      <input
+        type="checkbox"
+        role="switch"
+        name={props.name}
+        defaultChecked={props.defaultChecked}
+        className="relative h-7 w-12 shrink-0 cursor-pointer appearance-none rounded-full bg-line transition-colors before:absolute before:top-1 before:left-1 before:size-5 before:rounded-full before:bg-white before:shadow before:transition-all checked:bg-accent checked:before:left-6 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+      />
     </label>
   );
 }
@@ -87,7 +110,7 @@ export function SubmitButton({ children, pendingLabel = "Guardando…" }: { chil
     <button
       type="submit"
       disabled={pending}
-      className="rounded-md bg-foreground px-4 py-2 font-medium text-background disabled:opacity-60"
+      className="min-h-12 w-full rounded-full bg-accent px-6 text-[16px] font-semibold text-accent-foreground disabled:opacity-60 sm:w-auto"
     >
       {pending ? pendingLabel : children}
     </button>
@@ -97,7 +120,7 @@ export function SubmitButton({ children, pendingLabel = "Guardando…" }: { chil
 export function FormError({ message }: { message?: string }) {
   if (!message) return null;
   return (
-    <p role="alert" className="rounded-md bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-300">
+    <p role="alert" className="rounded-xl bg-danger-soft px-3 py-2 text-[15px] text-danger">
       {message}
     </p>
   );

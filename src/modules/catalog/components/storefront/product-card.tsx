@@ -91,12 +91,12 @@ export function ProductCard({
   onOpen: () => void;
 }) {
   return (
-    <li className="flex min-w-0 flex-col gap-2">
+    <li className="flex min-w-0 flex-col gap-2 rounded-2xl border border-line bg-surface p-2 shadow-[0_1px_2px_rgb(0_0_0/0.04)]">
       <button
         type="button"
         onClick={onOpen}
         aria-label={`Ver ${product.name}`}
-        className="relative block overflow-hidden rounded-xl text-left focus-visible:outline-2 focus-visible:outline-offset-2"
+        className="relative block overflow-hidden rounded-[11px] text-left focus-visible:outline-2 focus-visible:outline-offset-2"
       >
         <ProductPicture product={product} sizes={480} className="aspect-[4/5] w-full" />
         {product.images.length > 1 ? (

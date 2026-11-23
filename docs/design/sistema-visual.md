@@ -79,6 +79,14 @@ Los tokens viven en `src/app/globals.css` (bloque `@theme` de Tailwind 4). Usalo
 - Los avisos que bloquean el envío (cerrado, pedido mínimo) van en una línea sobre el botón, en `muted`. Los errores del servidor van en `danger` sobre `danger-soft` con `role="alert"`.
 - **Pedido registrado:** número grande en `font-display` y el botón "Enviar por WhatsApp" por si el navegador no abrió WhatsApp solo.
 
+## Panel del comercio: panel fácil (2026-11-23)
+
+- Para dueños poco amigos de la web: botones grandes, palabras de mostrador, lo más usado a un toque.
+- Menú: barra fija abajo en el celular (Inicio, Pedidos, Productos, Mi local) con íconos SVG, la sección actual en `accent` y el número de pedidos nuevos en `danger`. Desde 768 px, la misma fila arriba.
+- Bloques en `surface` con borde `line` y `rounded-2xl`; títulos de página en `font-display` 28 px; textos de ayuda en `muted` debajo de cada opción.
+- Interruptores (`Switch`) en lugar de casillas para estados: "Se ve en tu catálogo", "Hay stock", "Destacado", siempre con una línea que explica qué pasa.
+- Botón principal de los formularios: píldora `accent` a lo ancho, fijo abajo ("Guardar cambios"). Acción de crear en listas: botón flotante "+ Producto".
+
 ## Modo oscuro
 
 - Se define en tokens con `prefers-color-scheme`. Cada componente usa tokens, así cambia solo.

@@ -51,7 +51,7 @@ export function CatalogBrowser({
   const open = openId ? products.find((p) => p.id === openId) : undefined;
 
   const grid = (list: PublicProduct[]) => (
-    <ul className="grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 lg:grid-cols-4">
+    <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4">
       {list.map((product) => (
         <ProductCard
           key={product.id}

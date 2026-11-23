@@ -34,7 +34,7 @@ export function StorefrontSkeleton() {
             <div key={i} className="h-11 w-28 rounded-full bg-surface-muted" />
           ))}
         </div>
-        <ul className="grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 lg:grid-cols-4">
+        <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4">
           {[0, 1, 2, 3].map((i) => (
             <li key={i} className="flex flex-col gap-2">
               <div className="aspect-[4/5] rounded-xl bg-surface-muted" />

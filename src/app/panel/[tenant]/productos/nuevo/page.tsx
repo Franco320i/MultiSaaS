@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: "Nuevo producto" };
 
 export default function NewProductPage({ params }: PageProps<"/panel/[tenant]/productos/nuevo">) {
   return (
-    <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 p-8">
+    <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-3 px-4 py-5 sm:px-8">
       <Suspense fallback={<p className="opacity-70">Cargando…</p>}>
         <NewProduct params={params} />
       </Suspense>
@@ -29,10 +29,11 @@ async function NewProduct({ params }: Pick<PageProps<"/panel/[tenant]/productos/
 
   return (
     <>
-      <Link href={`/${access.slug}/productos`} className="text-sm underline opacity-80">
-        ← Productos
+      <Link href={`/${access.slug}/productos`} className="flex min-h-11 w-fit items-center gap-1 text-[15px] text-muted">
+        ‹ Productos
       </Link>
-      <h1 className="text-2xl font-semibold">Nuevo producto</h1>
+      <h1 className="font-display text-[26px] leading-tight">Nuevo producto</h1>
+      <p className="text-[15px] text-muted">Cargá el nombre y el precio. Las fotos se suman en el paso siguiente.</p>
       <ProductForm action={createProductAction.bind(null, access.slug)} categories={categories} templateKey={templateKey} submitLabel="Crear producto" />
     </>
   );

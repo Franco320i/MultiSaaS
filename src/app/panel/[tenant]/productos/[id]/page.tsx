@@ -17,18 +17,19 @@ import {
 
 export const metadata: Metadata = { title: "Editar producto" };
 
-export default function EditProductPage({ params }: PageProps<"/panel/[tenant]/productos/[id]">) {
+export default function EditProductPage({ params, searchParams }: PageProps<"/panel/[tenant]/productos/[id]">) {
   return (
-    <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 p-8">
-      <Suspense fallback={<p className="opacity-70">Cargando…</p>}>
-        <EditProduct params={params} />
+    <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-3 px-4 py-5 sm:px-8">
+      <Suspense fallback={<div aria-hidden className="h-96 rounded-2xl bg-surface-muted" />}>
+        <EditProduct params={params} searchParams={searchParams} />
       </Suspense>
     </main>
   );
 }
 
-async function EditProduct({ params }: Pick<PageProps<"/panel/[tenant]/productos/[id]">, "params">) {
+async function EditProduct({ params, searchParams }: PageProps<"/panel/[tenant]/productos/[id]">) {
   const { tenant: slug, id } = await params;
+  const { nuevo } = await searchParams;
   const access = await requireTenantAccess(slug, "catalog.write");
   if (!z.uuid().safeParse(id).success) notFound();
 
@@ -43,10 +44,29 @@ async function EditProduct({ params }: Pick<PageProps<"/panel/[tenant]/productos
 
   return (
     <>
-      <Link href={`/${access.slug}/productos`} className="text-sm underline opacity-80">
-        ← Productos
+      <Link href={`/${access.slug}/productos`} className="flex min-h-11 w-fit items-center gap-1 text-[15px] text-muted">
+        ‹ Productos
       </Link>
-      <h1 className="text-2xl font-semibold">Editar producto</h1>
+      <h1 className="font-display text-[26px] leading-tight text-balance">{product.name}</h1>
+      {nuevo ? (
+        <p role="status" className="rounded-2xl bg-surface-muted px-4 py-3 text-[15px] font-semibold">
+          Listo, el producto está creado. Ahora sumale una foto: es lo que más vende.
+        </p>
+      ) : null}
+      <section aria-label="Fotos" className="flex flex-col gap-3 rounded-2xl border border-line bg-surface p-4">
+        <ProductImages
+          productName={product.name}
+          images={images.map((image) => ({
+            id: image.id,
+            url: publicImageUrl(image.storage_path, 480),
+            width: image.width,
+            height: image.height,
+          }))}
+          uploadAction={uploadProductImageAction.bind(null, access.slug, product.id)}
+          deleteAction={deleteProductImageAction.bind(null, access.slug)}
+          moveAction={moveProductImageAction.bind(null, access.slug)}
+        />
+      </section>
       <ProductForm
         action={updateProductAction.bind(null, access.slug, product.id)}
         product={product}
@@ -54,25 +74,13 @@ async function EditProduct({ params }: Pick<PageProps<"/panel/[tenant]/productos
         templateKey={templateKey}
         submitLabel="Guardar cambios"
       />
-      <hr className="border-foreground/10" />
-      <ProductImages
-        productName={product.name}
-        images={images.map((image) => ({
-          id: image.id,
-          url: publicImageUrl(image.storage_path, 480),
-          width: image.width,
-          height: image.height,
-        }))}
-        uploadAction={uploadProductImageAction.bind(null, access.slug, product.id)}
-        deleteAction={deleteProductImageAction.bind(null, access.slug)}
-        moveAction={moveProductImageAction.bind(null, access.slug)}
-      />
-      <hr className="border-foreground/10" />
-      <DeleteButton
-        action={deleteProductAction.bind(null, access.slug, product.id)}
-        label="Borrar producto"
-        confirmMessage={`¿Borrar "${product.name}"? Esta acción no se puede deshacer.`}
-      />
+      <div className="pt-4">
+        <DeleteButton
+          action={deleteProductAction.bind(null, access.slug, product.id)}
+          label="Borrar producto"
+          confirmMessage={`¿Borrar "${product.name}"? Esta acción no se puede deshacer.`}
+        />
+      </div>
     </>
   );
 }

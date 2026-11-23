@@ -20,10 +20,10 @@ export function SpecsEditor({ initial }: { initial: ProductSpec[] }) {
 
   return (
     <fieldset className="flex flex-col gap-2">
-      <legend className="mb-1 font-medium">
-        Características <span className="font-normal opacity-70">(opcional)</span>
+      <legend className="mb-1.5 text-[15px] font-semibold">
+        Características <span className="font-normal text-muted">(opcional)</span>
       </legend>
-      <p className="text-sm opacity-70">Aparecen en la ficha del producto. Por ejemplo: Material · Lino, Capacidad · 256 GB.</p>
+      <p className="text-[14px] text-muted">Aparecen en la ficha del producto. Por ejemplo: Material · Lino, Capacidad · 256 GB.</p>
       {rows.map((row, i) => (
         <div key={row.key} className="flex flex-wrap items-center gap-2">
           <input
@@ -32,7 +32,7 @@ export function SpecsEditor({ initial }: { initial: ProductSpec[] }) {
             placeholder="Material"
             maxLength={SPEC_LABEL_MAX}
             defaultValue={row.label}
-            className="min-h-11 min-w-0 flex-1 basis-32 rounded-md border border-foreground/20 bg-transparent px-3"
+            className="min-h-11 min-w-0 flex-1 basis-32 rounded-xl border border-line bg-surface px-3 text-[16px]"
           />
           <input
             name="spec_value"
@@ -40,7 +40,7 @@ export function SpecsEditor({ initial }: { initial: ProductSpec[] }) {
             placeholder="Lino"
             maxLength={SPEC_VALUE_MAX}
             defaultValue={row.value}
-            className="min-h-11 min-w-0 flex-[2] basis-40 rounded-md border border-foreground/20 bg-transparent px-3"
+            className="min-h-11 min-w-0 flex-[2] basis-40 rounded-xl border border-line bg-surface px-3 text-[16px]"
           />
           <button
             type="button"
@@ -53,11 +53,11 @@ export function SpecsEditor({ initial }: { initial: ProductSpec[] }) {
         </div>
       ))}
       {rows.length < MAX_SPECS ? (
-        <button type="button" onClick={add} className="min-h-11 w-fit text-sm font-medium underline underline-offset-4">
+        <button type="button" onClick={add} className="min-h-11 w-fit rounded-full border border-dashed border-line px-4 text-[15px] font-semibold text-accent">
           Agregar característica
         </button>
       ) : (
-        <p className="text-sm opacity-70">Llegaste al máximo de {MAX_SPECS} características.</p>
+        <p className="text-[14px] text-muted">Llegaste al máximo de {MAX_SPECS} características.</p>
       )}
     </fieldset>
   );

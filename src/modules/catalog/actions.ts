@@ -123,7 +123,8 @@ export async function createProductAction(tenantSlug: string, _prev: FormState, 
   const result = await mutations.createProduct(supabase, access.tenantId, parsed.data);
   if (!result.ok) return { error: result.error, fields: submitted(formData) };
   revalidatePublicCatalog(access.tenantId);
-  redirect(`/${access.slug}/productos`);
+  // Recién creado: se abre su edición para sumarle fotos (las fotos necesitan el producto guardado).
+  redirect(`/${access.slug}/productos/${result.id}?nuevo=1`);
 }
 
 export async function updateProductAction(
