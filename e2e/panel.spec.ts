@@ -12,7 +12,10 @@ test("el dueño apaga el stock desde la lista y el catálogo lo muestra sin stoc
 
   const product = "Hamburguesa simple";
   const toggle = page.getByRole("switch", { name: `${product}: hay stock` });
+  // El interruptor cambia al instante; se espera a que el servidor confirme antes de irse.
+  const saved = page.waitForResponse((r) => r.request().method() === "POST" && r.url().includes("/alfa/productos"));
   await toggle.click();
+  await saved;
   await expect(page.getByRole("switch", { name: `${product}: sin stock` })).toBeVisible();
 
   try {
@@ -23,7 +26,9 @@ test("el dueño apaga el stock desde la lista y el catálogo lo muestra sin stoc
   } finally {
     // Deja el producto como estaba, aunque la prueba falle.
     await page.goto(`${APP}/alfa/productos`);
+    const restored = page.waitForResponse((r) => r.request().method() === "POST" && r.url().includes("/alfa/productos"));
     await page.getByRole("switch", { name: `${product}: sin stock` }).click();
+    await restored;
     await expect(page.getByRole("switch", { name: `${product}: hay stock` })).toBeVisible();
   }
 });

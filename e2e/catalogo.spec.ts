@@ -31,3 +31,25 @@ test("el buscador encuentra sin acentos ni mayúsculas y avisa si no hay resulta
   await page.getByRole("button", { name: "Borrar la búsqueda" }).click();
   await expect(page.getByRole("heading", { name: "Destacados" })).toBeVisible();
 });
+
+test("producto con opciones: hay que elegir el tamaño, suma los extras y queda como línea propia", async ({ page }) => {
+  await page.goto(catalogUrl("alfa"));
+  const name = "Hamburguesa a elección";
+  await page.getByRole("button", { name: `Elegir opciones de ${name}` }).click();
+
+  const sheet = page.getByRole("dialog", { name });
+  await expect(sheet.getByRole("button", { name: "Falta elegir tamaño" })).toBeDisabled();
+  await expect(sheet.getByRole("button", { name: /Extras: Huevo.*agotado/ })).toBeDisabled();
+
+  await sheet.getByRole("button", { name: /^Tamaño: Doble/ }).click();
+  await sheet.getByRole("button", { name: /^Extras: Panceta/ }).click();
+  await expect(sheet.getByRole("button", { name: `Agregar ${name} al pedido` })).toHaveText(/Agregar · \$\s10\.300/);
+  await sheet.getByRole("button", { name: `Agregar ${name} al pedido` }).click();
+  await expect(sheet.getByText("Listo, lo sumamos a tu pedido")).toBeVisible();
+
+  await page.keyboard.press("Escape");
+  await page.getByRole("button", { name: /Ver pedido · 1/ }).click();
+  const order = page.getByRole("dialog", { name: "Tu pedido" });
+  await expect(order.getByText("Doble, Panceta")).toBeVisible();
+  await expect(order.getByText(/\$\s10\.300 c\/u/)).toBeVisible();
+});

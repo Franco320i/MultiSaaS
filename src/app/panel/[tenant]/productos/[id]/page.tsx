@@ -6,7 +6,17 @@ import { z } from "zod";
 import { requireTenantAccess } from "@/core/tenancy/require-access";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { publicImageUrl } from "@/lib/images/url";
-import { DeleteButton, getProduct, getTemplateKey, listCategories, listProductImages, ProductForm, ProductImages } from "@/modules/catalog";
+import {
+  DeleteButton,
+  getProduct,
+  getTemplateKey,
+  listCategories,
+  listOptionGroups,
+  listProductImages,
+  OptionsEditor,
+  ProductForm,
+  ProductImages,
+} from "@/modules/catalog";
 import {
   deleteProductAction,
   deleteProductImageAction,
@@ -34,8 +44,9 @@ async function EditProduct({ params, searchParams }: PageProps<"/panel/[tenant]/
   if (!z.uuid().safeParse(id).success) notFound();
 
   const supabase = await createSupabaseServerClient();
-  const [product, categories, images, templateKey] = await Promise.all([
+  const [product, optionGroups, categories, images, templateKey] = await Promise.all([
     getProduct(supabase, access.tenantId, id),
+    listOptionGroups(supabase, access.tenantId, id),
     listCategories(supabase, access.tenantId),
     listProductImages(supabase, access.tenantId, id),
     getTemplateKey(supabase, access.tenantId),
@@ -74,6 +85,7 @@ async function EditProduct({ params, searchParams }: PageProps<"/panel/[tenant]/
         templateKey={templateKey}
         submitLabel="Guardar cambios"
       />
+      <OptionsEditor slug={access.slug} productId={product.id} groups={optionGroups} />
       <div className="pt-4">
         <DeleteButton
           action={deleteProductAction.bind(null, access.slug, product.id)}

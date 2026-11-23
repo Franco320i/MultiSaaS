@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { categoryFormSchema, firstError, productFormFromData, productFormSchema } from "./schemas";
+import { categoryFormSchema, firstError, optionGroupSchema, optionSchema, productFormFromData, productFormSchema } from "./schemas";
 
 /** Igual que hacen las Server Actions: Object.fromEntries(formData). */
 function form(fields: Record<string, string>) {
@@ -126,5 +126,22 @@ describe("etiquetas y características del producto", () => {
       ["spec_value", "v"],
     ]).flat() as [string, string][];
     expect(productFormSchema.safeParse(productFormFromData(data(rows))).success).toBe(false);
+  });
+});
+
+describe("formularios de opciones (parte 3)", () => {
+  it("grupo: una sola o varias con máximo", () => {
+    expect(optionGroupSchema.parse({ name: " Talle ", required: "on", choice: "one" })).toEqual({ name: "Talle", required: true, max_choices: 1 });
+    expect(optionGroupSchema.parse({ name: "Extras", choice: "many", max_choices: "3" })).toEqual({ name: "Extras", required: false, max_choices: 3 });
+  });
+  it("grupo: pide nombre y un máximo válido", () => {
+    expect(optionGroupSchema.safeParse({ name: "", choice: "one" }).success).toBe(false);
+    expect(optionGroupSchema.safeParse({ name: "Extras", choice: "many", max_choices: "1" }).success).toBe(false);
+    expect(optionGroupSchema.safeParse({ name: "x".repeat(41), choice: "one" }).success).toBe(false);
+  });
+  it("opción: precio adicional en pesos, vacío = 0", () => {
+    expect(optionSchema.parse({ name: "Doble", price_delta: "1.500" })).toEqual({ name: "Doble", price_delta: 150000 });
+    expect(optionSchema.parse({ name: "Simple", price_delta: "" })).toEqual({ name: "Simple", price_delta: 0 });
+    expect(optionSchema.safeParse({ name: "Mal", price_delta: "abc" }).success).toBe(false);
   });
 });

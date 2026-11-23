@@ -38,7 +38,7 @@ let ipCounter = 0;
 
 const deps = { verifyTurnstile: async () => true, ipSalt: "sal-de-prueba-integracion", withinRateLimits, createOrder };
 
-function payload(items: { productId: string; quantity: number }[], extra: Record<string, unknown> = {}) {
+function payload(items: { productId: string; quantity: number; optionIds?: string[] }[], extra: Record<string, unknown> = {}) {
   const idempotencyKey = crypto.randomUUID();
   keys.push(idempotencyKey);
   return {
@@ -61,6 +61,31 @@ afterAll(async () => {
 });
 
 describe("pedidos (base real, clave secreta local, Turnstile simulado)", () => {
+  it("con opciones: la base suma los adicionales e ignora un precio inventado (parte 3)", async () => {
+    const ELECCION = "a2000000-0000-4000-8000-000000000005";
+    const DOBLE_OPT = "a5000000-0000-4000-8000-000000000002";
+    const PANCETA = "a5000000-0000-4000-8000-000000000003";
+    const result = await submitOrder(
+      alfa,
+      payload([{ productId: ELECCION, quantity: 1, optionIds: [DOBLE_OPT, PANCETA], price: 1 } as never]),
+      freshIp(),
+      deps,
+    );
+    expect(result.status).toBe(200);
+    if (result.status !== 200) return;
+    const text = decodeURIComponent(result.body.whatsappUrl!.split("?text=")[1]);
+    expect(text).toContain("1 x Hamburguesa a elección (Doble, Panceta) - $ 10.300");
+  });
+
+  it("con una opción agotada: lo rechaza y avisa qué producto sacar", async () => {
+    const ELECCION = "a2000000-0000-4000-8000-000000000005";
+    const SIMPLE_OPT = "a5000000-0000-4000-8000-000000000001";
+    const HUEVO_AGOTADO = "a5000000-0000-4000-8000-000000000004";
+    const result = await submitOrder(alfa, payload([{ productId: ELECCION, quantity: 1, optionIds: [SIMPLE_OPT, HUEVO_AGOTADO] }]), freshIp(), deps);
+    expect(result.status).toBe(409);
+    expect(result.body).toMatchObject({ unavailable: [ELECCION] });
+  });
+
   it("crea el pedido con precios de la base y arma el link de WhatsApp", async () => {
     const result = await submitOrder(
       alfa,

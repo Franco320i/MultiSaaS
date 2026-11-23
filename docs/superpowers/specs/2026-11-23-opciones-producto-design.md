@@ -43,7 +43,7 @@ Sin opciones, una tienda de ropa no puede vender (falta el talle) y una hamburgu
   - verifica que cada opción sea de ese producto y de ese comercio, que esté disponible, que se cumplan los obligatorios y el máximo de cada grupo;
   - calcula el precio unitario = precio del producto + adicionales, **sin leer precios del navegador**;
   - guarda en `order_items.options` (columna que ya existe) la copia de lo elegido (`[{group, name, price_delta}]`), igual que hoy guarda el nombre del producto.
-  - Errores genéricos: `options_invalid` → "Revisá las opciones de «…»"; una opción agotada se informa como hoy un producto no disponible.
+  - Errores genéricos: `options_invalid` (también para una opción agotada o un grupo mal elegido) → "Cambiaron las opciones de un producto. Lo sacamos de tu pedido: elegilo de nuevo." Un grupo obligatorio que todavía no tiene opciones no se exige.
 - **Navegador:** el carrito pasa a guardar `{productId, optionIds, quantity}` (clave nueva `pedido:v2`; lo guardado en `pedido:v1` se convierte a líneas sin opciones). El precio que muestra es solo informativo; el que vale lo calcula la base.
 - **Catálogo público:** `getPublicCatalog` trae grupos y opciones (sigue cacheado por comercio; cada acción de opciones invalida el catálogo con `revalidatePublicCatalog`).
 - **Panel:** acciones con `requireTenantAccess(slug, "catalog.write")` + Zod; el producto se busca con el `tenantId` verificado.
@@ -71,7 +71,7 @@ Sin opciones, una tienda de ropa no puede vender (falta el talle) y una hamburgu
 
 ## Decisiones mías para revisar
 
-- El bloque "Opciones" va aparte, debajo de "Más detalles", y se guarda solo (no dentro del formulario con "Guardar cambios"): así agregar una opción no obliga a guardar todo el producto.
+- El bloque "Opciones" va aparte, debajo del formulario del producto, y se guarda solo (no dentro del formulario con "Guardar cambios"): así agregar una opción no obliga a guardar todo el producto.
 - Adicionales solo positivos o cero.
 - Límites: 5 grupos por producto, 20 opciones por grupo.
 - "Desde $ …" en la tarjeta cuando alguna opción obligatoria suma precio.

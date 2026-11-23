@@ -9,6 +9,8 @@ export { DeleteButton } from "./components/delete-button";
 export { ImportForm } from "./components/import-form";
 export { ProductForm } from "./components/product-form";
 export { ProductImages, type ImageItem } from "./components/product-images";
+export { OptionsEditor } from "./components/options-editor";
+export { listOptionGroups } from "./options";
 export { firstImageByProduct, listProductImages, type ProductImage } from "./images";
 export { StorefrontNotFound, StorefrontSkeleton, StorefrontUnavailable } from "./components/storefront/states";
 export { StorefrontView } from "./components/storefront/storefront-view";

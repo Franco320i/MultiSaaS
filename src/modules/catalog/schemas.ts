@@ -114,6 +114,44 @@ export function productFormFromData(formData: FormData): Record<string, unknown>
   };
 }
 
+/** Grupo de opciones (parte 3): "una" o "varias, hasta N" (2 a 20). */
+export const optionGroupSchema = z
+  .object({
+    name: z.string().trim().min(1, "Poné un nombre, por ejemplo Talle o Extras.").max(40, "El nombre puede tener hasta 40 letras."),
+    required: checkbox,
+    choice: z.enum(["one", "many"]),
+    max_choices: z.string().optional(),
+  })
+  .transform((g, ctx) => {
+    if (g.choice === "one") return { name: g.name, required: g.required, max_choices: 1 };
+    const max = Number(g.max_choices);
+    if (!Number.isInteger(max) || max < 2 || max > 20) {
+      ctx.addIssue({ code: "custom", message: "Si se eligen varias, el máximo va de 2 a 20." });
+      return z.NEVER;
+    }
+    return { name: g.name, required: g.required, max_choices: max };
+  });
+export type OptionGroupForm = z.infer<typeof optionGroupSchema>;
+
+/** Opción de un grupo: nombre y precio adicional (vacío = 0, nunca negativo). */
+export const optionSchema = z.object({
+  name: z.string().trim().min(1, "Poné un nombre a la opción.").max(40, "El nombre puede tener hasta 40 letras."),
+  price_delta: z
+    .string()
+    .trim()
+    .optional()
+    .transform((value, ctx) => {
+      if (!value) return 0;
+      const cents = parseAmountToCents(value);
+      if (cents === null) {
+        ctx.addIssue({ code: "custom", message: "El precio adicional no es válido: escribí, por ejemplo, 1.500 o dejalo vacío." });
+        return z.NEVER;
+      }
+      return cents;
+    }),
+});
+export type OptionForm = z.infer<typeof optionSchema>;
+
 export const idSchema = z.uuid();
 export const directionSchema = z.enum(["up", "down"]);
 export const productFlagSchema = z.enum(["is_published", "is_available", "is_featured"]);

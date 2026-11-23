@@ -9,11 +9,14 @@ import { revalidatePublicCatalog } from "./cache";
 import * as images from "./images";
 import { parseSpreadsheet, type ParsedImport } from "./import";
 import * as mutations from "./mutations";
+import * as options from "./options";
 import {
   categoryFormSchema,
   directionSchema,
   firstError,
   idSchema,
+  optionGroupSchema,
+  optionSchema,
   productFlagSchema,
   productFormFromData,
   productFormSchema,
@@ -282,4 +285,86 @@ export async function importProductsAction(tenantSlug: string, _prev: ImportStat
   if (result.created > 0) revalidatePublicCatalog(access.tenantId);
   refresh();
   return { result };
+}
+
+// -----------------------------------------------------------------------------
+// Opciones del producto (parte 3). Mismo criterio que el resto: requireTenantAccess
+// adentro de cada acción, Zod, el tenantId verificado y revalidar el catálogo público.
+// La FK compuesta impide colgar un grupo de un producto (o una opción de un grupo) de
+// otro comercio aunque alguien mande un id ajeno.
+// -----------------------------------------------------------------------------
+
+export type OptionFormState = { error?: string; ok?: boolean };
+
+async function afterOptionChange(tenantId: string, result: options.OptionResult): Promise<OptionFormState> {
+  if (!result.ok) return { error: result.error };
+  revalidatePublicCatalog(tenantId);
+  refresh();
+  return { ok: true };
+}
+
+export async function createOptionGroupAction(tenantSlug: string, productId: string, _prev: OptionFormState, formData: FormData): Promise<OptionFormState> {
+  const { access, supabase } = await context(tenantSlug);
+  const id = idSchema.safeParse(productId);
+  const parsed = optionGroupSchema.safeParse(Object.fromEntries(formData));
+  if (!id.success) return { error: "El producto no existe." };
+  if (!parsed.success) return { error: firstError(parsed.error) };
+  return afterOptionChange(access.tenantId, await options.createGroup(supabase, access.tenantId, id.data, parsed.data));
+}
+
+export async function updateOptionGroupAction(tenantSlug: string, groupId: string, _prev: OptionFormState, formData: FormData): Promise<OptionFormState> {
+  const { access, supabase } = await context(tenantSlug);
+  const id = idSchema.safeParse(groupId);
+  const parsed = optionGroupSchema.safeParse(Object.fromEntries(formData));
+  if (!id.success) return { error: "Ese grupo no existe." };
+  if (!parsed.success) return { error: firstError(parsed.error) };
+  return afterOptionChange(access.tenantId, await options.updateGroup(supabase, access.tenantId, id.data, parsed.data));
+}
+
+export async function deleteOptionGroupAction(tenantSlug: string, groupId: string): Promise<void> {
+  const { access, supabase } = await context(tenantSlug);
+  const id = idSchema.safeParse(groupId);
+  if (!id.success) return;
+  await afterOptionChange(access.tenantId, await options.deleteGroup(supabase, access.tenantId, id.data));
+}
+
+export async function createOptionAction(tenantSlug: string, groupId: string, _prev: OptionFormState, formData: FormData): Promise<OptionFormState> {
+  const { access, supabase } = await context(tenantSlug);
+  const id = idSchema.safeParse(groupId);
+  const parsed = optionSchema.safeParse(Object.fromEntries(formData));
+  if (!id.success) return { error: "Ese grupo no existe." };
+  if (!parsed.success) return { error: firstError(parsed.error) };
+  return afterOptionChange(access.tenantId, await options.createOption(supabase, access.tenantId, id.data, parsed.data));
+}
+
+export async function updateOptionAction(tenantSlug: string, optionId: string, _prev: OptionFormState, formData: FormData): Promise<OptionFormState> {
+  const { access, supabase } = await context(tenantSlug);
+  const id = idSchema.safeParse(optionId);
+  const parsed = optionSchema.safeParse(Object.fromEntries(formData));
+  if (!id.success) return { error: "Esa opción no existe." };
+  if (!parsed.success) return { error: firstError(parsed.error) };
+  return afterOptionChange(access.tenantId, await options.updateOption(supabase, access.tenantId, id.data, parsed.data));
+}
+
+export async function setOptionAvailableAction(tenantSlug: string, optionId: string, available: boolean): Promise<void> {
+  const { access, supabase } = await context(tenantSlug);
+  const id = idSchema.safeParse(optionId);
+  if (!id.success || typeof available !== "boolean") return;
+  await afterOptionChange(access.tenantId, await options.setOptionAvailable(supabase, access.tenantId, id.data, available));
+}
+
+export async function deleteOptionAction(tenantSlug: string, optionId: string): Promise<void> {
+  const { access, supabase } = await context(tenantSlug);
+  const id = idSchema.safeParse(optionId);
+  if (!id.success) return;
+  await afterOptionChange(access.tenantId, await options.deleteOption(supabase, access.tenantId, id.data));
+}
+
+export async function moveOptionItemAction(tenantSlug: string, kind: string, itemId: string, direction: string): Promise<void> {
+  const { access, supabase } = await context(tenantSlug);
+  const id = idSchema.safeParse(itemId);
+  const dir = directionSchema.safeParse(direction);
+  if (!id.success || !dir.success || (kind !== "group" && kind !== "option")) return;
+  const table = kind === "group" ? "catalog_option_groups" : "catalog_options";
+  await afterOptionChange(access.tenantId, await options.moveOptionItem(supabase, table, access.tenantId, id.data, dir.data));
 }
