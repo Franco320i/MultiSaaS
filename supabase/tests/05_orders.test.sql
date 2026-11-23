@@ -207,7 +207,7 @@ select is(
   '{"number": 3, "created": true, "fulfillment": "delivery", "customer_name": "Ana Ruiz",
     "delivery_address": "Mitre 456", "notes": null, "subtotal": 900000, "delivery_fee": 150000,
     "total": 1050000, "items": [{"product_name": "Hamburguesa doble", "quantity": 1,
-    "unit_price": 900000, "line_total": 900000}]}'::jsonb,
+    "unit_price": 900000, "line_total": 900000, "options": []}]}'::jsonb,
   'create_order: precios, envío y total salen de la base; ignora precio, total y tenant_id enviados'
 );
 select is(
@@ -231,8 +231,8 @@ select is(
     pg_temp.line('a2000000-0000-4000-8000-000000000002', 1),
     pg_temp.line('a2000000-0000-4000-8000-000000000001', 1),
     pg_temp.line('a2000000-0000-4000-8000-000000000002', 2)))) -> 'items',
-  '[{"product_name": "Hamburguesa simple", "quantity": 3, "unit_price": 650000, "line_total": 1950000},
-    {"product_name": "Hamburguesa doble", "quantity": 1, "unit_price": 900000, "line_total": 900000}]'::jsonb,
+  '[{"product_name": "Hamburguesa simple", "quantity": 3, "unit_price": 650000, "line_total": 1950000, "options": []},
+    {"product_name": "Hamburguesa doble", "quantity": 1, "unit_price": 900000, "line_total": 900000, "options": []}]'::jsonb,
   'create_order: un producto repetido se suma en una línea y se respeta el orden'
 );
 select is(
