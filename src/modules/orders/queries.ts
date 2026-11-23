@@ -120,3 +120,13 @@ export async function getOrderStats(supabase: Client, tenantId: string): Promise
   if (error) return null;
   return parseOrderStats(data);
 }
+
+/** Pedidos nuevos sin atender (para el número del menú). Con la sesión: RLS deja solo los del comercio. */
+export async function countNewOrders(supabase: Client, tenantId: string): Promise<number> {
+  const { count } = await supabase
+    .from("orders")
+    .select("id", { count: "exact", head: true })
+    .eq("tenant_id", tenantId)
+    .eq("status", "new");
+  return count ?? 0;
+}

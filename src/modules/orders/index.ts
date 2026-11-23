@@ -10,7 +10,7 @@ export { FulfillmentLabel, StatusPill } from "./components/order-parts";
 export { Ordering, type OrderingConfig } from "./components/ordering";
 export { StatusActions } from "./components/status-actions";
 export { clockTime, dayAndTime, timeAgo } from "./format";
-export { getOrder, getOrderStats, getTenantTimeZone, listOrders, type OrderDetail, type OrderListItem } from "./queries";
+export { countNewOrders, getOrder, getOrderStats, getTenantTimeZone, listOrders, type OrderDetail, type OrderListItem } from "./queries";
 export { OrderStatsCard } from "./components/order-stats-card";
 export type { OrderStats } from "./stats";
 export { NEXT_STEP, STATUS_LABEL, type OrderStatus } from "./status";
