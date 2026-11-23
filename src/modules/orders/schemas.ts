@@ -22,6 +22,8 @@ export const orderRequestSchema = z
       .array(
         z.object({
           productId: z.uuid(),
+          // Opciones elegidas (parte 3). Solo IDs: los adicionales los suma la base.
+          optionIds: z.array(z.uuid()).max(50).default([]),
           quantity: z.number().int().min(1).max(99),
         }),
       )
@@ -60,6 +62,7 @@ export const orderSummarySchema = z.object({
       quantity: z.number().int(),
       unit_price: z.number().int(),
       line_total: z.number().int(),
+      options: z.array(z.object({ group: z.string(), name: z.string(), price_delta: z.number().int() })).default([]),
     }),
   ),
 });

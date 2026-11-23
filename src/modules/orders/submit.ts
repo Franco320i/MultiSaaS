@@ -67,6 +67,8 @@ export async function submitOrder(
     switch (result.error) {
       case "products_unavailable":
         return fail(409, "Algunos productos ya no están disponibles. Los sacamos de tu pedido.", result.unavailable);
+      case "options_invalid":
+        return fail(409, "Cambiaron las opciones de un producto. Lo sacamos de tu pedido: elegilo de nuevo.", result.unavailable);
       case "below_minimum":
         return fail(409, `El pedido mínimo es ${plainMoney(storefront.min_order_amount, storefront.currency)}.`);
       case "fulfillment_not_available":

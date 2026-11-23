@@ -2,6 +2,7 @@ import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { cacheTags } from "@/lib/cache/tags";
 import type { ProductSpec } from "@/lib/catalog-options";
+import type { ProductOptionGroup } from "@/lib/product-options";
 import { createSupabasePublicClient } from "@/lib/supabase/public";
 
 /**
@@ -30,6 +31,8 @@ export type PublicProduct = {
   images: { path: string; alt: string | null }[];
   tags: string[];
   specs: ProductSpec[];
+  /** Opciones (parte 3): grupos en orden, con sus opciones (también las agotadas). */
+  optionGroups: ProductOptionGroup[];
 };
 
 export type PublicCatalog = {
@@ -69,6 +72,7 @@ export async function getPublicCatalog(tenantId: string): Promise<PublicCatalog>
   const shown = products.data.filter((p) => p.category_id === null || visible.has(p.category_id));
 
   const imagesByProduct = new Map<string, { path: string; alt: string | null }[]>();
+  const groupsByProduct = new Map<string, ProductOptionGroup[]>();
   if (shown.length > 0) {
     const { data: images, error } = await supabase
       .from("catalog_product_images")
@@ -82,6 +86,39 @@ export async function getPublicCatalog(tenantId: string): Promise<PublicCatalog>
       const list = imagesByProduct.get(image.product_id) ?? [];
       list.push({ path: image.storage_path, alt: image.alt });
       imagesByProduct.set(image.product_id, list);
+    }
+
+    // Opciones: dos lecturas (grupos y opciones), siempre filtradas por el comercio.
+    const { data: groups, error: groupsError } = await supabase
+      .from("catalog_option_groups")
+      .select("id, product_id, name, required, max_choices")
+      .eq("tenant_id", tenantId)
+      .in("product_id", shown.map((p) => p.id))
+      .order("position")
+      .order("created_at");
+    if (groupsError) throw new Error(`No se pudieron leer las opciones: ${groupsError.message}`);
+    if (groups.length > 0) {
+      const { data: options, error: optionsError } = await supabase
+        .from("catalog_options")
+        .select("id, group_id, name, price_delta, is_available")
+        .eq("tenant_id", tenantId)
+        .in("group_id", groups.map((g) => g.id))
+        .order("position")
+        .order("created_at");
+      if (optionsError) throw new Error(`No se pudieron leer las opciones: ${optionsError.message}`);
+      for (const g of groups) {
+        const list = groupsByProduct.get(g.product_id) ?? [];
+        list.push({
+          id: g.id,
+          name: g.name,
+          required: g.required,
+          maxChoices: g.max_choices,
+          options: options
+            .filter((o) => o.group_id === g.id)
+            .map((o) => ({ id: o.id, name: o.name, priceDelta: o.price_delta, isAvailable: o.is_available })),
+        });
+        groupsByProduct.set(g.product_id, list);
+      }
     }
   }
 
@@ -99,6 +136,8 @@ export async function getPublicCatalog(tenantId: string): Promise<PublicCatalog>
       images: imagesByProduct.get(p.id) ?? [],
       tags: p.tags,
       specs: parseSpecs(p.specs),
+      // Un grupo sin opciones no se muestra (no se podría completar).
+      optionGroups: (groupsByProduct.get(p.id) ?? []).filter((g) => g.options.length > 0),
     })),
   };
 }

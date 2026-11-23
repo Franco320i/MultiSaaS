@@ -95,6 +95,7 @@ async function Order({ params }: Pick<PageProps<"/panel/[tenant]/pedidos/[id]">,
               <span className="w-10 font-semibold">{item.quantity} ×</span>
               <span className="min-w-0 flex-1">
                 <span className="font-semibold">{item.productName}</span>
+                {item.options ? <span className="block text-[15px]">{item.options}</span> : null}
                 <span className="block text-[14px] text-muted">{formatCents(item.unitPrice)} c/u</span>
               </span>
               <span className="font-semibold">{formatCents(item.lineTotal)}</span>

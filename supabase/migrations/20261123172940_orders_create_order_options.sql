@@ -224,7 +224,10 @@ begin
             where o.tenant_id = g.tenant_id and o.group_id = g.id and o.id = any (l.option_ids)
           ) c
           where g.tenant_id = p_tenant_id and g.product_id = l.product_id
-            and (c.chosen > g.max_choices or (g.required and c.chosen = 0))
+            and (c.chosen > g.max_choices
+                 -- Un grupo obligatorio todavía sin opciones cargadas no se exige (el catálogo no lo muestra).
+                 or (g.required and c.chosen = 0
+                     and exists (select 1 from public.catalog_options o2 where o2.tenant_id = g.tenant_id and o2.group_id = g.id)))
         )
   limit 1;
   if found then

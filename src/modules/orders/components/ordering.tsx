@@ -5,6 +5,7 @@ import { isOpenAt, type HoursRange, type OpenMode } from "@/lib/hours";
 import { formatCents } from "@/lib/money";
 import { Stepper } from "./add-to-cart";
 import { clearCart, removeProducts, useCart } from "./cart-store";
+import { lineKey, selectionLabel, unitPrice, validateSelection, type ProductOptionGroup } from "@/lib/product-options";
 import { useTurnstile } from "@/ui/use-turnstile";
 
 /**
@@ -15,7 +16,7 @@ import { useTurnstile } from "@/ui/use-turnstile";
 
 export type OrderingConfig = {
   /** Solo productos que hoy se pueden pedir (publicados y disponibles). */
-  products: Record<string, { name: string; price: number }>;
+  products: Record<string, { name: string; price: number; optionGroups: ProductOptionGroup[] }>;
   currency: string;
   acceptsPickup: boolean;
   acceptsDelivery: boolean;
@@ -77,9 +78,25 @@ export function Ordering({ config }: { config: OrderingConfig }) {
   const [open, setOpen] = useState(false);
   const [done, setDone] = useState<Done | null>(null);
 
-  const lines = cart
-    .filter((l) => config.products[l.productId])
-    .map((l) => ({ ...l, ...config.products[l.productId], lineTotal: config.products[l.productId].price * l.quantity }));
+  // Solo líneas que hoy se pueden pedir: producto disponible y opciones todavía válidas.
+  // El precio es informativo; el que vale lo calcula la base.
+  const lines: Line[] = cart.flatMap((l) => {
+    const product = config.products[l.productId];
+    if (!product || !validateSelection(product.optionGroups, l.optionIds).ok) return [];
+    const price = unitPrice(product.price, product.optionGroups, l.optionIds);
+    return [
+      {
+        key: lineKey(l.productId, l.optionIds),
+        productId: l.productId,
+        optionIds: l.optionIds,
+        quantity: l.quantity,
+        name: product.name,
+        detail: selectionLabel(product.optionGroups, l.optionIds),
+        price,
+        lineTotal: price * l.quantity,
+      },
+    ];
+  });
   const count = lines.reduce((sum, l) => sum + l.quantity, 0);
   const subtotal = lines.reduce((sum, l) => sum + l.lineTotal, 0);
   const money = (cents: number) => formatCents(cents, config.currency);
@@ -134,7 +151,17 @@ export function Ordering({ config }: { config: OrderingConfig }) {
   );
 }
 
-type Line = { productId: string; quantity: number; name: string; price: number; lineTotal: number };
+type Line = {
+  key: string;
+  productId: string;
+  optionIds: string[];
+  quantity: number;
+  name: string;
+  /** Opciones elegidas, por ejemplo "Doble, Panceta". */
+  detail: string;
+  price: number;
+  lineTotal: number;
+};
 
 function Checkout({
   config,
@@ -179,7 +206,7 @@ function Checkout({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          items: lines.map((l) => ({ productId: l.productId, quantity: l.quantity })),
+          items: lines.map((l) => ({ productId: l.productId, optionIds: l.optionIds, quantity: l.quantity })),
           customerName: customer.name,
           customerPhone: customer.phone,
           fulfillment,
@@ -224,12 +251,13 @@ function Checkout({
         ) : (
           <ul className="divide-y divide-line">
             {lines.map((line) => (
-              <li key={line.productId} className="flex items-center gap-3 py-3">
+              <li key={line.key} className="flex items-center gap-3 py-3">
                 <div className="min-w-0 flex-1">
                   <p className="font-semibold leading-snug">{line.name}</p>
+                  {line.detail ? <p className="text-[14px] text-foreground">{line.detail}</p> : null}
                   <p className="text-[14px] text-muted tabular-nums">{money(line.price)} c/u</p>
                 </div>
-                <Stepper productId={line.productId} name={line.name} quantity={line.quantity} />
+                <Stepper lineKey={line.key} name={line.name} quantity={line.quantity} />
                 <span className="w-20 text-right font-semibold tabular-nums">{money(line.lineTotal)}</span>
               </li>
             ))}

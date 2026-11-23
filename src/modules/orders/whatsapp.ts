@@ -28,7 +28,10 @@ function compose(
   const lines = [
     `Hola ${storeName}, quiero hacer este pedido:`,
     `Pedido #${order.number}`,
-    ...shown.map((item) => `${item.quantity} x ${item.product_name} - ${money(item.line_total)}`),
+    ...shown.map((item) => {
+      const chosen = (item.options ?? []).map((o) => o.name).join(", ");
+      return `${item.quantity} x ${item.product_name}${chosen ? ` (${chosen})` : ""} - ${money(item.line_total)}`;
+    }),
     ...(hidden > 0 ? [`… y ${hidden} ${hidden === 1 ? "producto" : "productos"} más`] : []),
     `Subtotal: ${money(order.subtotal)}`,
     ...(order.fulfillment === "delivery" ? [`Envío: ${money(order.delivery_fee)}`] : []),

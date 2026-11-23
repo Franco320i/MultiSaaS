@@ -1,8 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { formatCents } from "@/lib/money";
+import { OptionSelectionProvider } from "@/lib/option-selection";
+import { unitPrice, validateSelection } from "@/lib/product-options";
 import type { PublicProduct } from "@/modules/catalog/public-queries";
 import { CloseIcon } from "./icons";
+import { OptionPicker } from "./option-picker";
 import { PriceBlock, ProductPicture, TagList } from "./product-card";
 
 const HISTORY_KEY = "vidriFicha";
@@ -28,6 +32,21 @@ export function ProductSheet({
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [photo, setPhoto] = useState(0);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [added, setAdded] = useState(false);
+  const groups = product.optionGroups;
+  const hasOptions = groups.length > 0;
+  const price = unitPrice(product.price, groups, selected);
+  const check = validateSelection(groups, selected);
+  // Un obligatorio con todas sus opciones agotadas: el producto no se puede pedir hoy.
+  const soldOutGroup = groups.find((g) => g.required && g.options.every((o) => !o.isAvailable));
+  const blocked = soldOutGroup
+    ? "No disponible por ahora"
+    : check.ok
+      ? null
+      : check.reason === "missing"
+        ? `Falta elegir ${check.group.toLowerCase()}`
+        : "Revisá las opciones";
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -105,9 +124,20 @@ export function ProductSheet({
           <h2 id={titleId} className="font-display text-[24px] leading-tight text-balance">
             {product.name}
           </h2>
-          <PriceBlock product={product} currency={currency} large />
+          <PriceBlock product={product} currency={currency} large price={hasOptions ? price : undefined} />
         </div>
         {product.description ? <p className="text-[15px] whitespace-pre-line text-muted">{product.description}</p> : null}
+        {hasOptions ? (
+          <OptionPicker
+            groups={groups}
+            selected={selected}
+            onChange={(next) => {
+              setSelected(next);
+              setAdded(false);
+            }}
+            currency={currency}
+          />
+        ) : null}
         {product.specs.length > 0 ? (
           <dl className="divide-y divide-line border-y border-line text-[15px]">
             {product.specs.map((spec) => (
@@ -121,8 +151,21 @@ export function ProductSheet({
       </div>
 
       <div className="sticky bottom-0 border-t border-line bg-surface px-5 pt-3 pb-[max(16px,env(safe-area-inset-bottom))]">
+        {added ? (
+          <p role="status" className="pb-2 text-center text-[15px] font-semibold text-accent">
+            Listo, lo sumamos a tu pedido. Podés elegir otra combinación.
+          </p>
+        ) : null}
         {product.isAvailable ? (
-          action
+          hasOptions ? (
+            <OptionSelectionProvider
+              value={{ optionIds: selected, priceLabel: formatCents(price, currency), blocked, onAdded: () => setAdded(true) }}
+            >
+              {action}
+            </OptionSelectionProvider>
+          ) : (
+            action
+          )
         ) : (
           <p className="py-2 text-center font-semibold text-danger">Sin stock por ahora</p>
         )}

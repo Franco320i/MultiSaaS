@@ -99,5 +99,11 @@ select lives_ok($$ select private.create_order('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaa
   pg_temp.req('[{"product_id": "a2000000-0000-4000-8000-000000000001", "quantity": 1}]'::jsonb)) $$,
   'una línea sin option_ids de un producto sin opciones');
 
+-- Un grupo obligatorio sin opciones cargadas no bloquea el producto.
+insert into public.catalog_option_groups (tenant_id, product_id, name, required, max_choices)
+values (pg_temp.k('alfa'), pg_temp.k('doble'), 'Vacío', true, 1);
+select lives_ok($$ select private.create_order('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+  pg_temp.req(jsonb_build_array(pg_temp.line('doble', 1)))) $$, 'un grupo obligatorio vacío no se exige');
+
 select * from finish();
 rollback;

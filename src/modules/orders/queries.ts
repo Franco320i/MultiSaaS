@@ -30,7 +30,8 @@ export type OrderDetail = OrderListItem & {
   subtotal: number;
   deliveryFee: number;
   statusChangedAt: string;
-  items: { id: string; productName: string; unitPrice: number; quantity: number; lineTotal: number }[];
+  /** options: lo elegido ("Doble, Panceta"), copiado al crear el pedido. */
+  items: { id: string; productName: string; options: string; unitPrice: number; quantity: number; lineTotal: number }[];
 };
 
 const LIST_COLUMNS = "id, number, status, fulfillment, customer_name, total, created_at, order_items(quantity)";
@@ -78,7 +79,7 @@ export async function getOrder(supabase: Client, tenantId: string, id: string): 
   const { data, error } = await supabase
     .from("orders")
     .select(
-      "id, number, status, fulfillment, customer_name, customer_phone, delivery_address, notes, subtotal, delivery_fee, total, created_at, status_changed_at, order_items(id, product_name, unit_price, quantity, line_total, position)",
+      "id, number, status, fulfillment, customer_name, customer_phone, delivery_address, notes, subtotal, delivery_fee, total, created_at, status_changed_at, order_items(id, product_name, unit_price, quantity, line_total, options, position)",
     )
     .eq("tenant_id", tenantId)
     .eq("id", id)
@@ -98,6 +99,7 @@ export async function getOrder(supabase: Client, tenantId: string, id: string): 
     items: data.order_items.map((i) => ({
       id: i.id,
       productName: i.product_name,
+      options: optionNames(i.options),
       unitPrice: i.unit_price,
       quantity: i.quantity,
       lineTotal: i.line_total,
@@ -129,4 +131,13 @@ export async function countNewOrders(supabase: Client, tenantId: string): Promis
     .eq("tenant_id", tenantId)
     .eq("status", "new");
   return count ?? 0;
+}
+
+/** Nombres de las opciones guardadas en order_items.options ([{group, name, price_delta}]). */
+function optionNames(raw: unknown): string {
+  if (!Array.isArray(raw)) return "";
+  return raw
+    .map((o) => (typeof o === "object" && o !== null && typeof (o as { name?: unknown }).name === "string" ? (o as { name: string }).name : null))
+    .filter((n): n is string => n !== null)
+    .join(", ");
 }

@@ -54,7 +54,9 @@ async function Storefront({ params }: Pick<Props, "params">) {
   // El precio real lo vuelve a calcular la base al crear el pedido.
   const ordering: OrderingConfig = {
     products: Object.fromEntries(
-      catalog.products.filter((p) => p.isAvailable).map((p) => [p.id, { name: p.name, price: p.price }]),
+      catalog.products
+        .filter((p) => p.isAvailable)
+        .map((p) => [p.id, { name: p.name, price: p.price, optionGroups: p.optionGroups }]),
     ),
     currency: storefront.currency,
     acceptsPickup: storefront.accepts_pickup,

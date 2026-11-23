@@ -10,6 +10,7 @@ import { orderSummarySchema, type OrderRequest, type OrderSummary } from "./sche
 
 export type CreateOrderError =
   | "products_unavailable"
+  | "options_invalid"
   | "below_minimum"
   | "fulfillment_not_available"
   | "tenant_unavailable"
@@ -25,6 +26,7 @@ export type CreateOrderResult =
 
 const KNOWN_ERRORS = new Set<CreateOrderError>([
   "products_unavailable",
+  "options_invalid",
   "below_minimum",
   "fulfillment_not_available",
   "tenant_unavailable",
@@ -55,16 +57,17 @@ export async function createOrder(tenantId: string, input: OrderRequest, ipHash:
       delivery_address: input.deliveryAddress ?? null,
       notes: input.notes ?? null,
       client_ip_hash: ipHash,
-      items: input.items.map((item) => ({ product_id: item.productId, quantity: item.quantity })),
+      items: input.items.map((item) => ({ product_id: item.productId, option_ids: item.optionIds, quantity: item.quantity })),
     },
   });
 
   if (error) {
     const code = error.message as CreateOrderError;
     if (error.code === "P0001" && KNOWN_ERRORS.has(code)) {
-      return code === "products_unavailable"
-        ? { ok: false, error: code, unavailable: parseIds(error.details) }
-        : { ok: false, error: code };
+      if (code === "products_unavailable") return { ok: false, error: code, unavailable: parseIds(error.details) };
+      // options_invalid trae el id del producto (texto), no una lista.
+      if (code === "options_invalid") return { ok: false, error: code, unavailable: error.details ? [error.details] : [] };
+      return { ok: false, error: code };
     }
     console.error("create_order falló", { code: error.code, message: error.message });
     return { ok: false, error: "unknown" };

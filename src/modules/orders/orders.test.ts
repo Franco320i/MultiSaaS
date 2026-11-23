@@ -16,8 +16,8 @@ const order: OrderSummary = {
   delivery_fee: 150000,
   total: 2600000,
   items: [
-    { product_name: "Hamburguesa doble", quantity: 2, unit_price: 900000, line_total: 1800000 },
-    { product_name: "Papas grandes", quantity: 1, unit_price: 650000, line_total: 650000 },
+    { product_name: "Hamburguesa doble", quantity: 2, unit_price: 900000, line_total: 1800000, options: [] },
+    { product_name: "Papas grandes", quantity: 1, unit_price: 650000, line_total: 650000, options: [] },
   ],
 };
 
@@ -59,6 +59,7 @@ describe("buildOrderMessage", () => {
       quantity: 1,
       unit_price: 100000,
       line_total: 100000,
+      options: [],
     }));
     const message = buildOrderMessage({ ...order, items, notes: null }, "Burger Alfa");
     expect(message.length).toBeLessThanOrEqual(MAX_MESSAGE_LENGTH);
@@ -90,7 +91,7 @@ describe("orderRequestSchema", () => {
     const parsed = orderRequestSchema.parse({ ...valid, total: 1, tenantId: "x", items: [{ ...valid.items[0], price: 1 }] });
     expect(parsed).not.toHaveProperty("total");
     expect(parsed).not.toHaveProperty("tenantId");
-    expect(parsed.items[0]).toEqual({ productId: valid.items[0].productId, quantity: 2 });
+    expect(parsed.items[0]).toEqual({ productId: valid.items[0].productId, optionIds: [], quantity: 2 });
     expect(parsed.customerName).toBe("Lucía");
   });
   it("rechaza cantidades fuera de 1 a 99 y más de 50 líneas", () => {
@@ -194,5 +195,28 @@ describe("submitOrder", () => {
     const d = deps();
     expect((await submitOrder(storefront, { items: [] }, null, d)).status).toBe(400);
     expect(d.verifyTurnstile).not.toHaveBeenCalled();
+  });
+});
+
+describe("buildOrderMessage con opciones (parte 3)", () => {
+  it("muestra lo elegido entre paréntesis", () => {
+    const withOptions: OrderSummary = {
+      ...order,
+      items: [
+        {
+          product_name: "Hamburguesa a elección",
+          quantity: 1,
+          unit_price: 1030000,
+          line_total: 1030000,
+          options: [
+            { group: "Tamaño", name: "Doble", price_delta: 150000 },
+            { group: "Extras", name: "Panceta", price_delta: 80000 },
+          ],
+        },
+      ],
+    };
+    expect(buildOrderMessage(withOptions, "Burger Alfa")).toContain(
+      "1 x Hamburguesa a elección (Doble, Panceta) - $ 10.300",
+    );
   });
 });

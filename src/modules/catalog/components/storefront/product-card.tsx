@@ -4,16 +4,32 @@ import Image from "next/image";
 import type { ReactNode } from "react";
 import { publicImageUrl } from "@/lib/images/url";
 import { formatCents } from "@/lib/money";
+import { fromPrice } from "@/lib/product-options";
 import { savingsLabel, visibleTags } from "@/modules/catalog/presentation";
 import type { PublicProduct } from "@/modules/catalog/public-queries";
 
 /** Precio, el anterior tachado y "Ahorrás". */
-export function PriceBlock({ product, currency, large }: { product: PublicProduct; currency: string; large?: boolean }) {
+export function PriceBlock({
+  product,
+  currency,
+  large,
+  price,
+}: {
+  product: PublicProduct;
+  currency: string;
+  large?: boolean;
+  /** Precio a mostrar si no es el del producto (por ejemplo, con las opciones elegidas). */
+  price?: number;
+}) {
   const savings = savingsLabel(product.price, product.compareAtPrice, currency);
+  // Con opciones que suman precio, la tarjeta muestra "Desde": lo más barato que se puede pedir.
+  const addsPrice = product.optionGroups.some((g) => g.options.some((o) => o.priceDelta > 0));
+  const shown = price ?? (addsPrice ? fromPrice(product.price, product.optionGroups) : product.price);
   return (
     <div className="flex flex-col">
       <p className="flex flex-wrap items-baseline gap-x-2 tabular-nums">
-        <span className={large ? "text-[26px] font-bold" : "text-[16px] font-semibold"}>{formatCents(product.price, currency)}</span>
+        {price === undefined && addsPrice ? <span className="text-[13px] text-muted">Desde</span> : null}
+        <span className={large ? "text-[26px] font-bold" : "text-[16px] font-semibold"}>{formatCents(shown, currency)}</span>
         {savings ? (
           <s className="text-[13px] text-muted">
             <span className="sr-only">Antes </span>
@@ -111,7 +127,21 @@ export function ProductCard({
       </button>
       <PriceBlock product={product} currency={currency} />
       {product.isAvailable ? (
-        action ? <div className="mt-auto pt-1">{action}</div> : null
+        product.optionGroups.length > 0 ? (
+          // Con opciones se elige en la ficha.
+          <div className="mt-auto pt-1">
+            <button
+              type="button"
+              onClick={onOpen}
+              aria-label={`Elegir opciones de ${product.name}`}
+              className="min-h-11 w-full rounded-full border border-brand px-4 text-[15px] font-semibold text-foreground transition-colors hover:bg-brand hover:text-brand-foreground"
+            >
+              Elegir
+            </button>
+          </div>
+        ) : action ? (
+          <div className="mt-auto pt-1">{action}</div>
+        ) : null
       ) : (
         <span className="w-fit rounded-full bg-danger-soft px-2 py-0.5 text-[13px] font-semibold text-danger">Sin stock</span>
       )}

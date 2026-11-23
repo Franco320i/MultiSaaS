@@ -1,6 +1,7 @@
 "use client";
 
-import { setQuantity, useCart } from "./cart-store";
+import { useOptionSelection } from "@/lib/option-selection";
+import { addToCart, setQuantity, useCart } from "./cart-store";
 
 /**
  * "Agregar" o, si ya está en el pedido, − cantidad +. Objetivos táctiles de 44 px.
@@ -18,13 +19,32 @@ export function AddToCartButton({
   variant?: "card" | "sheet";
   priceLabel?: string;
 }) {
-  const quantity = useCart().find((l) => l.productId === productId)?.quantity ?? 0;
+  const selection = useOptionSelection();
+  const quantity = useCart().find((l) => l.productId === productId && l.optionIds.length === 0)?.quantity ?? 0;
+
+  // Producto con opciones, dentro de la ficha: agrega la combinación elegida (cada una es su línea).
+  if (selection && variant === "sheet") {
+    return (
+      <button
+        type="button"
+        disabled={selection.blocked !== null}
+        onClick={() => {
+          addToCart(productId, selection.optionIds);
+          selection.onAdded();
+        }}
+        aria-label={selection.blocked ?? `Agregar ${name} al pedido`}
+        className="min-h-12 w-full rounded-full bg-brand px-5 text-[16px] font-semibold text-brand-foreground tabular-nums disabled:opacity-50"
+      >
+        {selection.blocked ?? `Agregar · ${selection.priceLabel}`}
+      </button>
+    );
+  }
 
   if (quantity === 0) {
     return variant === "sheet" ? (
       <button
         type="button"
-        onClick={() => setQuantity(productId, 1)}
+        onClick={() => addToCart(productId)}
         aria-label={`Agregar ${name} al pedido`}
         className="min-h-12 w-full rounded-full bg-brand px-5 text-[16px] font-semibold text-brand-foreground tabular-nums"
       >
@@ -33,7 +53,7 @@ export function AddToCartButton({
     ) : (
       <button
         type="button"
-        onClick={() => setQuantity(productId, 1)}
+        onClick={() => addToCart(productId)}
         aria-label={`Agregar ${name} al pedido`}
         className="min-h-11 w-full rounded-full border border-brand px-4 text-[15px] font-semibold text-foreground transition-colors hover:bg-brand hover:text-brand-foreground"
       >
@@ -45,17 +65,18 @@ export function AddToCartButton({
   return (
     <div className={variant === "sheet" ? "flex items-center justify-between gap-3" : undefined}>
       {variant === "sheet" ? <span className="font-semibold">En tu pedido</span> : null}
-      <Stepper productId={productId} name={name} quantity={quantity} />
+      <Stepper lineKey={productId} name={name} quantity={quantity} />
     </div>
   );
 }
 
-export function Stepper({ productId, name, quantity }: { productId: string; name: string; quantity: number }) {
+/** − cantidad + de una línea del carrito (lineKey: producto, o producto + opciones). */
+export function Stepper({ lineKey, name, quantity }: { lineKey: string; name: string; quantity: number }) {
   return (
     <div role="group" aria-label={`Cantidad de ${name}`} className="inline-flex items-center rounded-full bg-brand text-brand-foreground">
       <button
         type="button"
-        onClick={() => setQuantity(productId, quantity - 1)}
+        onClick={() => setQuantity(lineKey, quantity - 1)}
         aria-label={quantity === 1 ? `Sacar ${name} del pedido` : `Uno menos de ${name}`}
         className="grid size-11 place-items-center rounded-full text-[20px] font-semibold"
       >
@@ -66,7 +87,7 @@ export function Stepper({ productId, name, quantity }: { productId: string; name
       </span>
       <button
         type="button"
-        onClick={() => setQuantity(productId, quantity + 1)}
+        onClick={() => setQuantity(lineKey, quantity + 1)}
         disabled={quantity >= 99}
         aria-label={`Uno más de ${name}`}
         className="grid size-11 place-items-center rounded-full text-[20px] font-semibold disabled:opacity-50"
