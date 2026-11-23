@@ -137,6 +137,8 @@ values
    'Gaseosa 500 ml', 'gaseosa-500', null, 200000, null, true, false, false, 1),
   ('a2000000-0000-4000-8000-000000000004', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'a1000000-0000-4000-8000-000000000001',
    'Hamburguesa vegana (borrador)', 'hamburguesa-vegana', null, 800000, null, false, true, false, 3),
+  ('a2000000-0000-4000-8000-000000000005', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'a1000000-0000-4000-8000-000000000001',
+   'Hamburguesa a elección', 'hamburguesa-a-eleccion', 'Elegí el tamaño y sumale extras.', 800000, null, true, true, false, 4),
   ('b2000000-0000-4000-8000-000000000001', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'b1000000-0000-4000-8000-000000000001',
    'Remera negra', 'remera-negra', 'Algodón peinado.', 1500000, null, true, true, false, 1),
   ('b2000000-0000-4000-8000-000000000002', 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', null,
@@ -157,6 +159,21 @@ insert into public.catalog_product_images (id, tenant_id, product_id, storage_pa
    'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb/products/b2000000-0000-4000-8000-000000000001/b3000000-0000-4000-8000-000000000001', 1280, 1280, 1),
   ('c3000000-0000-4000-8000-000000000001', 'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'c2000000-0000-4000-8000-000000000001',
    'cccccccc-cccc-4ccc-8ccc-cccccccccccc/products/c2000000-0000-4000-8000-000000000001/c3000000-0000-4000-8000-000000000001', 800, 800, 1);
+
+-- -----------------------------------------------------------------------------
+-- Opciones del producto (parte 3). "Hamburguesa a elección" de Alfa:
+--   Tamaño (obligatorio, una): Simple +$0, Doble +$1.500
+--   Extras (opcional, hasta 2): Panceta +$800, Huevo +$500 (agotado)
+-- -----------------------------------------------------------------------------
+insert into public.catalog_option_groups (id, tenant_id, product_id, name, required, max_choices, position) values
+  ('a4000000-0000-4000-8000-000000000001', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'a2000000-0000-4000-8000-000000000005', 'Tamaño', true, 1, 1),
+  ('a4000000-0000-4000-8000-000000000002', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'a2000000-0000-4000-8000-000000000005', 'Extras', false, 2, 2);
+
+insert into public.catalog_options (id, tenant_id, group_id, name, price_delta, is_available, position) values
+  ('a5000000-0000-4000-8000-000000000001', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'a4000000-0000-4000-8000-000000000001', 'Simple', 0, true, 1),
+  ('a5000000-0000-4000-8000-000000000002', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'a4000000-0000-4000-8000-000000000001', 'Doble', 150000, true, 2),
+  ('a5000000-0000-4000-8000-000000000003', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'a4000000-0000-4000-8000-000000000002', 'Panceta', 80000, true, 1),
+  ('a5000000-0000-4000-8000-000000000004', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'a4000000-0000-4000-8000-000000000002', 'Huevo', 50000, false, 2);
 
 -- -----------------------------------------------------------------------------
 -- Pedidos (etapa 7). Se crean con private.create_order, igual que desde el catálogo.

@@ -99,6 +99,58 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"catalog_option_groups": {
+                  Row: {
+                    "created_at": string,"id": string,"max_choices": number,"name": string,"position": number,"product_id": string,"required": boolean,"tenant_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"max_choices"?: number,"name": string,"position"?: number,"product_id": string,"required"?: boolean,"tenant_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"max_choices"?: number,"name"?: string,"position"?: number,"product_id"?: string,"required"?: boolean,"tenant_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "catalog_option_groups_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenants"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "catalog_option_groups_tenant_id_product_id_fkey"
+      columns: ["tenant_id","product_id"]
+isOneToOne: false
+      referencedRelation: "catalog_products"
+      referencedColumns: ["tenant_id","id"]
+    }
+                  ]
+                },"catalog_options": {
+                  Row: {
+                    "created_at": string,"group_id": string,"id": string,"is_available": boolean,"name": string,"position": number,"price_delta": number,"tenant_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"group_id": string,"id"?: string,"is_available"?: boolean,"name": string,"position"?: number,"price_delta"?: number,"tenant_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"group_id"?: string,"id"?: string,"is_available"?: boolean,"name"?: string,"position"?: number,"price_delta"?: number,"tenant_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "catalog_options_tenant_id_fkey"
+      columns: ["tenant_id"]
+isOneToOne: false
+      referencedRelation: "tenants"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "catalog_options_tenant_id_group_id_fkey"
+      columns: ["tenant_id","group_id"]
+isOneToOne: false
+      referencedRelation: "catalog_option_groups"
+      referencedColumns: ["tenant_id","id"]
+    }
+                  ]
                 },"catalog_product_images": {
                   Row: {
                     "alt": string | null,"created_at": string,"height": number,"id": string,"position": number,"product_id": string,"storage_path": string,"tenant_id": string,"width": number

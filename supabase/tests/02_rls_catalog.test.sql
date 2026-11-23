@@ -27,7 +27,7 @@ select set_eq(
 );
 select set_eq(
   'select slug from public.catalog_products where tenant_id = ''aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa''',
-  array['hamburguesa-doble', 'hamburguesa-simple', 'gaseosa-500'],
+  array['hamburguesa-doble', 'hamburguesa-simple', 'gaseosa-500', 'hamburguesa-a-eleccion'],
   'anon: ve los productos publicados de Alfa (incluido el sin stock), no el borrador'
 );
 select is_empty(
@@ -65,7 +65,7 @@ select results_eq(
   $$ values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'::uuid) $$,
   'staff Alfa: ve solo productos de Alfa'
 );
-select is((select count(*)::int from public.catalog_products), 4, 'staff Alfa: ve también el borrador');
+select is((select count(*)::int from public.catalog_products), 5, 'staff Alfa: ve también el borrador');
 select is((select count(*)::int from public.catalog_categories), 3, 'staff Alfa: ve también la categoría oculta');
 
 select lives_ok(
