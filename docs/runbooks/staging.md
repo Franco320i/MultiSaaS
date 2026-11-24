@@ -12,10 +12,10 @@ Dominio de la plataforma: `vidri.ar` (registrado en NIC Argentina).
 
 ## Piezas
 
-- **Vercel:** proyecto `vidri-staging` (plan Hobby), conectado a `Franco320i/MultiSaaS`. Rama de producción del proyecto: `staging` (Settings → Environments → Production → Branch Tracking). Así la tarea diaria de `vercel.json` corre en staging: Vercel solo ejecuta crons en despliegues de producción del proyecto.
+- **Vercel:** proyecto `vidri-staging` (equipo en plan Pro desde el 2026-11-24, compartido con producción), conectado a `Franco320i/MultiSaaS`. Rama de producción del proyecto: `staging` (Settings → Environments → Production → Branch Tracking). Así la tarea diaria de `vercel.json` corre en staging: Vercel solo ejecuta crons en despliegues de producción del proyecto.
   - Dominios: `staging.vidri.ar` y `*.staging.vidri.ar`. El comodín exige que el DNS de `vidri.ar` lo maneje Vercel (nameservers de Vercel delegados en NIC).
   - No usar la integración "Supabase" del asistente de Vercel: crea otra base y reparte la clave secreta en todos los entornos.
-- **Supabase:** organización `vidri-staging` (plan Free, separada de producción) con el proyecto `vidri-staging` (ref `eysiaanpcwbxmxiwiscy`). Quedó en West US (Oregon), no en São Paulo: para staging alcanza; producción va en São Paulo. Se pausa tras una semana sin uso.
+- **Supabase:** organización `vidri-pruebas` (plan Free, separada de producción; el proyecto se mudó ahí el 2026-11-24 desde la organización que hoy es `vidri`, la paga) con el proyecto `vidri-staging` (ref `eysiaanpcwbxmxiwiscy`). Quedó en West US (Oregon), no en São Paulo: para staging alcanza; producción va en São Paulo. Se pausa tras una semana sin uso.
 - **Migraciones:** las aplica el job `migrate-staging` de `ci.yml` después de CI, por el session pooler (`aws-0-us-west-2.pooler.supabase.com`): la conexión directa es solo IPv6 y GitHub no tiene IPv6. Secretos del repo: `STAGING_PROJECT_REF` y `STAGING_DB_PASSWORD`.
 - **Cloudflare Turnstile:** un sitio para `staging.vidri.ar` con sus dos claves.
 - **Correos:** los de Supabase Auth (confirmación, invitación) salen por el SMTP de Resend (paso 7). La app no manda otros correos (decisión 0005).

@@ -1,0 +1,88 @@
+# Publicar en producción (diseño, sección 14; guía en docs/runbooks/produccion.md).
+#
+# Se dispara a mano: Actions → "Publicar en producción" → Run workflow (rama main).
+# Ese clic es la aprobación manual: GitHub Free no permite "required reviewers" en repos
+# privados, así que no hay entorno protegido.
+#
+# Orden garantizado: 1) el commit pasó CI y ya está en staging, 2) migraciones en la base de
+# producción, 3) recién entonces se mueve la rama `produccion`, que es la rama de producción
+# del proyecto de Vercel `vidri`. Si la migración falla, el código nuevo no se publica.
+#
+# Secretos del repo (los carga el usuario): PRODUCTION_PROJECT_REF, PRODUCTION_DB_PASSWORD y
+# PRODUCTION_POOLER_HOST (Supabase → Connect → Session pooler, por ejemplo
+# aws-0-sa-east-1.pooler.supabase.com).
+name: Publicar en producción
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: produccion
+  cancel-in-progress: false # nunca cortar una migración a la mitad
+
+permissions:
+  contents: write # mover la rama produccion
+  actions: read # consultar si CI pasó
+
+jobs:
+  publish:
+    name: Migraciones y publicación
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      DB_PASSWORD: ${{ secrets.PRODUCTION_DB_PASSWORD }}
+      PROJECT_REF: ${{ secrets.PRODUCTION_PROJECT_REF }}
+      POOLER_HOST: ${{ secrets.PRODUCTION_POOLER_HOST }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # para comparar con staging y produccion
+
+      - name: El commit pasó CI y ya está en staging
+        run: |
+          sha="$GITHUB_SHA"
+          ok=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow ci.yml --commit "$sha" --status success --json databaseId --jq 'length')
+          if [ "$ok" = "0" ]; then
+            echo "::error::CI no terminó bien para $sha. Esperá a que CI esté en verde y volvé a intentar."
+            exit 1
+          fi
+          if ! git merge-base --is-ancestor "$sha" origin/staging; then
+            echo "::error::$sha todavía no está en staging. Subilo a staging, revisalo y volvé a intentar."
+            exit 1
+          fi
+          if git rev-parse --verify -q origin/produccion >/dev/null && ! git merge-base --is-ancestor origin/produccion "$sha"; then
+            echo "::error::La rama produccion tiene commits que main no tiene. Revisar a mano antes de publicar."
+            exit 1
+          fi
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Dependencias
+        run: npm ci
+
+      - name: Conexión a la base de producción
+        run: |
+          for name in DB_PASSWORD PROJECT_REF POOLER_HOST; do
+            if [ -z "${!name}" ]; then echo "::error::Falta el secreto PRODUCTION_$name (ver comentario del archivo)"; exit 1; fi
+          done
+          encoded=$(node -e 'process.stdout.write(encodeURIComponent(process.env.DB_PASSWORD))')
+          echo "::add-mask::$encoded"
+          url="postgresql://postgres.${PROJECT_REF}:${encoded}@${POOLER_HOST}:5432/postgres"
+          echo "::add-mask::$url"
+          echo "DB_URL=$url" >> "$GITHUB_ENV"
+
+      - name: Migraciones pendientes
+        run: npx supabase migration list --db-url "$DB_URL"
+
+      # --yes: sin esto la CLI pide confirmación y, sin nadie que responda, cancela.
+      - name: Aplicar migraciones
+        run: npx supabase db push --db-url "$DB_URL" --yes
+
+      # Sin --force: si no es un avance directo, falla en vez de pisar algo.
+      - name: Publicar (mover la rama produccion)
+        run: git push origin "$GITHUB_SHA:refs/heads/produccion"

@@ -26,7 +26,7 @@ Idioma: el usuario habla español rioplatense. Código, nombres de tablas y colu
 | 7 | Pedidos + WhatsApp | Hecha |
 | 8 | Alta de comercios (`provision_tenant` + asistente) | Hecha |
 | 9 | Panel central | Hecha |
-| 10 | CI, staging, producción, migración de clientes actuales | En curso: 10a (CI y E2E), 10b (GitHub), 10c (staging) y 10d (Sentry y tarea diaria sin suspensión) hechas; sigue 10e (producción, desde el 2026-11-23) |
+| 10 | CI, staging, producción, migración de clientes actuales | En curso: 10a (CI y E2E), 10b (GitHub), 10c (staging) y 10d (Sentry y tarea diaria sin suspensión) hechas; sigue 10e (producción: guía `docs/runbooks/produccion.md` y flujo `produccion.yml` escritos el 2026-11-24; Vercel y Supabase Pro contratados y Supabase de producción configurado; siguen GitHub, Turnstile y Vercel según la guía) |
 
 ## Skills y hooks del proyecto
 
@@ -157,6 +157,14 @@ Funciones auxiliares de RLS: `private.my_tenant_ids(roles)`, `private.my_teammat
 - Migraciones: job `migrate-staging` de `ci.yml`, después de CI, por el session pooler (la conexión directa de Supabase es solo IPv6 y GitHub no tiene IPv6) y con `--yes` (sin eso la CLI cancela al no poder confirmar).
 - Datos: sin seed. Los comercios de prueba se crean desde la app; el administrador se dio de alta con un `insert` en `platform_admins` desde el editor SQL.
 - Las claves secretas las carga siempre el usuario en cada panel (Vercel, Supabase, GitHub); nunca pasan por el chat ni por el repo.
+
+## Producción (cómo se publica)
+
+- Guía, límites de gasto y checklist: `docs/runbooks/produccion.md`. Dominio `vidri.ar`, Supabase Pro en São Paulo (organización propia), Vercel Pro (mismo equipo que staging), proyecto `vidri`.
+- Publicar: a mano, Actions → "Publicar en producción" (`.github/workflows/produccion.yml`, solo desde `main`). Comprueba CI en verde y que el commit esté en `staging`, migra por el session pooler (secretos `PRODUCTION_PROJECT_REF`, `PRODUCTION_DB_PASSWORD`, `PRODUCTION_POOLER_HOST`) y recién después hace avance directo de la rama `produccion`, que es la rama de producción del proyecto de Vercel. Nunca empujar a `produccion` a mano.
+- Límites: Spend Management de Vercel con pausa, Spend Cap de Supabase, Resend/Sentry/GitHub sin tarjeta. Las fotos no usan el optimizador de Vercel (`unoptimized`): mantenerlo así.
+- Pendiente: los límites de Supabase Auth por IP (inicios de sesión y registros: 30 cada 5 minutos) cuentan la IP del servidor de Vercel, porque el login y el registro se llaman desde Server Actions. Con muchos comercios entrando a la vez puede frenar a gente legítima; revisar (subir el límite o reenviar la IP real) cuando crezca.
+- Pendiente: captcha de Supabase Auth (pasar el token de Turnstile a `signUp` en `registerUser`) para que no se pueda registrar en masa llamando a Supabase directo.
 
 ## CI y E2E (cómo está armado)
 

@@ -605,7 +605,7 @@ La CLI de Supabase usa Docker para el entorno local y de CI; eso no contradice e
 | --- | --- | --- | --- | --- |
 | Local | Supabase CLI en tu máquina | `next dev` | `*.localhost:3000` | `seed.sql` ficticio |
 | Staging | Proyecto en una organización Free separada (USD 0; se pausa tras una semana sin uso) | Rama `staging` | `*.staging.tuapp.com.ar` | Ficticios; nunca copias de producción |
-| Producción | Proyecto Pro | Rama `main` | `*.tuapp.com.ar` | Reales |
+| Producción | Proyecto Pro (São Paulo) | Rama `produccion` (la mueve solo el flujo de publicación) | `*.vidri.ar` | Reales |
 
 Los previews de Vercel por PR sirven para probar panel y admin; los catálogos se prueban en staging porque los previews no tienen subdominios comodín.
 
@@ -625,7 +625,7 @@ Los previews de Vercel por PR sirven para probar panel y admin; los catálogos s
 1. PR → CI completo (sección 13).
 2. Fusión en `staging` → GitHub Actions aplica las migraciones al proyecto de staging (`supabase db push`) y Vercel despliega staging.
 3. Revisión rápida en staging: un catálogo, un pedido, el panel.
-4. Fusión en `main` → GitHub Actions con aprobación manual (entorno protegido) aplica migraciones a producción y después dispara el despliegue de Vercel con un deploy hook. El despliegue automático de `main` se desactiva para garantizar ese orden.
+4. Desde `main`, el flujo manual "Publicar en producción" (`.github/workflows/produccion.yml`) comprueba que el commit pasó CI y está en staging, aplica las migraciones a producción y recién después mueve la rama `produccion`, que es la rama de producción del proyecto de Vercel. Disparar el flujo es la aprobación manual: GitHub Free no tiene entornos protegidos con revisores en repos privados (cambio del 2026-11-24; antes decía entorno protegido + deploy hook). Guía: `docs/runbooks/produccion.md`.
 
 ### Variables de entorno
 
