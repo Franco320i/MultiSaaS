@@ -122,12 +122,12 @@ Hacé los pasos en orden. Las claves secretas las copiás directo de cada panel 
 22. [x] Supabase → SQL Editor: `insert into public.platform_admins (user_id, role) select id, 'superadmin' from auth.users where email = 'tu-correo';`
 23. [x] Entrar a `admin.vidri.ar`, activar MFA con la app autenticadora.
 24. [x] Recorrido completo, como en staging: registro → correo → asistente → producto con foto → publicar → pedido por WhatsApp → panel de pedidos; panel central con un pago registrado y la auditoría; `www.vidri.ar` redirige a `vidri.ar`.
-25. [ ] Probar la tarea diaria: Vercel → proyecto `vidri` → Settings → Cron Jobs → "Run" en `/api/cron/daily` (tiene que responder bien).
-26. [ ] Provocar un error de prueba y verlo en Sentry con entorno `production`.
+25. [x] (Probada el 2026-11-25: 200.) Probar la tarea diaria: Vercel → proyecto `vidri` → Settings → Cron Jobs → "Run" en `/api/cron/daily` (tiene que responder bien).
+26. [x] (Probado el 2026-11-25: llegó con entorno production y url vidri.ar.) Provocar un error de prueba y verlo en Sentry con entorno `production`.
 
 ### Captcha de Supabase Auth
 
-29. [ ] Publicar en producción (paso 19) el commit que pasa el token de Turnstile a Supabase y, enseguida, activar el captcha en Supabase (sección 1.3). Probar: crear una cuenta, entrar a `app.vidri.ar` y a `admin.vidri.ar`, y pedir "Olvidé mi contraseña". Si algo falla, apagar el captcha en Supabase (vuelve a andar al instante) y avisar. Antes hacer lo mismo en staging (guía de staging, paso 13).
+29. [x] (Hecho y probado el 2026-11-25.) Publicar en producción (paso 19) el commit que pasa el token de Turnstile a Supabase y, enseguida, activar el captcha en Supabase (sección 1.3). Probar: crear una cuenta, entrar a `app.vidri.ar` y a `admin.vidri.ar`, y pedir "Olvidé mi contraseña". Si algo falla, apagar el captcha en Supabase (vuelve a andar al instante) y avisar. Antes hacer lo mismo en staging (guía de staging, paso 13).
 
 ### Antes de abrir al público
 

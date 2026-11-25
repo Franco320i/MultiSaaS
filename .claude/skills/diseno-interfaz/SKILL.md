@@ -22,6 +22,8 @@ La fuente de verdad visual es `docs/design/sistema-visual.md`.
 - **Si no existe todavía:** antes de diseñar pantallas, proponele al usuario 2 o 3 direcciones visuales concretas para el panel. Cada una con nombre, una frase de intención, paleta (con valores), par tipográfico y un ejemplo de cómo se vería una pantalla clave (por ejemplo, el listado de productos). Mostralas como una página que se pueda ver (artifact o vista previa en el navegador), no solo descriptas. Cuando elija, registrá la decisión en ese archivo y llevala a tokens.
 - **Si existe:** seguilo. Si una pantalla necesita algo que el sistema no cubre, extendelo y documentalo ahí, en lugar de inventar un estilo suelto.
 
+**Referencia de calidad:** `docs/design/referencia-myshp.md` reúne lo que el usuario tomó como modelo (2026-11-25): tokens medidos, estructura del panel, editor de diseño, asistente y catálogo, más una tabla de ideas y el orden sugerido. Consultalo antes de rediseñar una pantalla: tomá los **patrones** (jerarquía, medidas, comportamiento), nunca la marca, los textos ni el código, y aplicalos con los colores de Vidri. Lo que se adopte pasa primero a `sistema-visual.md`.
+
 El catálogo público no usa la identidad de la plataforma: usa la del comercio (`tenant_settings.theme`, logo, portada) sobre plantillas por rubro (`business_templates`). Diseñá las plantillas para que el comercio se reconozca: una hamburguesería no se ve como una tienda de ropa.
 
 ## 2. Tokens, no valores sueltos
