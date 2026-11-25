@@ -112,6 +112,9 @@ export async function updatePasswordAction(_prev: AuthFormState, formData: FormD
 
   const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
   if (error) {
+    if (error.code === "same_password") {
+      return { error: "Es la misma contraseña que tenías. Elegí una distinta." };
+    }
     return error.code === "weak_password"
       ? { error: "Esa contraseña es demasiado débil o apareció en filtraciones. Probá con otra." }
       : { error: "No pudimos cambiar la contraseña. Pedí un enlace nuevo." };
