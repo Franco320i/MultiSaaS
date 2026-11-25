@@ -57,7 +57,7 @@ Lo que ya ayuda desde el código: las fotos **no** pasan por el optimizador de i
 - [ ] **No activar** complementos que se cobran aparte: PITR (recuperación a un minuto exacto), dirección IPv4, dominio propio, réplicas de lectura, branching ni log drains.
 - [ ] Authentication → Rate Limits: correos por hora en **30**. Así, aunque alguien intente registrar cuentas en masa, Supabase no manda más de 30 correos por hora (y Resend gratis tampoco pasaría de 100 por día).
 
-Riesgo conocido: alguien puede llamar al registro de Supabase directo, sin pasar por la página y su Turnstile. Lo frenan el límite de arriba y el de Supabase por IP. Para cerrarlo del todo, activar el captcha de Supabase Auth y pasarle el token de Turnstile desde `registerUser` (cambio de código pendiente, ver CLAUDE.md).
+- [ ] Authentication → Attack Protection (puede figurar como "Bot and Abuse Protection") → **Enable Captcha protection**, proveedor **Turnstile**, con la clave secreta del sitio de Turnstile de producción (la misma de `TURNSTILE_SECRET_KEY`). Así nadie puede registrarse, entrar ni pedir otra contraseña llamando a Supabase directo, salteando nuestras páginas. **Activarlo recién cuando producción ya tenga el código que manda el token** (paso 29): con el código viejo, nadie podría registrarse ni entrar.
 
 ### 1.4 Ante un ataque
 
@@ -68,7 +68,7 @@ Señales: aviso de gasto de Vercel, la pestaña Usage de Vercel o de Supabase qu
 3. Si una IP o una ruta concreta es el problema: Firewall → regla propia que la bloquee (Deny).
 4. Si se te va de las manos: Settings del proyecto → **Pause** (la plataforma queda caída hasta que la reactives) y escribime.
 
-Lo que ya frena la app por su cuenta: pedidos con Turnstile y límites por IP y por comercio (200 por hora), registro con Turnstile y fotos con tamaño máximo.
+Lo que ya frena la app por su cuenta: pedidos con Turnstile y límites por IP y por comercio (200 por hora), registro, inicio de sesión y recuperación de contraseña con Turnstile (verificado por Supabase) y fotos con tamaño máximo.
 
 ## Parte 2: paso a paso de la primera configuración
 
@@ -113,17 +113,21 @@ Hacé los pasos en orden. Las claves secretas las copiás directo de cada panel 
 
 ### Primera publicación
 
-19. [ ] GitHub → Actions → **Publicar en producción** → Run workflow (rama `main`). Aplica las migraciones en la base de producción y crea la rama `produccion`. Vercel la publica sola en unos minutos.
-20. [ ] Vercel → proyecto `vidri` → Deployments: la publicación de la rama `produccion` tiene que quedar en "Ready" y `vidri.ar` mostrar la página principal.
+19. [x] GitHub → Actions → **Publicar en producción** → Run workflow (rama `main`). Aplica las migraciones en la base de producción y crea la rama `produccion`. Vercel la publica sola en unos minutos.
+20. [x] Vercel → proyecto `vidri` → Deployments: la publicación de la rama `produccion` tiene que quedar en "Ready" y `vidri.ar` mostrar la página principal. Primera publicación el 2026-11-25 (commit 2fc85ad, 1 min 31 s): página principal, registro con Turnstile, `app.` y `www` → 308 a `vidri.ar` verificados.
 
 ### Administrador y prueba completa
 
-21. [ ] Supabase → Authentication → Users → **Invite user** con tu correo. Ojo: llega con la plantilla de comercios ("Tu catálogo está listo"); es esperable (pendiente conocido). Entrá por el link y elegí la contraseña.
-22. [ ] Supabase → SQL Editor: `insert into public.platform_admins (user_id, role) select id, 'superadmin' from auth.users where email = 'tu-correo';`
-23. [ ] Entrar a `admin.vidri.ar`, activar MFA con la app autenticadora.
-24. [ ] Recorrido completo, como en staging: registro → correo → asistente → producto con foto → publicar → pedido por WhatsApp → panel de pedidos; panel central con un pago registrado y la auditoría; `www.vidri.ar` redirige a `vidri.ar`.
+21. [x] Supabase → Authentication → Users → **Invite user** con tu correo. Ojo: llega con la plantilla de comercios ("Tu catálogo está listo"); es esperable (pendiente conocido). Entrá por el link y elegí la contraseña.
+22. [x] Supabase → SQL Editor: `insert into public.platform_admins (user_id, role) select id, 'superadmin' from auth.users where email = 'tu-correo';`
+23. [x] Entrar a `admin.vidri.ar`, activar MFA con la app autenticadora.
+24. [x] Recorrido completo, como en staging: registro → correo → asistente → producto con foto → publicar → pedido por WhatsApp → panel de pedidos; panel central con un pago registrado y la auditoría; `www.vidri.ar` redirige a `vidri.ar`.
 25. [ ] Probar la tarea diaria: Vercel → proyecto `vidri` → Settings → Cron Jobs → "Run" en `/api/cron/daily` (tiene que responder bien).
 26. [ ] Provocar un error de prueba y verlo en Sentry con entorno `production`.
+
+### Captcha de Supabase Auth
+
+29. [ ] Publicar en producción (paso 19) el commit que pasa el token de Turnstile a Supabase y, enseguida, activar el captcha en Supabase (sección 1.3). Probar: crear una cuenta, entrar a `app.vidri.ar` y a `admin.vidri.ar`, y pedir "Olvidé mi contraseña". Si algo falla, apagar el captcha en Supabase (vuelve a andar al instante) y avisar. Antes hacer lo mismo en staging (guía de staging, paso 13).
 
 ### Antes de abrir al público
 

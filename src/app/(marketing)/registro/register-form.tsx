@@ -1,17 +1,14 @@
 "use client";
 
-import { useActionState, useId, useRef, useState } from "react";
-import { useTurnstile } from "@/ui/use-turnstile";
+import { useActionState, useId } from "react";
+import { useTurnstileSubmit } from "@/ui/use-turnstile-submit";
 import { registerAction, type RegisterState } from "./actions";
 
 /** Formulario de registro: email, contraseña y Turnstile (se pide el token al enviar). */
 export function RegisterForm({ turnstileSiteKey, minPasswordLength }: { turnstileSiteKey: string; minPasswordLength: number }) {
   const id = useId();
-  const formRef = useRef<HTMLFormElement>(null);
-  const tokenRef = useRef<HTMLInputElement>(null);
-  const { containerRef, getToken } = useTurnstile(turnstileSiteKey, "dark");
+  const { formRef, tokenRef, containerRef, onSubmit, verifying } = useTurnstileSubmit(turnstileSiteKey, "dark");
   const [state, formAction, pending] = useActionState<RegisterState, FormData>(registerAction, {});
-  const [verifying, setVerifying] = useState(false);
 
   if (state.sentTo) {
     return (
@@ -31,17 +28,7 @@ export function RegisterForm({ turnstileSiteKey, minPasswordLength }: { turnstil
     <form
       ref={formRef}
       action={formAction}
-      onSubmit={async (event) => {
-        // Antes de enviar se pide el token de Turnstile y se agrega al formulario.
-        if (tokenRef.current?.value) return;
-        event.preventDefault();
-        setVerifying(true);
-        const token = await getToken().catch(() => "");
-        setVerifying(false);
-        if (tokenRef.current) tokenRef.current.value = token;
-        formRef.current?.requestSubmit();
-        if (tokenRef.current) tokenRef.current.value = "";
-      }}
+      onSubmit={onSubmit}
       className="flex flex-col gap-4"
     >
       <div className="flex flex-col gap-1.5">

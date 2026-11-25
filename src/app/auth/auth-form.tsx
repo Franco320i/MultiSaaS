@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, type ReactNode } from "react";
+import { useTurnstileSubmit } from "@/ui/use-turnstile-submit";
 import type { AuthFormState } from "./actions";
 
 type Props = {
@@ -11,8 +12,23 @@ type Props = {
 };
 
 /** Formulario genérico de Auth: muestra el error o el mensaje que devuelve la acción. */
-export function AuthForm({ action, submitLabel, pendingLabel, children }: Props) {
+export function AuthForm(props: Props) {
+  return <TurnstileAuthForm {...props} turnstileSiteKey={null} />;
+}
+
+/**
+ * Igual que AuthForm, pero pide el token de Turnstile antes de enviar (login y
+ * recuperación: Supabase Auth exige captcha en esas llamadas, ver core/auth/captcha.ts).
+ */
+export function TurnstileAuthForm({
+  action,
+  submitLabel,
+  pendingLabel,
+  children,
+  turnstileSiteKey,
+}: Props & { turnstileSiteKey: string | null }) {
   const [state, formAction, pending] = useActionState(action, {});
+  const { formRef, tokenRef, containerRef, onSubmit, verifying } = useTurnstileSubmit(turnstileSiteKey ?? "");
 
   // Navegación completa (ver AuthFormState en actions.ts).
   useEffect(() => {
@@ -20,8 +36,19 @@ export function AuthForm({ action, submitLabel, pendingLabel, children }: Props)
   }, [state.redirectTo]);
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <form
+      ref={formRef}
+      action={formAction}
+      onSubmit={turnstileSiteKey ? onSubmit : undefined}
+      className="flex flex-col gap-4"
+    >
       {children}
+      {turnstileSiteKey ? (
+        <>
+          <input ref={tokenRef} type="hidden" name="turnstileToken" />
+          <div ref={containerRef} />
+        </>
+      ) : null}
       {state.error && (
         <p role="alert" className="rounded-md bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-300">
           {state.error}
@@ -34,10 +61,10 @@ export function AuthForm({ action, submitLabel, pendingLabel, children }: Props)
       )}
       <button
         type="submit"
-        disabled={pending || Boolean(state.redirectTo)}
+        disabled={pending || verifying || Boolean(state.redirectTo)}
         className="rounded-md bg-foreground px-4 py-2 font-medium text-background disabled:opacity-60"
       >
-        {pending ? pendingLabel : submitLabel}
+        {pending || verifying ? pendingLabel : submitLabel}
       </button>
     </form>
   );

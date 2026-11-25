@@ -3,6 +3,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { CAPTCHA_ERROR, captchaTokenFrom, isCaptchaError } from "@/core/auth/captcha";
 import { safeRedirectPath } from "@/core/auth/redirect";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
@@ -37,13 +38,17 @@ export async function signInAction(_prev: AuthFormState, formData: FormData): Pr
     next: formData.get("next") ?? undefined,
   });
   if (!parsed.success) return { error: "Revisá el email y la contraseña." };
+  const captchaToken = captchaTokenFrom(formData);
+  if (!captchaToken) return { error: CAPTCHA_ERROR };
 
   const supabase = await createSupabaseServerClient();
   const { error } = await supabase.auth.signInWithPassword({
     email: parsed.data.email,
     password: parsed.data.password,
+    options: { captchaToken },
   });
   if (error) {
+    if (isCaptchaError(error)) return { error: CAPTCHA_ERROR };
     return error.code === "email_not_confirmed"
       ? { error: "Todavía no confirmaste tu email. Revisá tu correo." }
       : { error: "Email o contraseña incorrectos." };
@@ -66,6 +71,8 @@ export async function requestPasswordResetAction(
 ): Promise<AuthFormState> {
   const parsed = resetRequestSchema.safeParse({ email: formData.get("email") });
   if (!parsed.success) return { error: "Ingresá un email válido." };
+  const captchaToken = captchaTokenFrom(formData);
+  if (!captchaToken) return { error: CAPTCHA_ERROR };
 
   // El enlace vuelve a este mismo host (app. o admin.). Supabase solo acepta
   // destinos que estén en su lista de redirecciones permitidas.
@@ -75,7 +82,9 @@ export async function requestPasswordResetAction(
   const redirectTo = `${protocol}://${host}/auth/callback?next=${encodeURIComponent("/auth/nueva-contrasena")}`;
 
   const supabase = await createSupabaseServerClient();
-  await supabase.auth.resetPasswordForEmail(parsed.data.email, { redirectTo });
+  const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, { redirectTo, captchaToken });
+  // El captcha falla igual exista o no la cuenta: avisarlo no revela nada.
+  if (isCaptchaError(error)) return { error: CAPTCHA_ERROR };
 
   // Misma respuesta exista o no la cuenta.
   return { message: "Si hay una cuenta con ese email, te enviamos un enlace para crear una contraseña nueva." };

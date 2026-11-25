@@ -212,10 +212,14 @@ token_verifications = 30
 web3 = 30
 
 # Configure one of the supported captcha providers: `hcaptcha`, `turnstile`.
-# [auth.captcha]
-# enabled = true
-# provider = "hcaptcha"
-# secret = ""
+# Captcha de Auth con Turnstile (registro, login y recuperación; ver src/core/auth/captcha.ts).
+# Local usa la clave secreta de PRUEBA pública de Cloudflare, que aprueba cualquier token
+# (los scripts y las pruebas mandan "XXXX.DUMMY.TOKEN.XXXX"). En staging y producción se
+# activa en el panel de Supabase con la clave secreta real (guías de staging y producción).
+[auth.captcha]
+enabled = true
+provider = "turnstile"
+secret = "1x0000000000000000000000000000000AA"
 
 [auth.email]
 # Allow/disallow the email provider. When false, users can't sign up or sign in with email.

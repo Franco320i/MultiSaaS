@@ -48,7 +48,12 @@ function placeholderSvg(label, color) {
 let uploaded = 0;
 for (const [i, email] of OWNERS.entries()) {
   const supabase = createClient(url, key, { auth: { persistSession: false } });
-  const { error: loginError } = await supabase.auth.signInWithPassword({ email, password: PASSWORD });
+  // Token de prueba de Turnstile: la base local aprueba cualquiera (supabase/config.toml).
+  const { error: loginError } = await supabase.auth.signInWithPassword({
+    email,
+    password: PASSWORD,
+    options: { captchaToken: "XXXX.DUMMY.TOKEN.XXXX" },
+  });
   if (loginError) {
     console.error(`seed-images: no se pudo iniciar sesión como ${email}: ${loginError.message}`);
     process.exit(1);

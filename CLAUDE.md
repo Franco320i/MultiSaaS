@@ -26,7 +26,7 @@ Idioma: el usuario habla español rioplatense. Código, nombres de tablas y colu
 | 7 | Pedidos + WhatsApp | Hecha |
 | 8 | Alta de comercios (`provision_tenant` + asistente) | Hecha |
 | 9 | Panel central | Hecha |
-| 10 | CI, staging, producción, migración de clientes actuales | En curso: 10a (CI y E2E), 10b (GitHub), 10c (staging) y 10d (Sentry y tarea diaria sin suspensión) hechas; sigue 10e (producción: guía `docs/runbooks/produccion.md` y flujo `produccion.yml` escritos el 2026-11-24; Vercel y Supabase Pro contratados y Supabase de producción configurado; siguen GitHub, Turnstile y Vercel según la guía) |
+| 10 | CI, staging, producción, migración de clientes actuales | En curso: 10a (CI y E2E), 10b (GitHub), 10c (staging) y 10d (Sentry y tarea diaria sin suspensión) hechas; sigue 10e (producción: guía `docs/runbooks/produccion.md` y flujo `produccion.yml` escritos el 2026-11-24; Vercel y Supabase Pro contratados y Supabase de producción configurado; publicado el 2026-11-25 en `vidri.ar`, con administrador y recorrido completo probados; siguen captcha de Auth, tarea diaria, Sentry, legales y comercio de ejemplo según la guía) |
 
 ## Skills y hooks del proyecto
 
@@ -164,7 +164,7 @@ Funciones auxiliares de RLS: `private.my_tenant_ids(roles)`, `private.my_teammat
 - Publicar: a mano, Actions → "Publicar en producción" (`.github/workflows/produccion.yml`, solo desde `main`). Comprueba CI en verde y que el commit esté en `staging`, migra por el session pooler (secretos `PRODUCTION_PROJECT_REF`, `PRODUCTION_DB_PASSWORD`, `PRODUCTION_POOLER_HOST`) y recién después hace avance directo de la rama `produccion`, que es la rama de producción del proyecto de Vercel. Nunca empujar a `produccion` a mano.
 - Límites: Spend Management de Vercel con pausa, Spend Cap de Supabase, Resend/Sentry/GitHub sin tarjeta. Las fotos no usan el optimizador de Vercel (`unoptimized`): mantenerlo así.
 - Pendiente: los límites de Supabase Auth por IP (inicios de sesión y registros: 30 cada 5 minutos) cuentan la IP del servidor de Vercel, porque el login y el registro se llaman desde Server Actions. Con muchos comercios entrando a la vez puede frenar a gente legítima; revisar (subir el límite o reenviar la IP real) cuando crezca.
-- Pendiente: captcha de Supabase Auth (pasar el token de Turnstile a `signUp` en `registerUser`) para que no se pueda registrar en masa llamando a Supabase directo.
+- Captcha de Supabase Auth (2026-11-25): registro, login y recuperación mandan el token de Turnstile a Supabase (`captchaToken`, `src/core/auth/captcha.ts`, formularios con `useTurnstileSubmit`), y **lo verifica Supabase, no nuestro servidor** (el token es de un solo uso). En local está activo en `supabase/config.toml` con la clave secreta de prueba; scripts y pruebas que inician sesión directo mandan `XXXX.DUMMY.TOKEN.XXXX`. En staging y producción se activa en el panel de Supabase después de publicar el código (staging paso 13, producción paso 29). Si se apaga en Supabase, el registro queda sin control de bots: no dejarlo apagado.
 
 ## CI y E2E (cómo está armado)
 
@@ -209,7 +209,7 @@ Funciones auxiliares de RLS: `private.my_tenant_ids(roles)`, `private.my_teammat
 ## Alta de comercios (cómo está armado)
 
 - Decisiones que completan el diseño: `docs/decisions/0003-alta-de-comercios.md`.
-- Registro: `{dominio}/registro` (`src/app/(marketing)/registro`, `registerUser` en `src/core/auth/register.ts`, con Turnstile). La confirmación llega con la plantilla `supabase/templates/confirmation.html` y vuelve a `app.{dominio}/auth/callback?…&next=/nuevo`.
+- Registro: `{dominio}/registro` (`src/app/(marketing)/registro`, `registerUser` en `src/core/auth/register.ts`, con Turnstile verificado por Supabase Auth). La confirmación llega con la plantilla `supabase/templates/confirmation.html` y vuelve a `app.{dominio}/auth/callback?…&next=/nuevo`.
 - Asistente: `app.{dominio}/nuevo` (paso 1, `provisionTenantAction` → `provisionTenant` en `src/core/tenancy/provision.ts`) y `/[tenant]/configurar?paso=marca|contacto|horarios|productos|publicar`. Los mismos formularios están en `/[tenant]/ajustes` (solo el dueño, `settings.write`). El inicio del panel muestra `SetupChecklist`.
 - Módulo `src/modules/settings`: schemas, queries, mutations (con la sesión: RLS deja al dueño), actions y `cache.ts`. Guardar invalida `tenant:{id}:settings`; publicar invalida además los `host:{host}`.
 - Importador: `/[tenant]/productos/importar` (`parseSpreadsheet` en `src/modules/catalog/import.ts` y `importProducts` en `mutations.ts`).

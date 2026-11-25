@@ -46,6 +46,7 @@ export function useTurnstile(siteKey: string, theme: "auto" | "dark" = "auto") {
   const pending = useRef<{ resolve: (t: string) => void; reject: (e: Error) => void } | null>(null);
 
   useEffect(() => {
+    if (!siteKey) return; // formulario sin Turnstile: no se carga el script.
     let cancelled = false;
     loadScript()
       .then((turnstile) => {

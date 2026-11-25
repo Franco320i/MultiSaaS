@@ -33,6 +33,7 @@ export async function waitForTurnstile(page: Page) {
  */
 export async function login(page: Page, email: string, next: string, password = SEED_PASSWORD) {
   await page.goto(`${APP}/auth/login?next=${encodeURIComponent(next)}`);
+  await waitForTurnstile(page); // el login pide el token de Turnstile antes de enviar
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Contraseña").fill(password);
   await page.getByRole("button", { name: "Ingresar" }).click();

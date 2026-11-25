@@ -37,6 +37,8 @@ export async function signInAs(user: SeedUser): Promise<SupabaseClient<Database>
   const { error } = await client.auth.signInWithPassword({
     email: SEED.users[user].email,
     password: SEED.password,
+    // Token de prueba de Turnstile: la base local aprueba cualquiera (supabase/config.toml).
+    options: { captchaToken: "XXXX.DUMMY.TOKEN.XXXX" },
   });
   if (error) throw new Error(`No se pudo iniciar sesión como ${user}: ${error.message}. ¿Corriste npm run db:reset?`);
   return client;
