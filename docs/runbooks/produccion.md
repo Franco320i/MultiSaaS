@@ -77,7 +77,7 @@ Hacé los pasos en orden. Las claves secretas las copiás directo de cada panel 
 ### Antes de empezar
 
 1. [ ] **MFA** (código del celular) en GitHub, Vercel, Supabase, Resend, Cloudflare, Sentry, NIC Argentina y tu correo. Si alguien entra a una de estas cuentas, entra a la plataforma.
-2. [ ] En el proyecto `vidri-staging` de Vercel: Settings → Git → **Ignored Build Step** → "Only build production". Sin esto, staging intenta armar la rama `produccion` y te manda un correo de error cada vez que publicás.
+2. [x] En el proyecto `vidri-staging` de Vercel: Settings → Git → **Ignored Build Step** → "Only build production". Sin esto, staging intenta armar la rama `produccion` y te manda un correo de error cada vez que publicás.
 
 ### Supabase
 
@@ -92,24 +92,24 @@ Hacé los pasos en orden. Las claves secretas las copiás directo de cada panel 
 
 ### GitHub
 
-10. [ ] Repo → Settings → Secrets and variables → Actions → New repository secret, tres veces:
+10. [x] Repo → Settings → Secrets and variables → Actions → New repository secret, tres veces:
     - `PRODUCTION_PROJECT_REF`: el ref del paso 9.
     - `PRODUCTION_DB_PASSWORD`: la contraseña del paso 3.
     - `PRODUCTION_POOLER_HOST`: el host del paso 9.
-11. [ ] Settings → Billing: confirmar que no hay tarjeta cargada (o que el límite de gasto de Actions está en USD 0).
+11. [x] Settings → Billing: confirmar que no hay tarjeta cargada (o que el límite de gasto de Actions está en USD 0).
 
 ### Cloudflare Turnstile
 
-12. [ ] Crear un sitio nuevo para `vidri.ar` (modo Managed). Anotar sus dos claves para el paso 16.
+12. [x] Crear un sitio nuevo para `vidri.ar` (widget `vidri-produccion`, modo Managed, sin pre-clearance). Anotar sus dos claves para el paso 16.
 
 ### Vercel
 
 13. [x] Equipo pasado a **Pro** y presupuesto de USD 30 con pausa (2026-11-24).
-14. [ ] Add New → Project → importar `Franco320i/MultiSaaS` con el nombre `vidri`. La primera publicación va a fallar por falta de variables: es normal. **No** usar la integración "Supabase" que ofrece el asistente.
-15. [ ] Settings → Environments → Production → Branch Tracking: rama **`produccion`**. Settings → Git → Ignored Build Step → "Only build production".
-16. [ ] Settings → Environment Variables, entorno **Production** (tabla de abajo). Las secretas, marcadas como Sensitive.
-17. [ ] Settings → Domains: agregar `vidri.ar`, `www.vidri.ar` y `*.vidri.ar` a este proyecto. Los de staging (`staging.vidri.ar`, `*.staging.vidri.ar`) quedan en `vidri-staging`; el dominio más específico gana.
-18. [ ] Cloudflare Turnstile: si en el paso 12 no pusiste los hosts, agregar `vidri.ar` (cubre los subdominios).
+14. [x] Add New → Project → importar `Franco320i/MultiSaaS` con el nombre `vidri`. La primera publicación va a fallar por falta de variables: es normal. **No** usar la integración "Supabase" que ofrece el asistente.
+15. [x] Settings → Environments → Production → Branch Tracking: rama **`produccion`**. Vercel solo acepta una rama que ya exista en GitHub: se creó a mano el 2026-11-24 en el commit anterior (1109eee), para que la primera publicación la mueva y dispare el despliegue. Settings → Functions → región **São Paulo (gru1)**, cerca de la base. Settings → Git → Ignored Build Step → "Only build production".
+16. [x] Settings → Environment Variables, entorno **Production** (tabla de abajo). Las secretas, marcadas como Sensitive.
+17. [x] Settings → Domains (sin "Redirect apex domains to www": la app ya manda `www` a `vidri.ar`): agregar `vidri.ar`, `www.vidri.ar` y `*.vidri.ar` a este proyecto. Los de staging (`staging.vidri.ar`, `*.staging.vidri.ar`) quedan en `vidri-staging`; el dominio más específico gana.
+18. [x] Cloudflare Turnstile: si en el paso 12 no pusiste los hosts, agregar `vidri.ar` (cubre los subdominios).
 
 ### Primera publicación
 
