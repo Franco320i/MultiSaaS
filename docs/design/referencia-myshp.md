@@ -16,9 +16,10 @@ Estado del recorrido:
 - [x] Registro y alta del comercio: asistente de 3 pasos
 - [x] Panel del dueño: Inicio, Productos, formulario y variantes, Historia, editor de Plantillas (9 pasos), Pedidos y Ajustes
 - [x] Recorrido de compra en escritorio
+- [x] Segundo recorrido (sección 6b): página principal entera, panel en pantalla chica, diseños en la vista previa, ficha con variantes, compra completa con recibo, pedido de prueba en el panel, Ajustes por dentro, Categorías y avisos
 - [ ] Panel central: no se puede ver, es interno de ellos. Se infiere del panel del dueño (sección 6).
 
-Comercio de prueba creado en MyShp: `myshp.link/prueba-vidri-cafe`, con un producto. Es de la cuenta del usuario y se puede borrar desde Ajustes → Zona de peligro.
+Comercio de prueba creado en MyShp: `myshp.link/prueba-vidri-cafe`, con un producto con 3 tamaños, la categoría "Cafeteria" y el pedido de prueba ORD-1746-001 (confirmado). Es de la cuenta del usuario y se puede borrar desde Ajustes → Zona de peligro.
 
 ---
 
@@ -464,6 +465,159 @@ No es visible: es interno de MyShp. Lo que sí se puede llevar a nuestro panel c
 
 ---
 
+## 6b. Segundo recorrido (2026-11-25, en Chrome con capturas grandes)
+
+### Página principal, vista entera
+
+Al usuario le gusta mucho, aunque la ve "muy cargada". Tomar el **nivel de terminación**, con menos elementos.
+
+- **Encabezado flotante:** una píldora blanca separada de los bordes (margen de 12 px), con sombra suave, que queda fija al bajar. Lleva logo, idioma, menú y botón negro.
+- **Título de portada con resaltador:** la frase final ("en un link") va en el color de la marca, con una franja verde muy clara detrás, como un marcador.
+- **Campo-botón del registro:** una píldora grande con borde oscuro de 1.5 px que contiene "myshp.link/tu-comercio" y el botón negro "Ir al panel →". Debajo, tres tildes verdes en círculos claros.
+- **Collage de portada:** 3 capturas reales de catálogos dentro de marcos de teléfono, inclinadas (unos −8° a 8°) y con degradé que se desvanece abajo.
+  - Encima flotan tarjetitas blancas con sombra: "Pedido nuevo #1042 · 3 artículos · por WhatsApp" con el ícono verde de WhatsApp, y "✓ Pagado por adelantado".
+  - El fondo de la portada lleva **manchas de color muy suaves** (verde menta arriba a la izquierda, lila arriba a la derecha y durazno abajo).
+- **Cinta de rubros** que se desplaza sola: píldoras blancas con borde, emoji o ícono y nombre.
+- **"Comercios reales":** etiqueta en píldora ("✦ Hecho con MyShp"), título de 2 líneas y carrusel de **marcos de teléfono con el catálogo real**. Abajo de cada uno, una píldora blanca flotante con nombre, rubro y botón redondo negro ↗.
+- **"Tres pasos":** 3 tarjetas grandes de **colores pastel distintos** (menta, lila, durazno), con radio de unos 28 px.
+  - Cada una tiene un número en un círculo negro, título, texto y una **mini-ilustración hecha con la propia interfaz**: la tarjetita "myshp.link/tu-comercio · ✓ Disponible", 3 miniaturas de productos con precio más un "+" punteado, y chips "Estado de WhatsApp / Bio de Instagram / QR en el paquete".
+- **Funciones:** tarjetas pastel (menta, lila, durazno, celeste, rosa, amarillo) en 2 columnas, más una grande arriba.
+  - Cada una: ícono en un cuadrado blanco, etiqueta en píldora arriba a la derecha ("Sin comisión", "Carga masiva", "27+ idiomas"), título, texto, una línea divisoria y 3 tildes.
+  - La grande muestra un **chat de WhatsApp de mentira** con el pedido armado (renglones, total, hora y doble tilde).
+- **Preguntas frecuentes:** título grande alineado a la izquierda, una tarjeta gris "¿Te quedó alguna duda? · Contactanos" y un acordeón con líneas finas. El botón para abrir y cerrar es un círculo (negro con × cuando está abierto, gris con + cuando está cerrado).
+- **Cierre:** un bloque **oscuro** de radio grande, con un resplandor violeta en una esquina, dos botones (blanco y con borde) y tres tildes.
+- **Pie** gris claro, con las esquinas de arriba redondeadas, el logo, una frase, botones "Crear tu comercio / Ingresar" y columnas Producto / Empresa / Legal.
+
+**Para Vidri (estilo "Noche"):** encabezado en píldora flotante, título con resaltador, collage de teléfonos con avisos flotantes, mini-ilustraciones hechas con nuestra interfaz, tarjetas de colores suaves y el chat de WhatsApp de mentira. **Menos secciones:** portada, ejemplos reales, 3 pasos, 4 funciones, preguntas, cierre.
+
+### Panel en pantalla chica (≈940 px; Chrome no se achica más)
+
+- **Menú inferior flotante:** una píldora blanca centrada, separada 12 px del borde, con sombra.
+  - 5 botones de 52 px de alto en píldora: Inicio, Productos, **Agregar** (en el medio), Pedidos y Más.
+  - El activo tiene un fondo gris muy suave (tinta al 7 %), sin color fuerte.
+  - El menú lateral desaparece.
+- **"Más"** abre una **hoja tipo iPhone** desde abajo, con manija arriba:
+  - cabecera con la inicial del comercio, nombre y link;
+  - dos tarjetas grandes con ícono de color (Plantillas en violeta, Ajustes en gris);
+  - "Accesos rápidos" en filas con ícono cuadrado de color (Ver mi catálogo en celeste, Todos mis comercios en naranja, Instalar app en verde) y flecha ›;
+  - "Soporte" con WhatsApp.
+- "Agregar" abre el formulario de producto nuevo desde cualquier pantalla.
+- La lista de productos tiene una **versión en tarjetas** para el teléfono, en lugar de la tabla.
+- **El editor de diseño en pantalla chica:** los pasos pasan a una **fila de chips** desplazable arriba, y la vista previa se abre con un botón flotante negro **"👁 Ver comercio"**, en pantalla completa.
+  - Arriba: "✕ Editar", el nombre del diseño con su combinación ("Menú de pedido rápido · Matcha Zen · Fila compacta") y el botón blanco "Aplicar".
+
+### Diseños probados en la vista previa (sin aplicar)
+
+- **Al elegir un diseño, se cambian solos el tema de color y la tarjeta que lo acompañan** ("emparejados"). Después se pueden cambiar por separado.
+- **Menú de pedido rápido** (gastronomía), con el tema Matcha Zen:
+  - filas con foto cuadrada de 64 px, nombre, descripción de 1 línea, precio y precio anterior tachado;
+  - botón verde "+ Agregar" a la derecha;
+  - chips de categorías en una barra segmentada.
+  - Es el más apto para comida: se lee como una carta.
+- **Perfil de creador:** avatar grande centrado, nombre, **categorías en círculos con la inicial** (o foto) tipo historias de Instagram y grilla de 2 fotos grandes.
+- **Grilla bento** (tema Apple Glass): el **primer producto ocupa todo el ancho**, y después siguen 2 columnas. El encabezado es translúcido y desenfocado al bajar, con el acento azul.
+
+### Ficha con variantes y compra completa
+
+- **Ficha:**
+  - sobretítulo con el nombre del comercio en mayúsculas;
+  - título de unos 32 px y precio grande;
+  - insignia "● Disponible";
+  - opción "TAMAÑO" con el valor elegido a la derecha;
+  - **botones de valor de 36 px** (radio 8; el elegido negro con texto blanco, el resto blanco con borde);
+  - "✓ Con stock";
+  - botón negro de ancho completo "Agregar al pedido" y otro con borde "Consultar por WhatsApp";
+  - descripción y aclaración chica;
+  - **botón de compartir** redondo arriba a la derecha.
+- **Carrito:** líneas en tarjetas con foto redonda, la variante como etiqueta ("Grande"), − cantidad + y tacho rojo. Abajo: "¿Tenés un código?", el subtotal y "Total del pedido" en grande. Al pie: "Continuar" negro, "Vaciar carrito" en rojo y el total.
+- **Revisar y enviar (paso 3):**
+  - bloque "Artículos del pedido (3)" con "Cambiar artículos";
+  - bloque "Datos del cliente y entrega" con "Editar";
+  - **botón verde WhatsApp** "Enviar pedido por WhatsApp";
+  - "← Volver al paso anterior";
+  - aclaración: "Al tocar, los detalles quedan listos en WhatsApp".
+- **Después de enviar:** dentro de la misma hoja, un círculo con ✓, "¡Pedido enviado por WhatsApp!", el número de pedido (ORD-1746-001), **"Ver el recibo"** y "Seguir comprando".
+- **Recibo público con seguimiento** (`/{comercio}/order/{uuid}`):
+  - "¡Pedido realizado con éxito!" con fecha y número;
+  - insignias "Pendiente" y "Sin pagar";
+  - **línea de tiempo de 4 pasos** con íconos (Realizado → Confirmado → En camino → Entregado), cada uno con una explicación corta;
+  - bloque de pago por WhatsApp con "Confirmar pedido por WhatsApp";
+  - el detalle de los artículos.
+- **Mensaje de WhatsApp:** "¡Hola {comercio}! Quisiera hacer este pedido:", con viñetas "• Producto [Variante] × 2 — ARS 7,000", "*Total:*" en negrita y los datos del cliente.
+
+**Errores de MyShp que Vidri no tiene que repetir** (vistos en la prueba):
+
+1. **El precio de la variante no se aplica igual en todos lados.** La ficha y el carrito mostraron 3.500 para "Grande", el WhatsApp dijo 10.500 y el recibo y el panel calcularon 11.500. Le confirma a Vidri que el precio lo calcule solo la base (`private.create_order`) y que el mensaje salga de lo guardado.
+2. La ficha **no actualiza el precio** al elegir otra variante.
+3. Desde la tarjeta, "Agregar" **saltea la elección** de variante. En Vidri, con opciones obligatorias, primero hay que elegir.
+4. La tarjeta muestra "3500" y no "desde 3500".
+5. Al revisar el pedido **se pierde el nombre de la variante**.
+6. El mensaje **mezcla idiomas** ("Full name", "Mobile number" en un catálogo en español).
+7. La hora del recibo no coincide (23:46 contra 20:46: problema de zona horaria).
+8. Los botones de variante miden 36 px: el mínimo cómodo para el dedo es 44.
+9. Al agregar al carrito solo cambia el número del ícono. Falta una confirmación visible ("Agregado ✓").
+
+### Panel: pedido de prueba (permiso del usuario, a su propio número)
+
+- **Lista:** el pedido aparece con el número, cuánto hace ("hace 1 min") y la fecha.
+  - Cliente con ícono de teléfono y un **botón chico de WhatsApp**, más las respuestas en un chip.
+  - Artículos ("2 artículos: 2× …, 1× …"), importe.
+  - **Estado de preparación y estado de pago como desplegables de color dentro de la fila.**
+  - Botón 👁 para el detalle. La tabla se desplaza de costado: no es buena en el teléfono.
+- **Detalle (ventana):**
+  - número + insignia de estado;
+  - **chips para cambiar el estado** (Pendiente, Confirmado, Completado, Cancelado, cada uno con su punto de color);
+  - chips de pago (Confirmando pago, Pago parcial, Pagado, Reembolsado, Sin pagar);
+  - franja verde **"Aviso al cliente por WhatsApp"** + "Enviar aviso";
+  - datos del cliente con "Chatear por WhatsApp";
+  - artículos con el total;
+  - el texto del pedido para copiar;
+  - pie con "Link del recibo", "Copiloto IA" e "Imprimir comprobante".
+  - Al cambiar el estado aparece el aviso **"Estado actualizado"** (píldora blanca con tilde verde, arriba al centro).
+- **Avisos al cliente en un toque:** encabezado verde, y la etapa se elige con 4 tarjetas con ícono:
+  - Confirmado, Despachado, Recordatorio de pago, Entregado / pedir reseña;
+  - **vista previa editable** del mensaje con emojis, el número, el total y **el link del recibo con seguimiento**;
+  - "Copiar mensaje" y "Abrir en WhatsApp".
+  - No manda nada solo: abre WhatsApp con el texto listo.
+
+### Ajustes por dentro
+
+- **Cada sección:**
+  - "← Todos los ajustes" y "Ir a sección ▾";
+  - cabecera con ícono, título, insignia y bajada;
+  - **los chips de secciones** desplazables, con la actual en verde;
+  - una **barra de guardado** arriba y abajo: "✓ Todo guardado" en gris y el botón verde, que se apaga si no hay cambios.
+- **Preguntas del checkout:**
+  - "Vista previa del formulario" y "Volver a lo de fábrica";
+  - **"Agregar preguntas comunes"** en chips verdes (Dirección completa, Email, Ciudad y código postal, Horario preferido, Notas);
+  - cada pregunta en una tarjeta con número, flechas para ordenar, texto, **tipo** (texto corto, teléfono, texto largo o dirección…), interruptor "Obligatoria" y tacho;
+  - "+ Agregar pregunta propia" en un recuadro punteado.
+- **Mensaje de WhatsApp:**
+  - dos pestañas, "Mensaje del pedido" y "Consulta por producto";
+  - 3 plantillas de inicio (Clásica, Detallada, Compacta);
+  - **etiquetas para insertar** ({item_name}, {price}, {piece}, {item_total}, {store_name}, {checkout_fields}…), filtrables por "por artículo / del pedido".
+- **Estados del pedido:**
+  - sugerencias para agregar (En preparación, Enviado, En reparto, Listo para retirar, En espera, Reembolsado);
+  - cada estado con insignia de color, "Renombrar", su clave, una descripción, **paleta de 8 colores** y tacho;
+  - uno marcado como "Por defecto para pedidos nuevos";
+  - un consejo al pie.
+
+### Categorías
+
+- **Alta en línea** (nombre + "Imagen (opcional)" + "Agregar"), y también "Abrir en ventana".
+- **Lista:** número de orden en un cuadrado gris, nombre, `/slug · N productos`, "Ver", lápiz y tacho. Arriba, "Ordenar".
+- **Franja amarilla de aviso:** "Productos sin categoría · 1 producto no tiene categoría" + "Revisar".
+- **Vacío:** ícono, "Todavía no hay categorías", explicación y **consejos** ("nombres claros", "de 5 a 10 categorías es lo ideal").
+- Pie: "Las categorías se ven como secciones en tu catálogo; este orden es el que ven los clientes".
+
+### Avisos y errores
+
+- **Avisos breves:** píldora blanca con sombra, arriba al centro, con un círculo verde ✓ ("Variantes guardadas.", "Categoría agregada.") o un círculo rojo ✕ ("Falta el nombre del producto.").
+- **Error en el campo:** borde punteado rojo, fondo rosado muy suave, texto rojo y debajo "⚠ Agregá al menos una foto antes de guardar".
+- **Confirmaciones de borrado:** usan el cartel nativo del navegador ("¿Seguro?"). Es **feo y bloquea la página**: en Vidri, usar una ventana propia.
+
+---
+
 ## 7. Ideas para llevar a Vidri (resumen, a decidir con el usuario)
 
 | Idea | Dónde | Tamaño | Notas |
@@ -493,6 +647,14 @@ No es visible: es interno de MyShp. Lo que sí se puede llevar a nuestro panel c
 | Ajustes: índice en chips + tarjetas "valor actual ›" + zona de peligro | Panel del dueño | Medio | |
 | Esqueletos de carga con la forma real | Todo el panel | Chico | |
 | Carrito: panel lateral en escritorio con fondo desenfocado | Catálogo | Chico | |
+| **Pantalla de "pedido enviado" + recibo público con seguimiento** | Catálogo + pedidos | Medio | Link sin datos sensibles a la vista; pasar por el diseño (sección de pedidos) |
+| **Avisos al cliente en un toque** (Confirmado, Listo, En camino, Entregado) con el texto armado y link | Panel → Pedidos | Chico/Medio | Abre WhatsApp con texto (`wa.me`), no envía solo: encaja con "sin correos automáticos" |
+| Estados de pedido y de pago cambiables con chips en el detalle | Panel → Pedidos | Chico | El pago no está en el diseño: solo los estados |
+| Menú inferior en píldora flotante con "Agregar" en el medio y hoja "Más" estilo iPhone | Panel (celular) | Medio | Evolución del menú de "Panel fácil" |
+| Preguntas del checkout con chips de "preguntas comunes" | Ajustes | Medio | Revisar con el diseño de pedidos |
+| Diseño que trae su tema y su tarjeta "emparejados" | Editor de diseño | Chico | Cuando exista el editor |
+| Página principal: encabezado en píldora, título con resaltador, collage de teléfonos, tarjetas pastel, chat de mentira | Página principal | Medio | Con menos secciones que MyShp |
+| Avisos breves en píldora blanca + error en el campo; confirmar borrados con ventana propia | Todo | Chico | |
 
 **No adelantar** (no está en el diseño o es de otra etapa): cupones, cobros y pagos, difusiones, libreta de clientes, venta rápida, verificación por redes, analítica de embudo, versiones del diseño, idiomas múltiples. Si alguno interesa, pasa primero por `docs/diseno-tecnico-v1.md`.
 
