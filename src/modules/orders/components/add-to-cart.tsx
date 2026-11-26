@@ -1,6 +1,7 @@
 "use client";
 
 import { useOptionSelection } from "@/lib/option-selection";
+import { useToast } from "@/ui/toast";
 import { addToCart, setQuantity, useCart } from "./cart-store";
 
 /**
@@ -20,6 +21,7 @@ export function AddToCartButton({
   priceLabel?: string;
 }) {
   const selection = useOptionSelection();
+  const { show } = useToast();
   const quantity = useCart().find((l) => l.productId === productId && l.optionIds.length === 0)?.quantity ?? 0;
 
   // Producto con opciones, dentro de la ficha: agrega la combinación elegida (cada una es su línea).
@@ -53,7 +55,12 @@ export function AddToCartButton({
     ) : (
       <button
         type="button"
-        onClick={() => addToCart(productId)}
+        onClick={() => {
+          addToCart(productId);
+          // Solo desde la tarjeta: en la ficha (un <dialog> modal) el aviso quedaría detrás,
+          // y la ficha ya muestra "En tu pedido".
+          show("Agregado al pedido");
+        }}
         aria-label={`Agregar ${name} al pedido`}
         className="min-h-11 w-full rounded-full border border-brand px-4 text-[15px] font-semibold text-foreground transition-colors hover:bg-brand hover:text-brand-foreground"
       >

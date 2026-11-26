@@ -6,6 +6,7 @@ import { publicEnv } from "@/lib/env.public";
 import { formatCents } from "@/lib/money";
 import { getPublicCatalog, StorefrontSkeleton, StorefrontUnavailable, StorefrontView } from "@/modules/catalog";
 import { AddToCartButton, Ordering, type OrderingConfig } from "@/modules/orders";
+import { ToastProvider } from "@/ui/toast";
 
 /**
  * Catálogo público: [slug].tuapp.com.ar → /sites/{host} (solo por reescritura del proxy).
@@ -71,19 +72,21 @@ async function Storefront({ params }: Pick<Props, "params">) {
   };
 
   return (
-    <StorefrontView
-      storefront={storefront}
-      catalog={catalog}
-      productAction={(product, variant) => (
-        <AddToCartButton
-          productId={product.id}
-          name={product.name}
-          variant={variant}
-          priceLabel={variant === "sheet" ? formatCents(product.price, storefront.currency) : undefined}
-        />
-      )}
-    >
-      <Ordering config={ordering} />
-    </StorefrontView>
+    <ToastProvider>
+      <StorefrontView
+        storefront={storefront}
+        catalog={catalog}
+        productAction={(product, variant) => (
+          <AddToCartButton
+            productId={product.id}
+            name={product.name}
+            variant={variant}
+            priceLabel={variant === "sheet" ? formatCents(product.price, storefront.currency) : undefined}
+          />
+        )}
+      >
+        <Ordering config={ordering} />
+      </StorefrontView>
+    </ToastProvider>
   );
 }
