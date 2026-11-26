@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PageHeader } from "@/ui/page-header";
 import Link from "next/link";
 import { Suspense } from "react";
 import { requireTenantAccess } from "@/core/tenancy/require-access";
@@ -54,6 +55,7 @@ async function Orders({ params, searchParams }: PageProps<"/panel/[tenant]/pedid
     getTenantTimeZone(supabase, access.tenantId),
   ]);
   const newCount = view === "open" ? orders.filter((o) => o.status === "new").length : 0;
+  const confirmedCount = view === "open" ? orders.filter((o) => o.status !== "new").length : 0;
   const now = new Date();
   const base = `/${access.slug}/pedidos`;
 
@@ -75,8 +77,22 @@ async function Orders({ params, searchParams }: PageProps<"/panel/[tenant]/pedid
   return (
     <>
       <OrdersAutoRefresh newCount={newCount} title="Pedidos · Panel" />
+      <PageHeader eyebrow="Ventas" title="Pedidos" description="Mirá cada pedido antes de seguir la charla por WhatsApp." />
+      {view === "open" ? (
+        <div className="grid grid-cols-2 gap-2">
+          <a href="#g-new" className="flex flex-col rounded-2xl bg-warning-soft px-3.5 py-3 text-warning">
+            <span className="text-[13px] font-bold">Nuevos</span>
+            <span className="font-display text-[26px] leading-tight tabular-nums">{newCount}</span>
+            <span className="text-[12px]">Para confirmar</span>
+          </a>
+          <a href="#g-confirmed" className="flex flex-col rounded-2xl bg-info-soft px-3.5 py-3 text-info">
+            <span className="text-[13px] font-bold">Confirmados</span>
+            <span className="font-display text-[26px] leading-tight tabular-nums">{confirmedCount}</span>
+            <span className="text-[12px]">Por entregar</span>
+          </a>
+        </div>
+      ) : null}
       <header className="flex flex-col gap-3">
-        <h1 className="font-display text-[28px] leading-tight">Pedidos</h1>
         <nav aria-label="Ver pedidos" className="flex gap-6 border-b border-line text-[15px]">
           {[
             { href: base, label: "En curso", active: view === "open" },

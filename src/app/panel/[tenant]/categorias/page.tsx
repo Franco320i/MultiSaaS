@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PageHeader } from "@/ui/page-header";
 import Link from "next/link";
 import { Suspense } from "react";
 import { ListSkeleton } from "@/ui/skeleton";
@@ -35,10 +36,7 @@ async function CategoryList({ params }: Pick<PageProps<"/panel/[tenant]/categori
       <Link href={`/${access.slug}/productos`} className="flex min-h-11 w-fit items-center gap-1 text-[15px] text-muted">
         ‹ Productos
       </Link>
-      <header className="flex flex-col gap-1">
-        <h1 className="font-display text-[28px] leading-tight">Categorías</h1>
-        <p className="text-[15px] text-muted">Así se ordenan en tu catálogo. Usá las flechas para mover.</p>
-      </header>
+      <PageHeader eyebrow="Catálogo" title="Categorías" description="Así se ordenan en tu catálogo. Usá las flechas para mover." />
       {categories.length === 0 ? (
         <p className="rounded-2xl border border-line bg-surface p-6 text-center text-muted">Todavía no hay categorías.</p>
       ) : (

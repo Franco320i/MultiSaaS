@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PageHeader } from "@/ui/page-header";
 import Link from "next/link";
 import { Suspense } from "react";
 import { requireTenantAccess } from "@/core/tenancy/require-access";
@@ -11,8 +12,10 @@ import {
   ContactForm,
   getHours,
   getSettings,
+  getSetupStatus,
   HoursForm,
   listSupportAccesses,
+  SetupChecklist,
 } from "@/modules/settings";
 import {
   removeBrandingAction,
@@ -22,7 +25,7 @@ import {
   uploadBrandingAction,
 } from "@/modules/settings/actions";
 
-export const metadata: Metadata = { title: "Ajustes" };
+export const metadata: Metadata = { title: "Mi local" };
 
 const PLATFORM_ACTION: Record<string, string> = {
   "support.viewed": "Soporte entró a ver tu comercio",
@@ -61,10 +64,11 @@ async function Settings({ params }: Pick<PageProps<"/panel/[tenant]/ajustes">, "
   const { tenant: slug } = await params;
   const access = await requireTenantAccess(slug, "settings.write");
   const supabase = await createSupabaseServerClient();
-  const [settings, hours, platformActions] = await Promise.all([
+  const [settings, hours, platformActions, setup] = await Promise.all([
     getSettings(supabase, access.tenantId),
     getHours(supabase, access.tenantId),
     listSupportAccesses(supabase, access.tenantId),
+    getSetupStatus(supabase, access.tenantId),
   ]);
   const theme = (settings.theme ?? {}) as Record<string, unknown>;
   const brand = (BRAND_PALETTE as readonly string[]).includes(theme.brand as string) ? (theme.brand as string) : BRAND_PALETTE[0];
@@ -72,12 +76,13 @@ async function Settings({ params }: Pick<PageProps<"/panel/[tenant]/ajustes">, "
   const section = "flex flex-col gap-5 border-t border-line pt-8 first:border-0 first:pt-0";
   return (
     <>
-      <header className="flex flex-col gap-2">
-        <h1 className="font-display text-[32px] leading-tight">Ajustes</h1>
-        <Link href={`/${access.slug}/configurar?paso=publicar`} className="w-fit text-[15px] font-semibold underline underline-offset-4">
+      <div className="flex flex-col gap-2">
+        <PageHeader eyebrow="Tu local" title="Mi local" description="Cómo se ve tu catálogo y cómo te encuentran tus clientes." />
+        <Link href={`/${access.slug}/configurar?paso=publicar`} className="w-fit py-2 text-[15px] font-semibold underline underline-offset-4">
           Publicación y link del catálogo
         </Link>
-      </header>
+      </div>
+      <SetupChecklist slug={access.slug} status={setup} title="Para completar" />
 
       <section aria-labelledby="marca" className={section}>
         <h2 id="marca" className="font-display text-[22px]">Marca</h2>
