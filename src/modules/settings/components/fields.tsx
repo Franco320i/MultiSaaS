@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState, type ReactNode } from "react";
+import { useActionState, useEffect, type ReactNode } from "react";
+import { useToast } from "@/ui/toast";
 import type { SettingsFormState } from "../actions";
 
 /** Piezas de formulario del asistente y de Ajustes (sistema visual Sobremesa). */
@@ -50,6 +51,10 @@ export function SettingsForm({
   children: (fields: Record<string, string> | undefined) => ReactNode;
 }) {
   const [state, formAction, pending] = useActionState(action, {});
+  const { show } = useToast();
+  useEffect(() => {
+    if (state.saved) show("Se guardó");
+  }, [state, show]);
   return (
     <form action={formAction} key={JSON.stringify(state.fields ?? null)} className="flex flex-col gap-5">
       {children(state.fields)}
@@ -57,10 +62,6 @@ export function SettingsForm({
       {state.error ? (
         <p role="alert" className="rounded-xl bg-danger-soft px-4 py-3 text-[15px] font-semibold text-danger">
           {state.error}
-        </p>
-      ) : state.saved ? (
-        <p role="status" className="text-[15px] font-semibold text-accent">
-          Se guardó.
         </p>
       ) : null}
       <button

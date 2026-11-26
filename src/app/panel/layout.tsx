@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import { signOutAction } from "@/app/auth/actions";
 import { getCurrentUser } from "@/core/auth/session";
+import { ToastProvider } from "@/ui/toast";
 
 // app.tuapp.com.ar · Solo accesible por reescritura desde el proxy.
 // La sesión se lee dentro de <Suspense> (Next 16 con Cache Components) y nada
@@ -23,7 +24,7 @@ export default function PanelLayout({ children }: LayoutProps<"/panel">) {
           <UserMenu />
         </Suspense>
       </header>
-      {children}
+      <ToastProvider>{children}</ToastProvider>
     </div>
   );
 }
