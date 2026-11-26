@@ -26,11 +26,14 @@ test("la página principal vende y lleva al registro", async ({ page }) => {
   await page.keyboard.press("Escape");
   await expect(menuButton).toBeFocused();
 
-  await page.getByRole("link", { name: "Crear mi catálogo gratis" }).first().click();
-  await expect(page).toHaveURL(`${ROOT}/registro`);
-  // Los términos dicen "al crear una cuenta aceptás": el registro tiene que mostrarlos.
-  await expect(page.getByRole("link", { name: "Términos y condiciones" }).first()).toBeVisible();
-  await expect(page.getByRole("main").getByRole("link", { name: "Política de privacidad" })).toBeVisible();
+  // Sin registro automático: "Pedí tu demo" abre el WhatsApp de la plataforma (SALES_WHATSAPP
+  // de .env.local) con el pedido escrito, y /registro ya no existe.
+  const demo = page.getByRole("link", { name: "Pedí tu demo" }).first();
+  const href = new URL((await demo.getAttribute("href")) ?? "");
+  expect(href.origin + href.pathname).toBe("https://wa.me/5492954000000");
+  expect(href.searchParams.get("text")).toContain("quiero una demo");
+  expect((await page.request.get(`${ROOT}/registro`)).status()).toBe(404);
+  await expect(page.getByRole("contentinfo").getByRole("link", { name: "Términos y condiciones" })).toBeVisible();
 });
 
 test("los legales están publicados y no se indexan", async ({ page }) => {

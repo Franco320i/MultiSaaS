@@ -5,7 +5,7 @@ import { MobileMenu } from "./mobile-menu";
 import { NAV_LINKS } from "./nav-links";
 
 /** Menú fijo de la página principal. */
-export function SiteHeader({ loginUrl }: { loginUrl: string }) {
+export function SiteHeader({ loginUrl, demoRequest }: { loginUrl: string; demoRequest: string | null }) {
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-background/80 backdrop-blur-md">
       <div className="relative mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 md:px-6">
@@ -27,9 +27,11 @@ export function SiteHeader({ loginUrl }: { loginUrl: string }) {
           <a href={loginUrl} className="hidden min-h-11 items-center px-3 text-[15px] font-semibold md:flex">
             Ingresar
           </a>
-          <ButtonLink href="/registro" className="px-5">
-            Probar gratis
-          </ButtonLink>
+          {demoRequest ? (
+            <ButtonLink href={demoRequest} className="px-5">
+              Pedí tu demo
+            </ButtonLink>
+          ) : null}
           <MobileMenu loginUrl={loginUrl} />
         </div>
       </div>

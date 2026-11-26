@@ -20,7 +20,7 @@ export function PricingShell({ children }: { children: ReactNode }) {
     <section id="planes" aria-labelledby="planes-titulo" className="scroll-mt-20 border-t border-line">
       <div className="mx-auto max-w-6xl px-4 py-20 md:px-6">
         <SectionHeading id="planes-titulo" eyebrow="Planes" title="Un precio fijo por mes. Sin comisiones.">
-          Empezá gratis {TRIAL_DAYS} días, sin cargar tarjeta. Elegí un plan recién cuando veas que te sirve.
+          Te armamos el catálogo y lo probás {TRIAL_DAYS} días gratis, sin cargar tarjeta. Elegí un plan recién cuando veas que te sirve.
         </SectionHeading>
         {children}
         <p className="mt-6 text-[14px] text-muted">Precios finales en pesos argentinos. Se paga mes a mes, sin permanencia.</p>
@@ -30,7 +30,7 @@ export function PricingShell({ children }: { children: ReactNode }) {
 }
 
 /** Tarjetas de planes leídas de la tabla `plans`. Sin planes (base caída), un texto en su lugar. */
-export function Pricing({ plans }: { plans: PublicPlan[] }) {
+export function Pricing({ plans, demoRequest }: { plans: PublicPlan[]; demoRequest: string | null }) {
   const recommended = recommendedPlanId(plans);
 
   if (plans.length === 0) {
@@ -38,11 +38,13 @@ export function Pricing({ plans }: { plans: PublicPlan[] }) {
       <PricingShell>
         <div className="mt-10 rounded-3xl border border-line bg-surface p-8">
           <p className="text-[17px]">
-            Estamos actualizando los precios. Creá tu cuenta y probá {TRIAL_DAYS} días gratis.
+            Estamos actualizando los precios. Escribinos y te contamos: la prueba de {TRIAL_DAYS} días es gratis.
           </p>
-          <ButtonLink href="/registro" className="mt-5">
-            Empezar gratis
-          </ButtonLink>
+          {demoRequest ? (
+            <ButtonLink href={demoRequest} className="mt-5">
+              Pedí tu demo
+            </ButtonLink>
+          ) : null}
         </div>
       </PricingShell>
     );
@@ -79,9 +81,11 @@ export function Pricing({ plans }: { plans: PublicPlan[] }) {
                   </li>
                 ))}
               </ul>
-              <ButtonLink href="/registro" variant={isRecommended ? "primary" : "ghost"} className="mt-8 w-full">
-                Empezar gratis
-              </ButtonLink>
+              {demoRequest ? (
+                <ButtonLink href={demoRequest} variant={isRecommended ? "primary" : "ghost"} className="mt-8 w-full">
+                  Pedí tu demo
+                </ButtonLink>
+              ) : null}
             </li>
           );
         })}

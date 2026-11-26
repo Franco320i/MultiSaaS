@@ -3,8 +3,12 @@ import { SectionHeading } from "./section-heading";
 /** Respuestas solo con lo que la app hace hoy: cobro mensual y manual, sin permanencia. */
 const QUESTIONS = [
   {
+    q: "¿Quién arma el catálogo?",
+    a: "Nosotros. Nos pasás por WhatsApp tus productos, tu logo y tus horarios, y te lo dejamos listo para compartir. Después cambiás precios y stock vos desde el celular.",
+  },
+  {
     q: "¿Necesito saber de tecnología?",
-    a: "No. Si sabés usar WhatsApp, sabés usar Vidri. Cargás productos desde el celular o los pegás desde una planilla.",
+    a: "No. Si sabés usar WhatsApp, sabés usar Vidri. El catálogo te lo armamos nosotros, y después sumás productos desde el celular cuando quieras.",
   },
   {
     q: "¿Funciona en el celular?",

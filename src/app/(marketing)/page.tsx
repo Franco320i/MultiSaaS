@@ -1,6 +1,8 @@
 import { Suspense } from "react";
 import { getPublicPlans } from "@/core/billing/plans";
 import { getDemoCatalogUrl } from "@/core/tenancy/demo";
+import { demoRequestUrl } from "@/lib/demo-request";
+import { env } from "@/lib/env";
 import { BeforeAfter } from "./_components/before-after";
 import { ClosingCta } from "./_components/closing-cta";
 import { DemoBand } from "./_components/demo-band";
@@ -13,9 +15,11 @@ import { Pricing, PricingSkeleton } from "./_components/pricing";
 // vidri.ar · Página principal (docs/superpowers/specs/2026-11-20-pagina-principal-design.md).
 // Orden pensado para vender: problema → prueba → facilidad → valor → precio sin riesgo → dudas → cierre.
 export default function MarketingHome() {
+  const demoRequest = demoRequestUrl(env.SALES_WHATSAPP);
   return (
     <main className="flex flex-col">
       <Hero
+        demoRequest={demoRequest}
         demoSlot={
           <Suspense fallback={null}>
             <DemoButtonIfPublished />
@@ -29,10 +33,10 @@ export default function MarketingHome() {
         <DemoBandIfPublished />
       </Suspense>
       <Suspense fallback={<PricingSkeleton />}>
-        <PricingFromDb />
+        <PricingFromDb demoRequest={demoRequest} />
       </Suspense>
       <Faq />
-      <ClosingCta />
+      <ClosingCta demoRequest={demoRequest} />
     </main>
   );
 }
@@ -46,6 +50,6 @@ async function DemoBandIfPublished() {
   return url ? <DemoBand url={url} /> : null;
 }
 
-async function PricingFromDb() {
-  return <Pricing plans={await getPublicPlans()} />;
+async function PricingFromDb({ demoRequest }: { demoRequest: string | null }) {
+  return <Pricing plans={await getPublicPlans()} demoRequest={demoRequest} />;
 }

@@ -1,8 +1,8 @@
 import { SectionHeading } from "./section-heading";
 
 const STEPS = [
-  { title: "Creás tu cuenta", text: "Con tu correo. Elegís el nombre, el rubro y tu WhatsApp." },
-  { title: "Cargás tus productos", text: "Uno por uno desde el celular, o pegándolos desde una planilla." },
+  { title: "Nos escribís por WhatsApp", text: "Tocás «Pedí tu demo» y nos contás qué vendés." },
+  { title: "Te armamos el catálogo", text: "Con tu logo, tus colores, tus productos y tus horarios. Después cambiás precios y stock vos." },
   { title: "Compartís el link y el QR", text: "En tu Instagram, en tus estados y en el mostrador. Los pedidos empiezan a llegar." },
 ];
 
@@ -11,7 +11,7 @@ export function HowItWorks() {
     <section id="como-funciona" aria-labelledby="como-funciona-titulo" className="scroll-mt-20 border-t border-line">
       <div className="mx-auto max-w-6xl px-4 py-20 md:px-6">
         <SectionHeading id="como-funciona-titulo" eyebrow="Cómo funciona" title="Listo en tres pasos.">
-          No necesitás saber de tecnología ni contratar a nadie.
+          No necesitás saber de tecnología: el catálogo te lo dejamos listo.
         </SectionHeading>
         <ol className="relative mt-12 grid gap-10 md:grid-cols-3 md:gap-8">
           {STEPS.map((step, index) => (

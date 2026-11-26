@@ -72,6 +72,7 @@ jobs:
             echo "TURNSTILE_SECRET_KEY=1x0000000000000000000000000000000AA"
             echo "IP_HASH_SALT=$(openssl rand -base64 24)"
             echo "CRON_SECRET=$(openssl rand -base64 24)"
+            echo "SALES_WHATSAPP=+5492954000000"
           } > .env.local
 
       - name: Tipos, lint y pruebas unitarias

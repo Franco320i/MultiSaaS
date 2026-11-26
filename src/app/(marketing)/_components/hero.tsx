@@ -17,10 +17,11 @@ export function DemoButton({ url }: { url: string | null }) {
 }
 
 /**
+ * `demoRequest`: link a WhatsApp de "Pedí tu demo" (sin SALES_WHATSAPP no hay botón).
  * `demoSlot` llega envuelto en <Suspense> desde la página: así el hero sale en la parte
  * estática y no se vuelve a dibujar (ni a animar) cuando se resuelve el botón de ejemplo.
  */
-export function Hero({ demoSlot }: { demoSlot?: ReactNode }) {
+export function Hero({ demoSlot, demoRequest }: { demoSlot?: ReactNode; demoRequest: string | null }) {
   return (
     <section className="relative isolate">
       <Glow className="top-0 right-[-30%] h-[520px] w-[720px] md:right-0" />
@@ -37,7 +38,7 @@ export function Hero({ demoSlot }: { demoSlot?: ReactNode }) {
             Tus clientes eligen, arman el pedido y te llega al WhatsApp ya escrito. Vos lo manejás todo desde el celular.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <ButtonLink href="/registro">Crear mi catálogo gratis</ButtonLink>
+            {demoRequest ? <ButtonLink href={demoRequest}>Pedí tu demo</ButtonLink> : null}
             {demoSlot}
           </div>
           <p className="mt-4 text-[14px] text-muted">{RISK_LINE}</p>
