@@ -40,7 +40,7 @@ El usuario decidió rediseñar Vidri tomando la **estructura de PPW** (simple, l
 | `warning-soft` | `#FBF0DC` | `#3A2E19` | Fondo ámbar (estado "Nuevo", avisos) |
 | `info` / `info-soft` | `#2F5E9E` / `#E7EFFA` | `#9DBDF0` / `#1E2A3D` | Estado "Confirmado" |
 | `plum` / `plum-soft` | `#6B4C93` / `#F0EAF8` | `#C9B0EC` / `#2D2440` | Estado "Preparando" |
-| `whatsapp` | `#1E8A4C` | `#5CC98A` | Solo botones que abren WhatsApp (texto blanco cumple AA en claro) |
+| `whatsapp` | `#1A7D45` | `#1A7D45` | Solo botones que abren WhatsApp, con texto blanco (5,2:1; en oscuro se mantiene igual) |
 
 `warning` ya existe (`#8A5A12` / `#E5B86B`). Los demás tokens de Sobremesa no cambian.
 

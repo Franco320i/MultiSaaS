@@ -27,7 +27,7 @@ Los tokens viven en `src/app/globals.css` (bloque `@theme` de Tailwind 4). Usalo
 | `warning` / `warning-soft` | `#8A5A12` / `#FBF0DC` | `#E5B86B` / `#3A2E19` | Ámbar: pedido nuevo, avisos |
 | `info` / `info-soft` | `#2F5E9E` / `#E7EFFA` | `#9DBDF0` / `#1E2A3D` | Azul: pedido confirmado |
 | `plum` / `plum-soft` | `#6B4C93` / `#F0EAF8` | `#C9B0EC` / `#2D2440` | Violeta: pedido en preparación |
-| `whatsapp` | `#1E8A4C` | `#1E8A4C` | Solo botones que abren WhatsApp, con texto blanco |
+| `whatsapp` | `#1A7D45` | `#1A7D45` | Solo botones que abren WhatsApp, con texto blanco (5,2:1) |
 
 Los tokens de la tabla desde `accent-soft` se sumaron el 2026-11-26 (rediseño 11a, `docs/superpowers/specs/2026-11-26-rediseno-fundaciones-design.md`).
 

@@ -33,6 +33,19 @@ describe("buttonClasses", () => {
     expect(c).not.toContain("min-h-11");
   });
 
+  it("los de texto y borrar tienen relleno chico, sin el px-5 del tamaño", () => {
+    for (const v of ["text", "danger"] as const) {
+      expect(buttonClasses(v)).toContain("px-2");
+      expect(buttonClasses(v)).not.toContain("px-5");
+    }
+  });
+
+  it("el de WhatsApp se oscurece al pasar el mouse (aclararlo baja el contraste)", () => {
+    const c = buttonClasses("whatsapp");
+    expect(c).not.toContain("brightness-110");
+    expect(c).toContain("hover:brightness-95");
+  });
+
   it("todas las variantes tienen foco visible en verde", () => {
     for (const v of VARIANTS) expect(buttonClasses(v)).toContain("focus-visible:outline-accent");
   });

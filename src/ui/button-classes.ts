@@ -10,20 +10,25 @@ const BASE =
   "disabled:cursor-not-allowed disabled:opacity-50 " +
   "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
 
+// El tamaño fija alto y letra; el relleno lo pone la variante (las de texto llevan menos).
 const SIZES: Record<ButtonSize, string> = {
-  md: "min-h-11 px-5 text-[16px]",
-  sm: "min-h-9 px-4 text-[14px]",
+  md: "min-h-11 text-[16px]",
+  sm: "min-h-9 text-[14px]",
 };
+const PADDING: Record<ButtonSize, string> = { md: "px-5", sm: "px-4" };
+const TEXT_VARIANTS = new Set<ButtonVariant>(["text", "danger"]);
 
 const VARIANTS: Record<ButtonVariant, string> = {
   primary: "bg-accent text-accent-foreground hover:brightness-110",
   secondary: "border border-line-strong bg-surface text-foreground hover:bg-surface-muted",
   soft: "bg-surface-muted text-foreground hover:brightness-95",
-  text: "px-2 text-accent hover:underline",
-  whatsapp: "bg-whatsapp text-white hover:brightness-110",
-  danger: "px-2 text-danger hover:underline",
+  text: "text-accent hover:underline",
+  // Se oscurece al pasar el mouse: aclararlo bajaría el contraste del texto blanco.
+  whatsapp: "bg-whatsapp text-white hover:brightness-95",
+  danger: "text-danger hover:underline",
 };
 
 export function buttonClasses(variant: ButtonVariant = "primary", size: ButtonSize = "md", extra?: string): string {
-  return [BASE, SIZES[size], VARIANTS[variant], extra].filter(Boolean).join(" ");
+  const padding = TEXT_VARIANTS.has(variant) ? "px-2" : PADDING[size];
+  return [BASE, SIZES[size], padding, VARIANTS[variant], extra].filter(Boolean).join(" ");
 }

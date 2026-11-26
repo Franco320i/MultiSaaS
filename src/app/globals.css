@@ -25,7 +25,7 @@
   --info-soft: #e7effa;
   --plum: #6b4c93;
   --plum-soft: #f0eaf8;
-  --whatsapp: #1e8a4c;
+  --whatsapp: #1a7d45;
 
   /* Letra de los títulos: el panel la cambia (data-surface="panel"). */
   --font-display-family: var(--font-young-serif);
@@ -57,7 +57,7 @@
     --info-soft: #1e2a3d;
     --plum: #c9b0ec;
     --plum-soft: #2d2440;
-    --whatsapp: #1e8a4c; /* igual que en claro: lleva texto blanco */
+    --whatsapp: #1a7d45; /* igual que en claro: lleva texto blanco */
     color-scheme: dark;
   }
 }
