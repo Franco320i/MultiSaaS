@@ -26,7 +26,12 @@ export function CatalogLinkCard({ slug, url, canPublish }: { slug: string; url: 
           Tu catálogo
         </h2>
         {host ? (
-          <a href={url!} target="_blank" rel="noopener noreferrer" className="w-fit py-1 text-[17px] font-bold break-all underline-offset-4 hover:underline">
+          <a
+            href={url!}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-fit py-1 text-[17px] font-bold break-all underline-offset-4 hover:underline focus-visible:outline-accent-foreground"
+          >
             {host}
           </a>
         ) : (

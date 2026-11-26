@@ -92,7 +92,13 @@ async function ProductList({ params, searchParams }: PageProps<"/panel/[tenant]/
             }`}
           >
             {f.label}
-            <span className={`text-[13px] tabular-nums ${f.warn && f.count > 0 ? "font-bold text-warning" : "opacity-75"}`}>{f.count}</span>
+            <span
+              className={`text-[13px] tabular-nums ${
+                f.warn && f.count > 0 ? "font-bold text-warning" : active === f.value ? "text-accent" : "text-muted"
+              }`}
+            >
+              {f.count}
+            </span>
           </Link>
         ))}
       </nav>

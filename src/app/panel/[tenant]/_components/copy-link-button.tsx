@@ -8,11 +8,14 @@ export function CopyLinkButton({ url, className }: { url: string; className: str
   return (
     <button
       type="button"
-      onClick={() => {
-        navigator.clipboard.writeText(url).then(
-          () => show("Link copiado"),
-          () => show("No se pudo copiar: mantené apretado el link para copiarlo", "error"),
-        );
+      onClick={async () => {
+        // Sin portapapeles (http, navegadores dentro de otras apps) o sin permiso: avisar igual.
+        try {
+          await navigator.clipboard.writeText(url);
+          show("Link copiado");
+        } catch {
+          show("No se pudo copiar: mantené apretado el link para copiarlo", "error");
+        }
       }}
       className={className}
     >
