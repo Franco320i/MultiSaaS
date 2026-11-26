@@ -27,10 +27,12 @@ export async function PublishSection({
   const catalogUrl = host.data
     ? platformUrl(env.ROOT_DOMAIN, host.data.hostname.replace(`.${env.ROOT_DOMAIN}`, ""))
     : platformUrl(env.ROOT_DOMAIN, slug);
-  const [svg, png] = await Promise.all([qrDataUri(catalogUrl), qrPngDataUri(catalogUrl)]);
+  // El QR solo se muestra (y se descarga) con el catálogo publicado.
+  const published = status.publishedAt !== null;
+  const [svg, png] = published ? await Promise.all([qrDataUri(catalogUrl), qrPngDataUri(catalogUrl)]) : ["", ""];
   return (
     <PublishPanel
-      published={status.publishedAt !== null}
+      published={published}
       canPublish={status.hasWhatsapp && status.publishedProducts > 0}
       catalogUrl={catalogUrl}
       qrDataUri={svg}

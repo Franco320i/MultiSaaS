@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useCallback, useEffect, useRef } from "react";
 import { centsToInput } from "@/lib/money";
 import { quickUpdateProductAction, type QuickEditState } from "@/modules/catalog/actions";
 import { buttonClasses } from "@/ui/button-classes";
@@ -29,35 +29,43 @@ export function QuickEditSheet({
   onClose: () => void;
 }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const [state, formAction, pending] = useActionState<QuickEditState, FormData>(
-    quickUpdateProductAction.bind(null, slug, product.id),
-    {},
-  );
+  // Si la entrada que agregó la hoja sigue en el historial. No se lee history.state: el
+  // refresh() de la acción hace que Next reemplace ese estado y borre la marca propia.
+  const hasEntry = useRef(false);
   const { show } = useToast();
+
+  // Cerrar: si la entrada de la hoja sigue, Atrás la saca (y popstate cierra); si no, se cierra directo.
+  const requestClose = useCallback(() => {
+    if (hasEntry.current) window.history.back();
+    else onClose();
+  }, [onClose]);
+
+  // El aviso y el cierre van dentro de la acción y no en un efecto: si el producto sale del
+  // filtro, la lista nueva ya no lo trae y la hoja se cerraría antes de que corra un efecto.
+  const [state, formAction, pending] = useActionState<QuickEditState, FormData>(async (prev, formData) => {
+    const result = await quickUpdateProductAction(slug, product.id, prev, formData);
+    if (result.saved) {
+      show("Se guardó");
+      requestClose();
+    }
+    return result;
+  }, {});
 
   useEffect(() => {
     const dialog = dialogRef.current;
     dialog?.showModal();
     window.history.pushState({ [HISTORY_KEY]: true }, "");
-    const onPop = () => onClose();
+    hasEntry.current = true;
+    const onPop = () => {
+      hasEntry.current = false;
+      onClose();
+    };
     window.addEventListener("popstate", onPop);
     return () => {
       window.removeEventListener("popstate", onPop);
       dialog?.close();
     };
   }, [onClose]);
-
-  const requestClose = () => {
-    if (window.history.state?.[HISTORY_KEY]) window.history.back();
-    else onClose();
-  };
-
-  useEffect(() => {
-    if (!state.saved) return;
-    show("Se guardó");
-    if (window.history.state?.[HISTORY_KEY]) window.history.back();
-    else onClose();
-  }, [state, show, onClose]);
 
   // Si el envío falló, se vuelve a mostrar lo que se escribió.
   const sent = state.fields;
@@ -69,6 +77,10 @@ export function QuickEditSheet({
     <dialog
       ref={dialogRef}
       aria-labelledby={titleId}
+      // Si el navegador cierra el diálogo por su cuenta (Esc dos veces seguidas), se ordena igual.
+      onClose={() => {
+        if (dialogRef.current?.open === false) requestClose();
+      }}
       onCancel={(e) => {
         e.preventDefault();
         requestClose();
@@ -130,6 +142,7 @@ export function QuickEditSheet({
           </section>
           <Link
             href={`/${slug}/productos/${product.id}`}
+            replace
             className="flex min-h-11 w-fit items-center text-[15px] font-semibold text-accent underline underline-offset-4"
           >
             Fotos, opciones y más

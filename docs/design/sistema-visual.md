@@ -135,6 +135,15 @@ Diseño: `docs/superpowers/specs/2026-11-26-rediseno-panel-aspecto-design.md`. L
 - **Pedidos:** dos recuadros arriba en "En curso" (Nuevos en `warning-soft`, Confirmados en `info-soft`) que llevan a su sección.
 - **Confirmaciones de algo que no se deshace** ("Sí, cancelar", "Sí, despublicar"): variante `danger-outline` (borde rojo).
 
+## Panel del comercio: recorridos (rediseño 11d, 2026-11-26)
+
+Diseño: `docs/superpowers/specs/2026-11-26-rediseno-panel-recorridos-design.md`. Los recorridos de MyShp: página para los lugares, hoja para las tareas.
+
+- **Hoja de edición rápida** (`productos/_components/quick-edit-sheet.tsx`): tocar una fila de Productos abre un `<dialog>`, que sube desde abajo en el celular y aparece centrado desde `sm`, con fondo `background` y bloques `surface`. Tiene Nombre, Precio, Antes, Categoría, "Se ve en tu catálogo" y "Hay stock". Abajo, fija, la barra "Cancelar" (secundario) y "Guardar cambios" (principal); el link "Fotos, opciones y más" lleva a la pantalla completa. Guardar muestra "Se guardó" y cierra la hoja; Atrás, Esc o tocar afuera la cierran sin guardar (marca en el historial, como la ficha del catálogo).
+- **Pedidos:** después de confirmar, entregar o cancelar aparece el aviso "Pedido #N confirmado / entregado / cancelado" (`statusToast`).
+- **Mi local por secciones:** arriba "Para completar" y debajo la lista de secciones. Cada fila tiene título, una bajada y la píldora ámbar si falta algo ("Falta el logo", "Sin publicar"). Cada sección abre `?seccion=` con "‹ Mi local" y la cabecera común. Las secciones son Marca, Contacto y entrega, Horarios, Link y QR, y Accesos de la plataforma.
+- **Link y QR:** el bloque de publicación (`PublishSection`, igual que el último paso del asistente) con "Descargar QR", un PNG de 1024 px.
+
 ## Modo oscuro
 
 - Se define en tokens con `prefers-color-scheme`. Cada componente usa tokens, así cambia solo.

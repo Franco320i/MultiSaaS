@@ -35,9 +35,9 @@ export function ProductsBrowser({
   reorderable: boolean;
 }) {
   const [query, setQuery] = useState("");
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const closeSheet = useCallback(() => setEditingId(null), []);
-  const editing = editingId ? products.find((p) => p.id === editingId) : undefined;
+  // Copia del producto (no el id): si al guardar sale del filtro, la hoja sigue abierta hasta cerrarse.
+  const [editing, setEditing] = useState<ProductRow | null>(null);
+  const closeSheet = useCallback(() => setEditing(null), []);
   const words = normalize(query).split(" ").filter(Boolean);
   const shown = words.length === 0 ? products : products.filter((p) => words.every((w) => normalize(p.name).includes(w)));
 
@@ -68,7 +68,7 @@ export function ProductsBrowser({
               slug={slug}
               product={product}
               reorder={reorderable && !query ? { first: index === 0, last: index === shown.length - 1 } : null}
-              onEdit={() => setEditingId(product.id)}
+              onEdit={() => setEditing(product)}
             />
           ))}
         </ul>
@@ -117,13 +117,14 @@ function ProductItem({
         </div>
       ) : null}
       <button type="button" onClick={onEdit} className="flex min-w-0 flex-1 items-center gap-3 rounded-xl text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
+        <span className="sr-only">Editar</span>
         {product.thumbUrl ? (
           <Image src={product.thumbUrl} alt="" width={56} height={56} unoptimized className="size-14 shrink-0 rounded-xl object-cover" />
         ) : (
-          <span className="grid size-14 shrink-0 place-items-center rounded-xl bg-surface-muted text-[11px] text-muted">Sin foto</span>
+          <span aria-hidden className="grid size-14 shrink-0 place-items-center rounded-xl bg-surface-muted text-[11px] text-muted">Sin foto</span>
         )}
         <span className="flex min-w-0 flex-col">
-          <span className="truncate text-[16px] font-semibold"><span className="sr-only">Editar </span>{product.name}</span>
+          <span className="truncate text-[16px] font-semibold">{product.name}</span>
           <span className="text-[14px] text-muted tabular-nums">{formatCents(product.price)}</span>
           {!product.isPublished ? (
             <span className="text-[13px] font-semibold text-muted">Oculto: no se ve en tu catálogo</span>

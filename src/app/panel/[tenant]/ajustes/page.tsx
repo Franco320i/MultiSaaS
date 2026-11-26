@@ -112,7 +112,11 @@ async function Settings({ params, searchParams }: PageProps<"/panel/[tenant]/aju
                       <span className="text-[16px] font-semibold">{SECTIONS[key].title}</span>
                       <span className="text-[14px] text-muted">{SECTIONS[key].description}</span>
                     </span>
-                    {warn ? <Pill tone="warning">{warn}</Pill> : null}
+                    {warn ? (
+                      <span className="shrink-0 whitespace-nowrap">
+                        <Pill tone="warning">{warn}</Pill>
+                      </span>
+                    ) : null}
                     <span aria-hidden className="text-[22px] text-muted">
                       ›
                     </span>
@@ -129,7 +133,7 @@ async function Settings({ params, searchParams }: PageProps<"/panel/[tenant]/aju
   return (
     <>
       <Link href={base} className="flex min-h-11 w-fit items-center gap-1 text-[15px] text-muted">
-        ‹ Mi local
+        <span aria-hidden>‹</span> Mi local
       </Link>
       <PageHeader eyebrow="Mi local" title={SECTIONS[section].title} description={SECTIONS[section].description} />
       {section === "marca" ? <BrandSection slug={access.slug} settings={settings} /> : null}
