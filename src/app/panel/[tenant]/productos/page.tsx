@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import { buttonClasses } from "@/ui/button-classes";
 import Link from "next/link";
 import { Suspense } from "react";
-import { z } from "zod";
 import { requireTenantAccess } from "@/core/tenancy/require-access";
 import { publicImageUrl } from "@/lib/images/url";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { firstImageByProduct, listCategories, listProducts } from "@/modules/catalog";
+import { filterPanelProducts, firstImageByProduct, listCategories, listProducts, parsePanelProductFilter, productCounts } from "@/modules/catalog";
+import { PageHeader } from "@/ui/page-header";
 import { ProductsBrowser } from "./_components/products-browser";
 
 export const metadata: Metadata = { title: "Productos" };
@@ -28,78 +28,86 @@ async function ProductList({ params, searchParams }: PageProps<"/panel/[tenant]/
   const access = await requireTenantAccess(slug, "catalog.write");
   const supabase = await createSupabaseServerClient();
 
-  // Filtro: id de categoría, "sin" (sin categoría), ocultos o nada (todos). Lo que no es válido se ignora.
-  const hiddenOnly = ver === "ocultos";
-  const filter =
-    categoria === "sin"
-      ? { categoryId: null }
-      : z.uuid().safeParse(categoria).success
-        ? { categoryId: categoria as string }
-        : {};
-
-  const [categories, all] = await Promise.all([
-    listCategories(supabase, access.tenantId),
-    listProducts(supabase, access.tenantId, hiddenOnly ? {} : filter),
-  ]);
-  const products = hiddenOnly ? all.filter((p) => !p.is_published) : all;
+  // Se lee la lista entera una vez (hasta 1000) y los contadores y el filtro se calculan acá.
+  const filter = parsePanelProductFilter({
+    categoria: typeof categoria === "string" ? categoria : undefined,
+    ver: typeof ver === "string" ? ver : undefined,
+  });
+  const [categories, all] = await Promise.all([listCategories(supabase, access.tenantId), listProducts(supabase, access.tenantId)]);
+  const counts = productCounts(all);
+  const products = filterPanelProducts(all, filter);
   const thumbnails = await firstImageByProduct(supabase, access.tenantId, products.map((p) => p.id));
   const categoryName = new Map(categories.map((c) => [c.id, c.name]));
   const base = `/${access.slug}/productos`;
-  const active = hiddenOnly ? "ocultos" : "categoryId" in filter ? (filter.categoryId ?? "sin") : "";
+  const active = filter.kind === "category" ? filter.id : filter.kind;
+  // El orden se cambia dentro de una categoría (o de "sin categoría"), como antes.
+  const reorderable = filter.kind === "category" || filter.kind === "uncategorized";
 
+  // Píldoras con su número; las que dan 0 no se muestran (salvo Todos).
   const filters = [
-    { value: "", label: "Todos", href: base },
-    ...categories.map((c) => ({ value: c.id, label: c.name, href: `${base}?categoria=${c.id}` })),
-    { value: "sin", label: "Sin categoría", href: `${base}?categoria=sin` },
-    { value: "ocultos", label: "Ocultos", href: `${base}?ver=ocultos` },
-  ];
+    { value: "all", label: "Todos", count: counts.all, href: base, warn: false },
+    { value: "out", label: "Sin stock", count: counts.outOfStock, href: `${base}?ver=sin-stock`, warn: true },
+    { value: "uncategorized", label: "Sin categoría", count: counts.uncategorized, href: `${base}?categoria=sin`, warn: false },
+    { value: "hidden", label: "Ocultos", count: counts.hidden, href: `${base}?ver=ocultos`, warn: false },
+    ...categories.map((c) => ({
+      value: c.id,
+      label: c.name,
+      count: counts.byCategory.get(c.id) ?? 0,
+      href: `${base}?categoria=${c.id}`,
+      warn: false,
+    })),
+  ].filter((f) => f.value === "all" || f.count > 0 || f.value === active);
 
   return (
     <>
-      <header className="flex items-start justify-between gap-3">
-        <div className="flex flex-col gap-1">
-          <h1 className="font-display text-[28px] leading-tight">Productos</h1>
-          <p className="text-[15px] text-muted">Tocá un producto para cambiarlo. El interruptor dice si hay stock.</p>
-        </div>
-        <details className="relative shrink-0">
-          <summary className={buttonClasses("secondary", "md", "cursor-pointer list-none [&::-webkit-details-marker]:hidden")}>
-            Más
-          </summary>
-          <div className="absolute right-0 z-20 mt-2 flex w-56 flex-col rounded-2xl border border-line bg-surface p-1.5 shadow-lg">
-            <Link href={`/${access.slug}/categorias`} className="rounded-xl px-3 py-3 font-semibold hover:bg-surface-muted">
-              Categorías
-            </Link>
-            <Link href={`${base}/importar`} className="rounded-xl px-3 py-3 font-semibold hover:bg-surface-muted">
-              Importar desde planilla
-            </Link>
-          </div>
-        </details>
-      </header>
+      <PageHeader
+        eyebrow="Catálogo"
+        title="Productos"
+        description="Tocá uno para cambiarlo. El interruptor dice si hay stock."
+        action={
+          <details className="relative">
+            <summary className={buttonClasses("secondary", "md", "cursor-pointer list-none [&::-webkit-details-marker]:hidden")}>
+              Más
+            </summary>
+            <div className="absolute right-0 z-20 mt-2 flex w-56 flex-col rounded-2xl border border-line bg-surface p-1.5 shadow-lg">
+              <Link href={`/${access.slug}/categorias`} className="rounded-xl px-3 py-3 font-semibold hover:bg-surface-muted">
+                Categorías
+              </Link>
+              <Link href={`${base}/importar`} className="rounded-xl px-3 py-3 font-semibold hover:bg-surface-muted">
+                Importar desde planilla
+              </Link>
+            </div>
+          </details>
+        }
+      />
 
       <nav aria-label="Filtrar productos" className="-mx-4 flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:px-0 [&::-webkit-scrollbar]:hidden">
         {filters.map((f) => (
           <Link
-            key={f.value || "todos"}
+            key={f.value}
             href={f.href}
             aria-current={active === f.value ? "page" : undefined}
-            className={`flex min-h-10 shrink-0 items-center rounded-full px-4 text-[15px] whitespace-nowrap ${
+            className={`flex min-h-10 shrink-0 items-center gap-1.5 rounded-full px-4 text-[15px] whitespace-nowrap ${
               active === f.value ? "bg-accent-soft font-semibold text-accent" : "border border-line bg-surface"
             }`}
           >
             {f.label}
+            <span className={`text-[13px] tabular-nums ${f.warn && f.count > 0 ? "font-bold text-warning" : "opacity-75"}`}>{f.count}</span>
           </Link>
         ))}
       </nav>
 
-      {all.length === 0 && !hiddenOnly && !("categoryId" in filter) ? (
+      {all.length === 0 ? (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-line bg-surface p-8 text-center">
           <p className="font-display text-[22px]">Todavía no tenés productos</p>
           <p className="text-muted">Cargá el primero con su foto y su precio.</p>
         </div>
+      ) : products.length === 0 ? (
+        <p className="rounded-2xl border border-line bg-surface p-6 text-center text-muted">No hay productos con este filtro.</p>
       ) : (
         <ProductsBrowser
           slug={access.slug}
-          reorderable={"categoryId" in filter && !hiddenOnly}
+          reorderable={reorderable}
           products={products.map((p) => {
             const thumb = thumbnails.get(p.id)?.storage_path;
             return {
@@ -114,7 +122,7 @@ async function ProductList({ params, searchParams }: PageProps<"/panel/[tenant]/
           })}
         />
       )}
-      {!("categoryId" in filter) && !hiddenOnly && products.length > 1 ? (
+      {!reorderable && products.length > 1 ? (
         <p className="text-[13px] text-muted">Para cambiar el orden, elegí una categoría arriba.</p>
       ) : null}
 

@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   catalogLayout,
+  filterPanelProducts,
+  parsePanelProductFilter,
+  productCounts,
   filterProducts,
   mapsUrl,
   normalizeSearch,
@@ -132,5 +135,43 @@ describe("catalogLayout", () => {
   });
   it("un rubro desconocido va en Carta", () => {
     expect(catalogLayout("otro")).toBe("carta");
+  });
+});
+
+describe("filtro de productos del panel", () => {
+  const CAT = "11111111-1111-4111-8111-111111111111";
+  const products = [
+    { id: "a", category_id: CAT, is_available: true, is_published: true },
+    { id: "b", category_id: CAT, is_available: false, is_published: true },
+    { id: "c", category_id: null, is_available: true, is_published: true },
+    { id: "d", category_id: null, is_available: false, is_published: false },
+  ];
+
+  it("lee el filtro de la dirección y lo raro cae en todos", () => {
+    expect(parsePanelProductFilter({})).toEqual({ kind: "all" });
+    expect(parsePanelProductFilter({ ver: "sin-stock" })).toEqual({ kind: "out" });
+    expect(parsePanelProductFilter({ ver: "ocultos" })).toEqual({ kind: "hidden" });
+    expect(parsePanelProductFilter({ categoria: "sin" })).toEqual({ kind: "uncategorized" });
+    expect(parsePanelProductFilter({ categoria: CAT })).toEqual({ kind: "category", id: CAT });
+    expect(parsePanelProductFilter({ categoria: "x" })).toEqual({ kind: "all" });
+    expect(parsePanelProductFilter({ ver: "x" })).toEqual({ kind: "all" });
+  });
+
+  it("cuenta todos, sin stock (solo publicados), sin categoría, ocultos y por categoría", () => {
+    const counts = productCounts(products);
+    expect(counts.all).toBe(4);
+    expect(counts.outOfStock).toBe(1);
+    expect(counts.uncategorized).toBe(2);
+    expect(counts.hidden).toBe(1);
+    expect(counts.byCategory.get(CAT)).toBe(2);
+  });
+
+  it("filtra cada caso", () => {
+    const ids = (f: Parameters<typeof filterPanelProducts>[1]) => filterPanelProducts(products, f).map((p) => p.id);
+    expect(ids({ kind: "all" })).toEqual(["a", "b", "c", "d"]);
+    expect(ids({ kind: "out" })).toEqual(["b"]);
+    expect(ids({ kind: "uncategorized" })).toEqual(["c", "d"]);
+    expect(ids({ kind: "hidden" })).toEqual(["d"]);
+    expect(ids({ kind: "category", id: CAT })).toEqual(["a", "b"]);
   });
 });

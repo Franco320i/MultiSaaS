@@ -17,3 +17,4 @@ export { StorefrontView } from "./components/storefront/storefront-view";
 export { getPublicCatalog, type PublicCatalog, type PublicProduct } from "./public-queries";
 export { countProducts, getCategory, getProduct, getTemplateKey, listCategories, listProducts } from "./queries";
 export type { Category, Product } from "./queries";
+export { filterPanelProducts, parsePanelProductFilter, productCounts, type PanelProductFilter } from "./presentation";

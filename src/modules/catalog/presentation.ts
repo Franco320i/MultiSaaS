@@ -94,3 +94,54 @@ const GRID_TEMPLATES = new Set(["indumentaria", "tecnologia"]);
 export function catalogLayout(templateKey: string): CatalogLayout {
   return GRID_TEMPLATES.has(templateKey) ? "grilla" : "carta";
 }
+
+/** Filtro de la lista de productos del panel (rediseño 11c). Sale de la dirección. */
+export type PanelProductFilter = { kind: "all" | "out" | "uncategorized" | "hidden" } | { kind: "category"; id: string };
+
+type PanelProduct = { category_id: string | null; is_available: boolean; is_published: boolean };
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export function parsePanelProductFilter(params: { categoria?: string; ver?: string }): PanelProductFilter {
+  if (params.ver === "sin-stock") return { kind: "out" };
+  if (params.ver === "ocultos") return { kind: "hidden" };
+  if (params.categoria === "sin") return { kind: "uncategorized" };
+  if (params.categoria && UUID_RE.test(params.categoria)) return { kind: "category", id: params.categoria };
+  return { kind: "all" };
+}
+
+/** Sin stock cuenta solo los publicados: un oculto no se puede pedir de todos modos. */
+const isOut = (p: PanelProduct) => p.is_published && !p.is_available;
+
+export function productCounts(products: PanelProduct[]): {
+  all: number;
+  outOfStock: number;
+  uncategorized: number;
+  hidden: number;
+  byCategory: Map<string, number>;
+} {
+  const byCategory = new Map<string, number>();
+  for (const p of products) if (p.category_id) byCategory.set(p.category_id, (byCategory.get(p.category_id) ?? 0) + 1);
+  return {
+    all: products.length,
+    outOfStock: products.filter(isOut).length,
+    uncategorized: products.filter((p) => p.category_id === null).length,
+    hidden: products.filter((p) => !p.is_published).length,
+    byCategory,
+  };
+}
+
+export function filterPanelProducts<T extends PanelProduct>(products: T[], filter: PanelProductFilter): T[] {
+  switch (filter.kind) {
+    case "out":
+      return products.filter(isOut);
+    case "uncategorized":
+      return products.filter((p) => p.category_id === null);
+    case "hidden":
+      return products.filter((p) => !p.is_published);
+    case "category":
+      return products.filter((p) => p.category_id === filter.id);
+    default:
+      return products;
+  }
+}
