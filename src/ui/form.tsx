@@ -7,7 +7,9 @@ import { buttonClasses } from "./button-classes";
 /** Componentes de formulario sin lógica de negocio (diseño, sección 2: src/ui). */
 
 const inputClass =
-  "min-h-12 rounded-xl border border-line bg-surface px-3 py-2 text-[16px] text-foreground focus:border-accent focus:outline-none";
+  "min-h-12 rounded-[14px] border border-line bg-field px-3.5 py-2 text-[16px] text-foreground " +
+  "focus:border-accent focus:ring-3 focus:ring-accent/20 focus:outline-none " +
+  "aria-[invalid=true]:border-danger aria-[invalid=true]:bg-danger-soft";
 
 export function TextField(props: {
   label: string;
@@ -99,7 +101,7 @@ export function Switch(props: { label: string; name: string; defaultChecked?: bo
         role="switch"
         name={props.name}
         defaultChecked={props.defaultChecked}
-        className="relative h-7 w-12 shrink-0 cursor-pointer appearance-none rounded-full bg-line transition-colors before:absolute before:top-1 before:left-1 before:size-5 before:rounded-full before:bg-white before:shadow before:transition-all checked:bg-accent checked:before:left-6 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+        className="relative h-7 w-12 shrink-0 cursor-pointer appearance-none rounded-full bg-line-strong transition-colors before:absolute before:top-1 before:left-1 before:size-5 before:rounded-full before:bg-white before:shadow before:transition-all checked:bg-accent checked:before:left-6 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
       />
     </label>
   );

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
+import { ListSkeleton } from "@/ui/skeleton";
 import { requireUser } from "@/core/auth/session";
 import { listMyTenants } from "@/core/tenancy/access";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -13,7 +14,7 @@ export default function PanelHome() {
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 p-8">
       <h1 className="text-2xl font-semibold">Tus comercios</h1>
-      <Suspense fallback={<p className="opacity-70">Cargando…</p>}>
+      <Suspense fallback={<ListSkeleton />}>
         <TenantPicker />
       </Suspense>
     </main>

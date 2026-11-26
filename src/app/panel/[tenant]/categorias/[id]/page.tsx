@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { FormSkeleton } from "@/ui/skeleton";
 import { z } from "zod";
 import { requireTenantAccess } from "@/core/tenancy/require-access";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -13,7 +14,7 @@ export const metadata: Metadata = { title: "Editar categoría" };
 export default function EditCategoryPage({ params }: PageProps<"/panel/[tenant]/categorias/[id]">) {
   return (
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 p-8">
-      <Suspense fallback={<p className="opacity-70">Cargando…</p>}>
+      <Suspense fallback={<FormSkeleton />}>
         <EditCategory params={params} />
       </Suspense>
     </main>

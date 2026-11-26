@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { FormSkeleton } from "@/ui/skeleton";
 import { requireTenantAccess } from "@/core/tenancy/require-access";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getTemplateKey, listCategories, ProductForm } from "@/modules/catalog";
@@ -11,7 +12,7 @@ export const metadata: Metadata = { title: "Nuevo producto" };
 export default function NewProductPage({ params }: PageProps<"/panel/[tenant]/productos/nuevo">) {
   return (
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-3 px-4 py-5 sm:px-8">
-      <Suspense fallback={<p className="opacity-70">Cargando…</p>}>
+      <Suspense fallback={<FormSkeleton />}>
         <NewProduct params={params} />
       </Suspense>
     </main>

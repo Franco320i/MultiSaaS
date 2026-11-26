@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { FormSkeleton } from "@/ui/skeleton";
 import { requireTenantAccess } from "@/core/tenancy/require-access";
 import { CategoryForm } from "@/modules/catalog";
 import { createCategoryAction } from "@/modules/catalog/actions";
@@ -10,7 +11,7 @@ export const metadata: Metadata = { title: "Nueva categoría" };
 export default function NewCategoryPage({ params }: PageProps<"/panel/[tenant]/categorias/nueva">) {
   return (
     <main className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 p-8">
-      <Suspense fallback={<p className="opacity-70">Cargando…</p>}>
+      <Suspense fallback={<FormSkeleton />}>
         <NewCategory params={params} />
       </Suspense>
     </main>

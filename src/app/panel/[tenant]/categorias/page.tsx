@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
+import { ListSkeleton } from "@/ui/skeleton";
 import { requireTenantAccess } from "@/core/tenancy/require-access";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { listCategories, listProducts } from "@/modules/catalog";
@@ -11,7 +12,7 @@ export const metadata: Metadata = { title: "Categorías" };
 export default function CategoriesPage({ params }: PageProps<"/panel/[tenant]/categorias">) {
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4 px-4 py-6 sm:px-8">
-      <Suspense fallback={<p className="opacity-70">Cargando…</p>}>
+      <Suspense fallback={<ListSkeleton />}>
         <CategoryList params={params} />
       </Suspense>
     </main>
