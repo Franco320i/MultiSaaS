@@ -2,7 +2,7 @@ import Image from "next/image";
 import type { CSSProperties, ReactNode } from "react";
 import type { Storefront } from "@/core/tenancy/storefront";
 import { publicImageUrl } from "@/lib/images/url";
-import { mapsUrl, storeStatus } from "@/modules/catalog/presentation";
+import { catalogLayout, mapsUrl, storeStatus } from "@/modules/catalog/presentation";
 import type { PublicCatalog, PublicProduct } from "@/modules/catalog/public-queries";
 import { CatalogBrowser, type ProductActions } from "./catalog-browser";
 import { CheckIcon, MapPinIcon, StoreIcon, TruckIcon } from "./icons";
@@ -164,7 +164,13 @@ export function StorefrontView({
       </header>
 
       <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col px-4 pb-28">
-        <CatalogBrowser products={catalog.products} categories={catalog.categories} currency={storefront.currency} actions={actions} />
+        <CatalogBrowser
+          products={catalog.products}
+          categories={catalog.categories}
+          currency={storefront.currency}
+          actions={actions}
+          layout={catalogLayout(storefront.template_key)}
+        />
       </main>
 
       <StorefrontFooter storefront={storefront} />

@@ -1,10 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { filterProducts, sortByPrice, type PriceOrder } from "@/modules/catalog/presentation";
+import { filterProducts, sortByPrice, type CatalogLayout, type PriceOrder } from "@/modules/catalog/presentation";
 import type { PublicCategory, PublicProduct } from "@/modules/catalog/public-queries";
 import { SearchIcon } from "./icons";
-import { ProductCard } from "./product-card";
+import { ProductCard, ProductRow } from "./product-card";
 import { ProductSheet } from "./product-sheet";
 
 export type ProductActions = Record<string, { card?: ReactNode; sheet?: ReactNode }>;
@@ -21,11 +21,14 @@ export function CatalogBrowser({
   categories,
   currency,
   actions,
+  layout,
 }: {
   products: PublicProduct[];
   categories: PublicCategory[];
   currency: string;
   actions: ProductActions;
+  /** Carta o Grilla: la decide el rubro (catalogLayout), el comercio no la elige. */
+  layout: CatalogLayout;
 }) {
   const [query, setQuery] = useState("");
   const [order, setOrder] = useState<PriceOrder>("none");
@@ -50,7 +53,20 @@ export function CatalogBrowser({
   const results = useMemo(() => sortByPrice(filterProducts(products, query), order), [products, query, order]);
   const open = openId ? products.find((p) => p.id === openId) : undefined;
 
-  const grid = (list: PublicProduct[]) => (
+  const grid = (list: PublicProduct[]) =>
+    layout === "carta" ? (
+      <ul className="grid gap-2.5 md:grid-cols-2 md:gap-3">
+        {list.map((product) => (
+          <ProductRow
+            key={product.id}
+            product={product}
+            currency={currency}
+            action={actions[product.id]?.card}
+            onOpen={() => setOpenId(product.id)}
+          />
+        ))}
+      </ul>
+    ) : (
     <ul className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-3 lg:grid-cols-4">
       {list.map((product) => (
         <ProductCard
