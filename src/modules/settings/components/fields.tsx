@@ -1,13 +1,15 @@
 "use client";
 
 import { useActionState, useEffect, type ReactNode } from "react";
+import { buttonClasses } from "@/ui/button-classes";
 import { useToast } from "@/ui/toast";
 import type { SettingsFormState } from "../actions";
 
 /** Piezas de formulario del asistente y de Ajustes (sistema visual Sobremesa). */
 
 export const inputClass =
-  "min-h-12 w-full rounded-xl border border-line bg-surface px-4 text-[16px] text-foreground placeholder:text-muted";
+  "min-h-12 w-full rounded-[14px] border border-line bg-field px-4 text-[16px] text-foreground placeholder:text-muted " +
+  "focus:border-accent focus:ring-3 focus:ring-accent/20 focus:outline-none";
 
 export function Field({
   id,
@@ -67,7 +69,7 @@ export function SettingsForm({
       <button
         type="submit"
         disabled={pending}
-        className="min-h-12 w-full rounded-full bg-accent px-6 text-[16px] font-semibold text-accent-foreground disabled:opacity-60 sm:w-fit"
+        className={buttonClasses("primary", "md", "w-full sm:w-fit")}
       >
         {pending ? "Guardando…" : submitLabel}
       </button>

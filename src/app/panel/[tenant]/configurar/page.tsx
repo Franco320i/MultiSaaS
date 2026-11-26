@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { buttonClasses } from "@/ui/button-classes";
 import Link from "next/link";
 import { Suspense } from "react";
 import { requireTenantAccess } from "@/core/tenancy/require-access";
@@ -153,13 +154,13 @@ async function StepContent({
         <div className="flex flex-col gap-3 sm:flex-row">
           <Link
             href={`/${slug}/productos/importar`}
-            className="flex min-h-12 items-center justify-center rounded-full bg-accent px-6 text-[16px] font-semibold text-accent-foreground"
+            className={buttonClasses("primary")}
           >
             Pegar desde una planilla
           </Link>
           <Link
             href={`/${slug}/productos/nuevo`}
-            className="flex min-h-12 items-center justify-center rounded-full border border-line px-6 text-[16px] font-semibold hover:border-foreground"
+            className={buttonClasses("secondary")}
           >
             Cargar uno por uno
           </Link>

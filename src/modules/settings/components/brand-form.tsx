@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { buttonClasses } from "@/ui/button-classes";
 import { useActionState, useId, useRef, useState } from "react";
 import { ACCEPT_ATTRIBUTE, ResizeError, resizeForUpload } from "@/ui/resize-image";
 import type { SettingsFormState } from "../actions";
@@ -125,7 +126,7 @@ export function BrandingImage({
           </div>
         )}
         <div className="flex flex-wrap gap-2">
-          <label className="flex min-h-11 cursor-pointer items-center rounded-full border border-line px-4 text-[15px] font-semibold hover:border-foreground">
+          <label className={buttonClasses("secondary", "md", "w-fit cursor-pointer")}>
             {pending ? "Subiendo…" : url ? "Cambiar" : "Subir imagen"}
             <input ref={inputRef} type="file" accept={ACCEPT_ATTRIBUTE} className="sr-only" disabled={pending} onChange={(e) => onFile(e.target.files?.[0])} />
           </label>

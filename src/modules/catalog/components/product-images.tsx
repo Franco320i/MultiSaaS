@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { startTransition, useActionState, useRef, useState } from "react";
+import { buttonClasses } from "@/ui/button-classes";
 import { FormError } from "@/ui/form";
 import type { FormState } from "../actions";
 import { ACCEPT_ATTRIBUTE, ResizeError, resizeForUpload } from "@/ui/resize-image";
@@ -106,7 +107,7 @@ export function ProductImages({
                     if (window.confirm("¿Borrar esta foto?")) startTransition(() => deleteAction(image.id));
                   }}
                   aria-label={`Borrar la foto ${index + 1}`}
-                  className="min-h-11 px-2 text-red-700 underline dark:text-red-300"
+                  className={buttonClasses("danger")}
                 >
                   Borrar
                 </button>

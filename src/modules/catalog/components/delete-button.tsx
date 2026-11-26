@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { buttonClasses } from "@/ui/button-classes";
 import { FormError } from "@/ui/form";
 import type { FormState } from "../actions";
 
@@ -29,7 +30,7 @@ export function DeleteButton({
         <button
           type="submit"
           disabled={pending}
-          className="rounded-md border border-red-500/40 px-4 py-2 text-sm text-red-700 disabled:opacity-60 dark:text-red-300"
+          className={buttonClasses("danger")}
         >
           {pending ? "Borrando…" : label}
         </button>

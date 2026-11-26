@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { buttonClasses } from "@/ui/button-classes";
 import { canCancel, NEXT_STEP, type OrderStatus } from "../status";
 import type { StatusActionState } from "../actions";
 
@@ -36,7 +37,7 @@ export function StatusActions({
             <button
               type="submit"
               disabled={pending}
-              className="min-h-11 rounded-full bg-accent px-5 text-[15px] font-semibold text-accent-foreground disabled:opacity-60"
+              className={buttonClasses("primary")}
             >
               {pending ? "Guardando…" : next.label}
             </button>
@@ -51,7 +52,7 @@ export function StatusActions({
                 <button
                   type="submit"
                   disabled={pending}
-                  className="min-h-11 rounded-full border border-danger px-4 text-[15px] font-semibold text-danger disabled:opacity-60"
+                  className={buttonClasses("danger")}
                 >
                   Sí, cancelar
                 </button>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { buttonClasses } from "@/ui/button-classes";
 import type { SettingsFormState } from "../actions";
 
 /**
@@ -67,7 +68,7 @@ export function PublishPanel({
                   href={`https://wa.me/?text=${encodeURIComponent(shareText)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex min-h-11 items-center rounded-full bg-accent px-5 text-[15px] font-semibold text-accent-foreground"
+                  className={buttonClasses("whatsapp", "md", "w-fit")}
                 >
                   Compartir por WhatsApp
                 </a>
@@ -82,7 +83,7 @@ export function PublishPanel({
                       setCopied(false);
                     }
                   }}
-                  className="min-h-11 rounded-full border border-line px-5 text-[15px] font-semibold hover:border-foreground"
+                  className={buttonClasses("secondary")}
                 >
                   {copied ? "¡Copiado!" : "Copiar link"}
                 </button>
@@ -93,7 +94,7 @@ export function PublishPanel({
           {confirmUnpublish ? (
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-[15px]">¿Despublicar? Tus clientes van a ver “Catálogo no disponible”.</span>
-              <button type="button" disabled={pending} onClick={() => run(false)} className="min-h-11 rounded-full border border-danger px-4 text-[15px] font-semibold text-danger">
+              <button type="button" disabled={pending} onClick={() => run(false)} className={buttonClasses("danger")}>
                 Sí, despublicar
               </button>
               <button type="button" onClick={() => setConfirmUnpublish(false)} className="min-h-11 px-3 text-[15px] font-semibold text-muted">
@@ -115,7 +116,7 @@ export function PublishPanel({
             type="button"
             disabled={pending || !canPublish}
             onClick={() => run(true)}
-            className="min-h-12 w-full rounded-full bg-accent px-6 text-[16px] font-semibold text-accent-foreground disabled:opacity-60 sm:w-fit"
+            className={buttonClasses("primary", "md", "w-full sm:w-fit")}
           >
             {pending ? "Publicando…" : "Publicar mi catálogo"}
           </button>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Pill } from "@/ui/pill";
 import Link from "next/link";
 import { Suspense } from "react";
 import { requireTenantAccess } from "@/core/tenancy/require-access";
@@ -56,15 +57,9 @@ async function TenantDashboard({ params }: Pick<PageProps<"/panel/[tenant]">, "p
       <header className="flex flex-col gap-2">
         <h1 className="font-display text-[28px] leading-tight text-balance">{access.name}</h1>
         <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[15px] text-muted">
-          <span
-            className={`rounded-full px-2.5 py-0.5 text-[13px] font-semibold ${
-              access.status === "past_due" || access.status === "suspended"
-                ? "bg-danger-soft text-danger"
-                : "bg-surface-muted text-foreground"
-            }`}
-          >
+          <Pill tone={access.status === "past_due" || access.status === "suspended" ? "danger" : "neutral"}>
             {STATUS_LABEL[access.status]}
-          </span>
+          </Pill>
           <span>{access.role === "owner" ? "Dueño" : "Staff"}</span>
         </p>
       </header>

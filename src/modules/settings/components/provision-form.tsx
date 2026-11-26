@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useId, useState } from "react";
+import { buttonClasses } from "@/ui/button-classes";
 import { slugify } from "@/lib/slugify";
 import { checkSlugAction, provisionTenantAction, type SettingsFormState } from "../actions";
 import type { BusinessTemplate } from "../queries";
@@ -124,7 +125,7 @@ export function ProvisionForm({ templates, domainSuffix }: { templates: Business
       <button
         type="submit"
         disabled={pending || (current !== null && !current.available)}
-        className="min-h-12 rounded-full bg-accent px-6 text-[16px] font-semibold text-accent-foreground disabled:opacity-60"
+        className={buttonClasses("primary")}
       >
         {pending ? "Creando tu comercio…" : "Crear mi comercio"}
       </button>

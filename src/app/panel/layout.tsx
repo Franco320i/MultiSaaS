@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { buttonClasses } from "@/ui/button-classes";
 import Link from "next/link";
 import { Suspense } from "react";
 import { signOutAction } from "@/app/auth/actions";
@@ -36,7 +37,7 @@ async function UserMenu() {
   return (
     <form action={signOutAction} className="flex min-w-0 items-center gap-3 text-[14px]">
       <span className="hidden truncate text-muted sm:inline">{user.email}</span>
-      <button type="submit" className="min-h-11 rounded-full border border-line px-4 font-semibold">
+      <button type="submit" className={buttonClasses("secondary")}>
         Salir
       </button>
     </form>

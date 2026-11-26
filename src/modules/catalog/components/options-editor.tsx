@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useOptimistic, useState, useTransition } from "react";
+import { buttonClasses } from "@/ui/button-classes";
 import { centsToInput, formatCents } from "@/lib/money";
 import type { ProductOptionGroup } from "@/lib/product-options";
 import { SubmitButton } from "@/ui/form";
@@ -130,11 +131,11 @@ function GroupForm({
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-1 text-[15px] font-semibold">¿Cuántas se eligen?</legend>
         <div className="flex flex-wrap gap-2">
-          <label className="flex min-h-11 cursor-pointer items-center gap-2 rounded-full border border-line px-4 has-[:checked]:border-accent has-[:checked]:bg-surface-muted has-[:checked]:font-semibold">
+          <label className="flex min-h-11 cursor-pointer items-center gap-2 rounded-full border border-line px-4 has-[:checked]:border-transparent has-[:checked]:bg-accent-soft has-[:checked]:font-semibold has-[:checked]:text-accent">
             <input type="radio" name="choice" value="one" defaultChecked={!many} onChange={() => setMany(false)} className="accent-[var(--accent)]" />
             Una sola
           </label>
-          <label className="flex min-h-11 cursor-pointer items-center gap-2 rounded-full border border-line px-4 has-[:checked]:border-accent has-[:checked]:bg-surface-muted has-[:checked]:font-semibold">
+          <label className="flex min-h-11 cursor-pointer items-center gap-2 rounded-full border border-line px-4 has-[:checked]:border-transparent has-[:checked]:bg-accent-soft has-[:checked]:font-semibold has-[:checked]:text-accent">
             <input type="radio" name="choice" value="many" defaultChecked={many} onChange={() => setMany(true)} className="accent-[var(--accent)]" />
             Varias
           </label>
@@ -260,7 +261,7 @@ function NewOptionForm({ slug, groupId }: { slug: string; groupId: string }) {
           {state.error}
         </p>
       ) : null}
-      <button type="submit" className="min-h-11 w-fit rounded-full border border-accent px-4 text-[15px] font-semibold text-accent">
+      <button type="submit" className={buttonClasses("secondary", "md", "w-fit")}>
         + Agregar opción
       </button>
     </form>

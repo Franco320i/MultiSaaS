@@ -110,7 +110,7 @@ export function ProductForm({
               {tagOptionsFor(templateKey, product?.tags ?? []).map((tag) => (
                 <label
                   key={tag.value}
-                  className="flex min-h-11 cursor-pointer items-center gap-2 rounded-full border border-line px-4 has-[:checked]:border-accent has-[:checked]:bg-surface-muted has-[:checked]:font-semibold"
+                  className="flex min-h-11 cursor-pointer items-center gap-2 rounded-full border border-line px-4 has-[:checked]:border-transparent has-[:checked]:bg-accent-soft has-[:checked]:font-semibold has-[:checked]:text-accent"
                 >
                   <input type="checkbox" name="tags" value={tag.value} defaultChecked={tags.includes(tag.value)} className="size-4 accent-[var(--accent)]" />
                   {tag.label}

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { buttonClasses } from "@/ui/button-classes";
 import Link from "next/link";
 import { Suspense } from "react";
 import { z } from "zod";
@@ -61,7 +62,7 @@ async function ProductList({ params, searchParams }: PageProps<"/panel/[tenant]/
           <p className="text-[15px] text-muted">Tocá un producto para cambiarlo. El interruptor dice si hay stock.</p>
         </div>
         <details className="relative shrink-0">
-          <summary className="flex min-h-11 cursor-pointer list-none items-center rounded-full border border-line bg-surface px-4 font-semibold [&::-webkit-details-marker]:hidden">
+          <summary className={buttonClasses("secondary", "md", "cursor-pointer list-none [&::-webkit-details-marker]:hidden")}>
             Más
           </summary>
           <div className="absolute right-0 z-20 mt-2 flex w-56 flex-col rounded-2xl border border-line bg-surface p-1.5 shadow-lg">
@@ -82,7 +83,7 @@ async function ProductList({ params, searchParams }: PageProps<"/panel/[tenant]/
             href={f.href}
             aria-current={active === f.value ? "page" : undefined}
             className={`flex min-h-10 shrink-0 items-center rounded-full px-4 text-[15px] whitespace-nowrap ${
-              active === f.value ? "bg-foreground font-semibold text-background" : "border border-line bg-surface"
+              active === f.value ? "bg-accent-soft font-semibold text-accent" : "border border-line bg-surface"
             }`}
           >
             {f.label}
@@ -119,7 +120,7 @@ async function ProductList({ params, searchParams }: PageProps<"/panel/[tenant]/
 
       <Link
         href={`${base}/nuevo`}
-        className="fixed right-4 bottom-24 z-20 flex min-h-12 items-center gap-2 rounded-full bg-accent px-5 font-semibold text-accent-foreground shadow-lg md:bottom-8"
+        className={buttonClasses("primary", "md", "fixed right-4 bottom-24 z-20 shadow-lg md:bottom-8")}
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" aria-hidden className="size-5">
           <path d="M12 5v14M5 12h14" />

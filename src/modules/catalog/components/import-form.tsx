@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { buttonClasses } from "@/ui/button-classes";
 import { useActionState, useId } from "react";
 import { formatCents } from "@/lib/money";
 import type { ImportState } from "../actions";
@@ -43,7 +44,7 @@ export function ImportForm({
           </div>
         ) : null}
         <p className="text-[15px] text-muted">Quedaron publicados. Podés sumarles fotos desde la lista de productos.</p>
-        <Link href={productsHref} className="flex min-h-12 w-fit items-center rounded-full bg-accent px-6 text-[16px] font-semibold text-accent-foreground">
+        <Link href={productsHref} className={buttonClasses("primary", "md", "w-fit")}>
           Ver mis productos
         </Link>
       </div>
@@ -77,7 +78,7 @@ export function ImportForm({
         <button
           type="submit"
           disabled={previewing}
-          className="min-h-12 w-fit rounded-full border border-line px-6 text-[16px] font-semibold hover:border-foreground disabled:opacity-60"
+          className={buttonClasses("secondary", "md", "w-fit")}
         >
           {previewing ? "Revisando…" : "Revisar"}
         </button>
@@ -133,7 +134,7 @@ export function ImportForm({
             <button
               type="submit"
               disabled={importing || okRows.length === 0}
-              className="min-h-12 w-full rounded-full bg-accent px-6 text-[16px] font-semibold text-accent-foreground disabled:opacity-60 sm:w-fit"
+              className={buttonClasses("primary", "md", "w-full sm:w-fit")}
             >
               {importing ? "Importando…" : `Importar ${okRows.length} ${okRows.length === 1 ? "producto" : "productos"}`}
             </button>
