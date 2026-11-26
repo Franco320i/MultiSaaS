@@ -68,23 +68,30 @@ export function TenantNav({
               <Link
                 href={item.href}
                 aria-current={active ? "page" : undefined}
-                className={`relative flex min-h-16 flex-col items-center justify-center gap-0.5 text-[12px] md:min-h-12 md:flex-row md:gap-2 md:px-3 md:text-[15px] ${
+                className={`relative flex min-h-16 items-center justify-center text-[12px] md:min-h-12 md:text-[15px] ${
                   active ? "font-bold text-accent" : "text-muted hover:text-foreground"
                 }`}
               >
-                <svg
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth={active ? 2.4 : 2}
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  aria-hidden
-                  className="size-6 md:size-5"
+                {/* Lo elegido en verde claro (sistema visual): una píldora alrededor de ícono + texto. */}
+                <span
+                  className={`flex flex-col items-center gap-0.5 rounded-full px-4 py-1 md:flex-row md:gap-2 md:px-3.5 md:py-1.5 ${
+                    active ? "bg-accent-soft" : ""
+                  }`}
                 >
-                  {ICONS[item.key]}
-                </svg>
-                {item.label}
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={active ? 2.4 : 2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden
+                    className="size-6 md:size-5"
+                  >
+                    {ICONS[item.key]}
+                  </svg>
+                  {item.label}
+                </span>
                 {item.key === "pedidos" && newOrders > 0 ? (
                   <span className="absolute top-1.5 left-1/2 ml-2 grid min-w-5 place-items-center rounded-full bg-danger px-1 text-[11px] font-bold text-background md:static md:ml-0">
                     {newOrders}
