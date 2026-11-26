@@ -32,9 +32,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={value}>
       {children}
+      {/* Región que se anuncia sola. Sin role="status": vacía, competiría con los mensajes de cada pantalla. */}
       <div
-        role="status"
         aria-live="polite"
+        aria-atomic="true"
         className="pointer-events-none fixed inset-x-0 z-40 flex justify-center px-4 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] md:bottom-6"
       >
         {toast ? (

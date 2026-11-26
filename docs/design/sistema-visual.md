@@ -20,6 +20,16 @@ Los tokens viven en `src/app/globals.css` (bloque `@theme` de Tailwind 4). Usalo
 | `accent-foreground` | `#FFFFFF` | `#10200F` | Texto sobre `accent` |
 | `danger` | `#A8432F` | `#E08A75` | Sin stock, errores, borrar |
 | `danger-soft` | `#F6E7E2` | `#3A2420` | Fondo de la etiqueta "Sin stock" |
+| `accent-soft` | `#E4EEE6` | `#25352A` | Lo elegido (menú, filtro, opción marcada) con texto `accent`; estado "Listo" |
+| `accent-2` | `#8C5F27` | `#D9AE6E` | Dorado: solo sobretítulos de pantalla y detalles chicos |
+| `field` | `#F4F6F2` | `#20251F` | Fondo de los campos |
+| `line-strong` | `#BCC3B6` | `#4A5246` | Borde del botón secundario, interruptor apagado |
+| `warning` / `warning-soft` | `#8A5A12` / `#FBF0DC` | `#E5B86B` / `#3A2E19` | Ámbar: pedido nuevo, avisos |
+| `info` / `info-soft` | `#2F5E9E` / `#E7EFFA` | `#9DBDF0` / `#1E2A3D` | Azul: pedido confirmado |
+| `plum` / `plum-soft` | `#6B4C93` / `#F0EAF8` | `#C9B0EC` / `#2D2440` | Violeta: pedido en preparación |
+| `whatsapp` | `#1E8A4C` | `#1E8A4C` | Solo botones que abren WhatsApp, con texto blanco |
+
+Los tokens de la tabla desde `accent-soft` se sumaron el 2026-11-26 (rediseño 11a, `docs/superpowers/specs/2026-11-26-rediseno-fundaciones-design.md`).
 
 - Los neutrales tiran apenas a verde, para que no se vean grises por defecto.
 - Color con significado: verde = acción o disponible, rojo = sin stock, error o borrar. Nunca solo color: siempre con texto ("Sin stock").
@@ -46,6 +56,7 @@ Los tokens viven en `src/app/globals.css` (bloque `@theme` de Tailwind 4). Usalo
 | `font-sans` | Hanken Grotesk | Todo lo demás: texto, botones, formularios, precios |
 
 - Se cargan con `next/font/google` en `src/app/layout.tsx`.
+- **En el panel del comercio** (`data-surface="panel"` en `src/app/panel/layout.tsx`), `font-display` es **Hanken Grotesk 800 con interletrado −2 %** (decidido el 2026-11-26, más limpio, estilo PPW). El catálogo, la página principal y el panel central siguen con Young Serif. Se logra redefiniendo `--font-display-family` en esa superficie (`globals.css`).
 - Precios y cantidades: `tabular-nums`.
 - Escala: 13 (meta), 15 (texto), 17 (nombre de producto), 20 (título de sección), 28 (título de página) y 32 a 40 (nombre del comercio en la portada).
 - Etiquetas en mayúsculas solo con `tracking-wide` y a 12 o 13 px.
@@ -83,10 +94,23 @@ Los tokens viven en `src/app/globals.css` (bloque `@theme` de Tailwind 4). Usalo
 ## Panel del comercio: panel fácil (2026-11-23)
 
 - Para dueños poco amigos de la web: botones grandes, palabras de mostrador, lo más usado a un toque.
-- Menú: barra fija abajo en el celular (Inicio, Pedidos, Productos, Mi local) con íconos SVG, la sección actual en `accent` y el número de pedidos nuevos en `danger`. Desde 768 px, la misma fila arriba.
+- Menú: barra fija abajo en el celular (Inicio, Pedidos, Productos, Mi local) con íconos SVG, la sección actual en `accent` dentro de una píldora `accent-soft` y el número de pedidos nuevos en `danger`. Desde 768 px, la misma fila arriba.
 - Bloques en `surface` con borde `line` y `rounded-2xl`; títulos de página en `font-display` 28 px; textos de ayuda en `muted` debajo de cada opción.
 - Interruptores (`Switch`) en lugar de casillas para estados: "Se ve en tu catálogo", "Hay stock", "Destacado", siempre con una línea que explica qué pasa.
 - Botón principal de los formularios: píldora `accent` a lo ancho, fijo abajo ("Guardar cambios"). Acción de crear en listas: botón flotante "+ Producto".
+
+## Piezas comunes del panel (rediseño 11a, 2026-11-26)
+
+Una sola versión de cada una, en `src/ui/`. Las pantallas no arman botones ni etiquetas a mano.
+
+- **Botón** (`button-classes.ts` + `button.tsx`: `buttonClasses(variant, size, extra)`, `<Button>`, `<ButtonLink>`). Siempre píldora. Variantes: `primary` (verde, hacer algo; uno solo por zona), `secondary` (blanco con `line-strong`), `soft` (`surface-muted`), `text` (verde sin fondo), `whatsapp` (solo lo que abre WhatsApp) y `danger` (texto rojo sin fondo: borrar, cancelar). Tamaño `md` de 44 px; `sm` de 36 px solo para acciones de fila en pantallas grandes. Apagado al 50 %; mientras envía dice "Guardando…" (`SubmitButton`).
+- **Orden en un pie de formulario:** borrar solo a la izquierda; secundario y principal a la derecha.
+- **Lo elegido** (menú, filtro, opción marcada): fondo `accent-soft` con texto `accent`. Nunca negro.
+- **Píldora de estado** (`pill.tsx`, `<Pill tone>`): punto + texto, 28 px. Tonos `neutral`, `accent`, `warning`, `info`, `plum`, `danger`. Pedidos (`STATUS_TONE`): nuevo ámbar, confirmado azul, en preparación violeta, listo verde claro, entregado neutro, cancelado rojo.
+- **Campos** (`form.tsx`): fondo `field`, borde `line`, radio 14 px, 48 px de alto, foco con borde `accent` y anillo `accent` al 20 %, error (`aria-invalid`) en `danger` sobre `danger-soft`.
+- **Aviso breve** (`toast.tsx`, `ToastProvider` en el layout del panel y `useToast().show(mensaje, "ok" | "error")`): píldora `surface` con sombra, abajo al centro y por encima del menú del celular; se va sola a los 3 s. Reemplaza los "Se guardó" en línea.
+- **Esqueletos** (`skeleton.tsx`: `Skeleton`, `FormSkeleton`, `ListSkeleton`): la forma de lo que viene; sin animación con `prefers-reduced-motion`. Nunca "Cargando…" suelto.
+- **Cabecera de pantalla** (`page-header.tsx`, `<PageHeader eyebrow title description action>`): sobretítulo dorado (`accent-2`) en mayúsculas, título `font-display` 28 px, una línea que dice para qué sirve la pantalla y una sola acción a la derecha. Se aplica en la parte 3 del rediseño.
 
 ## Modo oscuro
 
