@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isOpenAt, localTime, summarizeHours, type HoursRange } from "./hours";
+import { isOpenAt, localTime, summarizeHours, todayHours, type HoursRange } from "./hours";
 import { contrastRatio, parseHexColor, readableTextOn } from "./color";
 
 const TZ = "America/Argentina/Buenos_Aires"; // UTC-3, sin horario de verano
@@ -81,5 +81,18 @@ describe("color", () => {
     expect(readableTextOn("#c2410c")).toBe("#ffffff");
     expect(readableTextOn("#facc15")).toBe("#1a1c18");
     expect(contrastRatio("#ffffff", "#000000")).toBeCloseTo(21, 0);
+  });
+});
+
+describe("todayHours", () => {
+  it("muestra el horario del día en la zona del comercio", () => {
+    expect(todayHours(nights, ar("2026-11-17T22:00:00"), TZ)).toBe("19:00 a 0:30");
+  });
+  it("de madrugada en UTC sigue siendo el día del comercio", () => {
+    // 2026-11-18 01:30 UTC = martes 17 a las 22:30 en Buenos Aires.
+    expect(todayHours(nights, new Date("2026-11-18T01:30:00Z"), TZ)).toBe("19:00 a 0:30");
+  });
+  it("un día sin horario dice cerrado", () => {
+    expect(todayHours(nights, ar("2026-11-16T12:00:00"), TZ)).toBe("Cerrado hoy");
   });
 });

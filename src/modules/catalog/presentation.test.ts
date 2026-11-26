@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  catalogLayout,
   filterProducts,
   mapsUrl,
   normalizeSearch,
@@ -110,5 +111,18 @@ describe("mapsUrl", () => {
   it("sin dirección no hay link", () => {
     expect(mapsUrl(null, "Santa Rosa")).toBeNull();
     expect(mapsUrl("  ", "Santa Rosa")).toBeNull();
+  });
+});
+
+describe("catalogLayout", () => {
+  it("comida, dietética y general van en Carta; ropa y tecnología en Grilla", () => {
+    expect(catalogLayout("gastronomia")).toBe("carta");
+    expect(catalogLayout("dietetica")).toBe("carta");
+    expect(catalogLayout("general")).toBe("carta");
+    expect(catalogLayout("indumentaria")).toBe("grilla");
+    expect(catalogLayout("tecnologia")).toBe("grilla");
+  });
+  it("un rubro desconocido va en Carta", () => {
+    expect(catalogLayout("otro")).toBe("carta");
   });
 });

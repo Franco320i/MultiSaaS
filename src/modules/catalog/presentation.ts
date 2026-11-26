@@ -76,3 +76,16 @@ export function mapsUrl(address: string | null, city: string | null): string | n
   const query = [street, city?.trim()].filter(Boolean).join(", ");
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
 }
+
+/**
+ * Forma de mostrar los productos según el rubro (rediseño 11b). La decide el rubro y el
+ * comercio no la cambia: Carta (fila con la foto a la derecha) para comida, dietética y
+ * general; Grilla (fotos grandes) para ropa y tecnología.
+ */
+export type CatalogLayout = "carta" | "grilla";
+
+const GRID_TEMPLATES = new Set(["indumentaria", "tecnologia"]);
+
+export function catalogLayout(templateKey: string): CatalogLayout {
+  return GRID_TEMPLATES.has(templateKey) ? "grilla" : "carta";
+}

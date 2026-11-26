@@ -96,3 +96,8 @@ export function summarizeHours(hours: HoursRange[]): string[] {
       return `${capitalize(label)}: ${g.ranges}`;
     });
 }
+
+/** Horario de hoy en la zona del comercio ("19:00 a 0:30") o "Cerrado hoy". Depende de la hora: se calcula en el navegador. */
+export function todayHours(hours: HoursRange[], date: Date, timeZone: string): string {
+  return rangesOf(hours, localTime(date, timeZone).weekday) || "Cerrado hoy";
+}
