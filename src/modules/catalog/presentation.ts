@@ -52,22 +52,27 @@ export function sortByPrice<T extends { price: number }>(products: T[], order: P
     .map(({ p }) => p);
 }
 
-/** Chips de la cabecera: envío (o solo retiro), mínimo y medios de pago. */
-export function storeChips(s: {
+/** Datos de la tarjeta de estado del catálogo: envío (o solo retiro), mínimo y medios de pago. */
+export function storeStatus(s: {
   accepts_delivery: boolean;
   accepts_pickup: boolean;
   delivery_fee: number;
   min_order_amount: number;
   payment_methods: readonly string[];
   currency: string;
-}): string[] {
-  const chips: string[] = [];
-  if (s.accepts_delivery) chips.push(s.delivery_fee > 0 ? `Envío ${formatCents(s.delivery_fee, s.currency)}` : "Envío gratis");
-  else if (s.accepts_pickup) chips.push("Solo retiro");
-  if (s.min_order_amount > 0) chips.push(`Mínimo ${formatCents(s.min_order_amount, s.currency)}`);
+}): { delivery: string | null; minimum: string | null; payments: string | null } {
   const payments = PAYMENT_METHODS.filter((m) => s.payment_methods.includes(m.value)).map((m) => m.label);
-  if (payments.length > 0) chips.push(payments.join(" · "));
-  return chips;
+  return {
+    delivery: s.accepts_delivery
+      ? s.delivery_fee > 0
+        ? formatCents(s.delivery_fee, s.currency)
+        : "Gratis"
+      : s.accepts_pickup
+        ? "Solo retiro"
+        : null,
+    minimum: s.min_order_amount > 0 ? formatCents(s.min_order_amount, s.currency) : null,
+    payments: payments.length > 0 ? payments.join(" · ") : null,
+  };
 }
 
 export function mapsUrl(address: string | null, city: string | null): string | null {

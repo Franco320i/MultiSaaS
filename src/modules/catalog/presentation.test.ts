@@ -6,7 +6,7 @@ import {
   normalizeSearch,
   savingsLabel,
   sortByPrice,
-  storeChips,
+  storeStatus,
   visibleTags,
 } from "./presentation";
 
@@ -79,7 +79,7 @@ describe("sortByPrice", () => {
   });
 });
 
-describe("storeChips", () => {
+describe("storeStatus", () => {
   const base = {
     accepts_delivery: true,
     accepts_pickup: true,
@@ -89,13 +89,21 @@ describe("storeChips", () => {
     currency: "ARS",
   };
   it("envío, mínimo y medios de pago en el orden de la lista", () => {
-    expect(storeChips(base)).toEqual([`Envío $${NBSP}1.500`, `Mínimo $${NBSP}5.000`, "Efectivo · Transferencia"]);
+    expect(storeStatus(base)).toEqual({
+      delivery: `$${NBSP}1.500`,
+      minimum: `$${NBSP}5.000`,
+      payments: "Efectivo · Transferencia",
+    });
   });
   it("envío gratis", () => {
-    expect(storeChips({ ...base, delivery_fee: 0 })[0]).toBe("Envío gratis");
+    expect(storeStatus({ ...base, delivery_fee: 0 }).delivery).toBe("Gratis");
   });
   it("solo retiro, sin mínimo ni medios de pago", () => {
-    expect(storeChips({ ...base, accepts_delivery: false, min_order_amount: 0, payment_methods: [] })).toEqual(["Solo retiro"]);
+    expect(storeStatus({ ...base, accepts_delivery: false, min_order_amount: 0, payment_methods: [] })).toEqual({
+      delivery: "Solo retiro",
+      minimum: null,
+      payments: null,
+    });
   });
 });
 
