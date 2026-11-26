@@ -44,7 +44,7 @@ export function CatalogLinkCard({ slug, url, canPublish }: { slug: string; url: 
             <CopyLinkButton url={url} className={SOLID} />
             {canPublish ? (
               <Link
-                href={`/${slug}/configurar?paso=publicar`}
+                href={`/${slug}/ajustes?seccion=link`}
                 className={GHOST}
               >
                 Compartir · QR
@@ -52,7 +52,7 @@ export function CatalogLinkCard({ slug, url, canPublish }: { slug: string; url: 
             ) : null}
           </>
         ) : canPublish ? (
-          <Link href={`/${slug}/configurar?paso=publicar`} className={SOLID}>
+          <Link href={`/${slug}/ajustes?seccion=link`} className={SOLID}>
             Publicar
           </Link>
         ) : null}

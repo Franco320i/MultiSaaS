@@ -6,13 +6,16 @@ import type { SettingsFormState } from "../actions";
 
 /**
  * Publicar o despublicar el catálogo y, una vez publicado, compartirlo: link, código
- * QR (data URI SVG generado en el servidor) y botón para mandarlo por WhatsApp.
+ * QR (data URI SVG generado en el servidor), su PNG para descargar e imprimir y botón
+ * para mandarlo por WhatsApp.
  */
 export function PublishPanel({
   published,
   canPublish,
   catalogUrl,
   qrDataUri,
+  qrPngDataUri,
+  downloadName,
   displayName,
   action,
 }: {
@@ -20,6 +23,10 @@ export function PublishPanel({
   canPublish: boolean;
   catalogUrl: string;
   qrDataUri: string;
+  /** PNG de 1024 px para "Descargar QR". */
+  qrPngDataUri: string;
+  /** Nombre del archivo, por ejemplo qr-alfa.png. */
+  downloadName: string;
   displayName: string;
   action: (published: boolean) => Promise<SettingsFormState>;
 }) {
@@ -87,8 +94,11 @@ export function PublishPanel({
                 >
                   {copied ? "¡Copiado!" : "Copiar link"}
                 </button>
+                <a href={qrPngDataUri} download={downloadName} className={buttonClasses("secondary")}>
+                  Descargar QR
+                </a>
               </div>
-              <p className="text-[14px] text-muted">Ponelo en la bio de Instagram y en tu estado de WhatsApp. El QR lo podés imprimir para el mostrador.</p>
+              <p className="text-[14px] text-muted">Ponelo en la bio de Instagram y en tu estado de WhatsApp. Descargá el QR e imprimilo para el mostrador.</p>
             </div>
           </div>
           {confirmUnpublish ? (

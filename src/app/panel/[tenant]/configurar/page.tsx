@@ -3,11 +3,8 @@ import { buttonClasses } from "@/ui/button-classes";
 import Link from "next/link";
 import { Suspense } from "react";
 import { requireTenantAccess } from "@/core/tenancy/require-access";
-import { env } from "@/lib/env";
 import { publicImageUrl } from "@/lib/images/url";
-import { qrDataUri } from "@/lib/qr";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { platformUrl } from "@/lib/urls";
 import {
   BRAND_PALETTE,
   BrandForm,
@@ -17,7 +14,6 @@ import {
   getSettings,
   getSetupStatus,
   HoursForm,
-  PublishPanel,
   SetupChecklist,
   STEP_LABEL,
   WIZARD_STEPS,
@@ -28,9 +24,9 @@ import {
   saveBrandAction,
   saveContactAction,
   saveHoursAction,
-  setPublishedAction,
   uploadBrandingAction,
 } from "@/modules/settings/actions";
+import { PublishSection } from "../_components/publish-section";
 
 export const metadata: Metadata = { title: "Configurá tu catálogo" };
 
@@ -173,24 +169,10 @@ async function StepContent({
   }
 
   // Publicar
-  const [settings, status, hosts] = await Promise.all([
-    getSettings(supabase, tenantId),
-    getSetupStatus(supabase, tenantId),
-    supabase.from("domains").select("hostname").eq("tenant_id", tenantId).eq("is_primary", true).maybeSingle(),
-  ]);
-  const catalogUrl = hosts.data
-    ? platformUrl(env.ROOT_DOMAIN, hosts.data.hostname.replace(`.${env.ROOT_DOMAIN}`, ""))
-    : platformUrl(env.ROOT_DOMAIN, slug);
+  const [settings, status] = await Promise.all([getSettings(supabase, tenantId), getSetupStatus(supabase, tenantId)]);
   return (
     <div className="flex flex-col gap-6">
-      <PublishPanel
-        published={status.publishedAt !== null}
-        canPublish={status.hasWhatsapp && status.publishedProducts > 0}
-        catalogUrl={catalogUrl}
-        qrDataUri={await qrDataUri(catalogUrl)}
-        displayName={settings.display_name}
-        action={setPublishedAction.bind(null, slug)}
-      />
+      <PublishSection supabase={supabase} tenantId={tenantId} slug={slug} status={status} displayName={settings.display_name} />
       <SetupChecklist slug={slug} status={status} title="Antes o después de publicar, revisá esto" />
       <Link href={`/${slug}`} className="w-fit py-2 text-[15px] font-semibold underline underline-offset-4">
         Ir al panel

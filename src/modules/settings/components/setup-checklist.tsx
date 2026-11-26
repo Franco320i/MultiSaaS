@@ -3,20 +3,33 @@ import type { SetupStatus } from "../queries";
 
 /**
  * Lo que le falta al comercio (diseño, sección 10, paso 8: logo, horarios y 5 productos
- * con foto). Cada pendiente lleva a donde se resuelve. Lo hecho se marca con texto.
+ * con foto). Cada pendiente lleva a donde se resuelve: en el asistente, a su paso; en Mi local
+ * (`inSettings`), a su sección. Lo hecho se marca con texto.
  */
-export function SetupChecklist({ slug, status, title }: { slug: string; status: SetupStatus; title?: string }) {
+export function SetupChecklist({
+  slug,
+  status,
+  title,
+  inSettings = false,
+}: {
+  slug: string;
+  status: SetupStatus;
+  title?: string;
+  inSettings?: boolean;
+}) {
+  const where = (step: string, section: string) =>
+    inSettings ? `/${slug}/ajustes?seccion=${section}` : `/${slug}/configurar?paso=${step}`;
   const items = [
-    { done: status.hasWhatsapp, label: "WhatsApp para recibir pedidos", href: `/${slug}/configurar?paso=contacto` },
-    { done: status.hasLogo, label: "Logo del comercio", href: `/${slug}/configurar?paso=marca` },
-    { done: status.hasHours, label: "Horarios de atención", href: `/${slug}/configurar?paso=horarios` },
+    { done: status.hasWhatsapp, label: "WhatsApp para recibir pedidos", href: where("contacto", "contacto") },
+    { done: status.hasLogo, label: "Logo del comercio", href: where("marca", "marca") },
+    { done: status.hasHours, label: "Horarios de atención", href: where("horarios", "horarios") },
     { done: status.publishedProducts >= 1, label: "Al menos un producto publicado", href: `/${slug}/productos/nuevo` },
     {
       done: status.productsWithPhoto >= 5,
       label: `5 productos con foto (${Math.min(status.productsWithPhoto, 5)} de 5)`,
       href: `/${slug}/productos`,
     },
-    { done: status.publishedAt !== null, label: "Catálogo publicado", href: `/${slug}/configurar?paso=publicar` },
+    { done: status.publishedAt !== null, label: "Catálogo publicado", href: where("publicar", "link") },
   ];
   const pending = items.filter((i) => !i.done).length;
   if (pending === 0) return null;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { brandSchema, contactSchema, deliverySchema, hoursFromForm, hoursSchema, normalizeWhatsapp, provisionSchema } from "./schemas";
+import { brandSchema, contactSchema, deliverySchema, hoursFromForm, hoursSchema, normalizeWhatsapp, parseSettingsSection, provisionSchema } from "./schemas";
 
 describe("normalizeWhatsapp", () => {
   it("saca espacios, guiones y paréntesis", () => {
@@ -103,5 +103,16 @@ describe("contactSchema: medios de pago y Todos los pedidos incluyen", () => {
   });
   it("rechaza más de 4 frases", () => {
     expect(contactSchema.safeParse({ ...base, highlights: ["a", "b", "c", "d", "e"] }).success).toBe(false);
+  });
+});
+
+describe("parseSettingsSection", () => {
+  it("acepta las secciones de Mi local", () => {
+    for (const s of ["marca", "contacto", "horarios", "link", "accesos"]) expect(parseSettingsSection(s)).toBe(s);
+  });
+  it("cualquier otra cosa muestra el índice", () => {
+    expect(parseSettingsSection(undefined)).toBeNull();
+    expect(parseSettingsSection("x")).toBeNull();
+    expect(parseSettingsSection(["marca"])).toBeNull();
   });
 });

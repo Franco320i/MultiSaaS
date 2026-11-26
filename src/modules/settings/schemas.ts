@@ -13,6 +13,14 @@ import { parseAmountToCents } from "@/lib/money";
 export const WIZARD_STEPS = ["marca", "contacto", "horarios", "productos", "publicar"] as const;
 export type WizardStep = (typeof WIZARD_STEPS)[number];
 
+/** Secciones de Mi local (`/[tenant]/ajustes?seccion=`). Sin sección o con una desconocida se ve el índice. */
+export const SETTINGS_SECTIONS = ["marca", "contacto", "horarios", "link", "accesos"] as const;
+export type SettingsSection = (typeof SETTINGS_SECTIONS)[number];
+
+export function parseSettingsSection(value: unknown): SettingsSection | null {
+  return typeof value === "string" && (SETTINGS_SECTIONS as readonly string[]).includes(value) ? (value as SettingsSection) : null;
+}
+
 export const STEP_LABEL: Record<WizardStep, string> = {
   marca: "Tu marca",
   contacto: "Contacto y entrega",

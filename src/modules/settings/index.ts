@@ -18,4 +18,12 @@ export {
   type SetupStatus,
   type TenantSettings,
 } from "./queries";
-export { BRAND_PALETTE, STEP_LABEL, WIZARD_STEPS, type WizardStep } from "./schemas";
+export {
+  BRAND_PALETTE,
+  parseSettingsSection,
+  SETTINGS_SECTIONS,
+  STEP_LABEL,
+  WIZARD_STEPS,
+  type SettingsSection,
+  type WizardStep,
+} from "./schemas";
