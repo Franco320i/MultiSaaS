@@ -3,7 +3,7 @@ import type { PostgrestError, SupabaseClient } from "@supabase/supabase-js";
 import { slugify, slugWithSuffix } from "@/lib/slugify";
 import type { Database } from "@/types/database";
 import { productImageObjects, removeObjects } from "./images";
-import type { CategoryForm, ProductFlag, ProductForm } from "./schemas";
+import type { CategoryForm, ProductFlag, ProductForm, ProductQuick } from "./schemas";
 
 /** Lo que guarda un producto. Etiquetas y características son opcionales: el importador no las toca. */
 export type ProductInput = Omit<ProductForm, "tags" | "specs"> & Partial<Pick<ProductForm, "tags" | "specs">>;
@@ -149,6 +149,31 @@ export async function updateProduct(
   const { data, error } = await supabase
     .from("catalog_products")
     .update(productValues(form))
+    .eq("tenant_id", tenantId)
+    .eq("id", id)
+    .select("id")
+    .maybeSingle();
+  if (error) return { ok: false, error: toUserError(error) };
+  return data ? { ok: true, id: data.id } : { ok: false, error: "El producto no existe." };
+}
+
+/** Hoja de edición rápida: escribe solo sus seis campos (descripción, etiquetas y características quedan como estaban). */
+export async function updateProductBasics(
+  supabase: Client,
+  tenantId: string,
+  id: string,
+  form: ProductQuick,
+): Promise<MutationResult> {
+  const { data, error } = await supabase
+    .from("catalog_products")
+    .update({
+      name: form.name,
+      category_id: form.category_id,
+      price: form.price,
+      compare_at_price: form.compare_at_price,
+      is_published: form.is_published,
+      is_available: form.is_available,
+    })
     .eq("tenant_id", tenantId)
     .eq("id", id)
     .select("id")

@@ -85,6 +85,39 @@ describe("escrituras del catálogo (sesiones reales contra Supabase local)", () 
     expect(betaProducts.find((p) => p.id === BETA_PRODUCT)?.name).toBe("Remera negra");
   });
 
+  it("la edición rápida cambia los seis campos de la hoja y no borra descripción, etiquetas ni características", async () => {
+    const staff = await signInAs("staffAlfa");
+    const full = await mutations.createProduct(
+      staff,
+      ALFA,
+      product({ name: `Rápida ${tag}`, description: "Con queso", tags: ["vegano"], specs: [{ label: "Peso", value: "200 g" }] }),
+    );
+    expect(full.ok).toBe(true);
+    if (!full.ok) return;
+    created.push(full.id);
+
+    const quick = {
+      name: `Rápida nueva ${tag}`,
+      category_id: ALFA_BURGERS,
+      price: 250_000,
+      compare_at_price: 300_000,
+      is_published: true,
+      is_available: false,
+    };
+    expect(await mutations.updateProductBasics(staff, ALFA, full.id, quick)).toEqual({ ok: true, id: full.id });
+
+    const saved = (await listProducts(staff, ALFA)).find((p) => p.id === full.id);
+    expect(saved).toMatchObject({ ...quick, description: "Con queso", tags: ["vegano"], specs: [{ label: "Peso", value: "200 g" }] });
+  });
+
+  it("la edición rápida no encuentra productos de otro comercio", async () => {
+    const owner = await signInAs("ownerAlfa");
+    const quick = { name: "X", category_id: null, price: 1, compare_at_price: null, is_published: true, is_available: true };
+    const missing = { ok: false, error: "El producto no existe." };
+    expect(await mutations.updateProductBasics(owner, ALFA, BETA_PRODUCT, quick)).toEqual(missing);
+    expect(await mutations.updateProductBasics(owner, BETA, BETA_PRODUCT, quick)).toEqual(missing);
+  });
+
   it("no se puede asignar una categoría de otro comercio", async () => {
     const owner = await signInAs("ownerAlfa");
     expect(await mutations.createProduct(owner, ALFA, product({ category_id: BETA_CATEGORY }))).toEqual({

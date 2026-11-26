@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { categoryFormSchema, firstError, optionGroupSchema, optionSchema, productFormFromData, productFormSchema } from "./schemas";
+import { categoryFormSchema, firstError, optionGroupSchema, optionSchema, productFormFromData, productFormSchema, productQuickSchema } from "./schemas";
 
 /** Igual que hacen las Server Actions: Object.fromEntries(formData). */
 function form(fields: Record<string, string>) {
@@ -143,5 +143,28 @@ describe("formularios de opciones (parte 3)", () => {
     expect(optionSchema.parse({ name: "Doble", price_delta: "1.500" })).toEqual({ name: "Doble", price_delta: 150000 });
     expect(optionSchema.parse({ name: "Simple", price_delta: "" })).toEqual({ name: "Simple", price_delta: 0 });
     expect(optionSchema.safeParse({ name: "Mal", price_delta: "abc" }).success).toBe(false);
+  });
+});
+
+describe("productQuickSchema (hoja de edición rápida)", () => {
+  it("toma solo los seis campos de la hoja e ignora el resto", () => {
+    const parsed = productQuickSchema.safeParse(
+      form({ name: "Papas", price: "4.500", compare_at_price: "", category_id: "", is_available: "on", description: "x", tags: "vegano" }),
+    );
+    expect(parsed.success).toBe(true);
+    expect(parsed.data).toEqual({
+      name: "Papas",
+      price: 450_000,
+      compare_at_price: null,
+      category_id: null,
+      is_published: false,
+      is_available: true,
+    });
+  });
+
+  it("rechaza un precio anterior menor que el precio", () => {
+    const parsed = productQuickSchema.safeParse(form({ name: "Papas", price: "4.500", compare_at_price: "3.000" }));
+    expect(parsed.success).toBe(false);
+    if (!parsed.success) expect(firstError(parsed.error)).toBe("El precio anterior tiene que ser mayor que el precio actual.");
   });
 });

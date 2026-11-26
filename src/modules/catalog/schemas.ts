@@ -44,30 +44,39 @@ export const categoryFormSchema = z.object({
 });
 export type CategoryForm = z.infer<typeof categoryFormSchema>;
 
+/** Campos del producto que comparten el formulario completo y la hoja de edición rápida. */
+const productFields = {
+  name: z.string().trim().min(1, "El nombre es obligatorio.").max(120, "Máximo 120 caracteres."),
+  category_id: z
+    .union([z.uuid(), z.literal("")])
+    .nullish()
+    .transform((value) => value || null),
+  price: amount("Precio"),
+  compare_at_price: z
+    .string()
+    .trim()
+    .nullish()
+    .transform((value, ctx) => {
+      if (!value) return null;
+      const cents = parseAmountToCents(value);
+      if (cents === null) {
+        ctx.addIssue({ code: "custom", message: "Precio anterior: ingresá un monto válido o dejalo vacío." });
+        return z.NEVER;
+      }
+      return cents;
+    }),
+  is_published: checkbox,
+  is_available: checkbox,
+};
+
+const compareAtAbovePrice = (p: { price: number; compare_at_price: number | null }) =>
+  p.compare_at_price === null || p.compare_at_price > p.price;
+const compareAtMessage = { message: "El precio anterior tiene que ser mayor que el precio actual.", path: ["compare_at_price"] };
+
 export const productFormSchema = z
   .object({
-    name: z.string().trim().min(1, "El nombre es obligatorio.").max(120, "Máximo 120 caracteres."),
+    ...productFields,
     description: optionalText(2000),
-    category_id: z
-      .union([z.uuid(), z.literal("")])
-      .nullish()
-      .transform((value) => value || null),
-    price: amount("Precio"),
-    compare_at_price: z
-      .string()
-      .trim()
-      .nullish()
-      .transform((value, ctx) => {
-        if (!value) return null;
-        const cents = parseAmountToCents(value);
-        if (cents === null) {
-          ctx.addIssue({ code: "custom", message: "Precio anterior: ingresá un monto válido o dejalo vacío." });
-          return z.NEVER;
-        }
-        return cents;
-      }),
-    is_published: checkbox,
-    is_available: checkbox,
     is_featured: checkbox,
     // Llegan armadas por productFormFromData (casillas repetidas y filas de la tabla).
     tags: z
@@ -89,11 +98,12 @@ export const productFormSchema = z
         }
       }),
   })
-  .refine((p) => p.compare_at_price === null || p.compare_at_price > p.price, {
-    message: "El precio anterior tiene que ser mayor que el precio actual.",
-    path: ["compare_at_price"],
-  });
+  .refine(compareAtAbovePrice, compareAtMessage);
 export type ProductForm = z.infer<typeof productFormSchema>;
+
+/** Hoja de edición rápida de la lista del panel: solo estos seis campos (no toca descripción, etiquetas ni características). */
+export const productQuickSchema = z.object(productFields).refine(compareAtAbovePrice, compareAtMessage);
+export type ProductQuick = z.infer<typeof productQuickSchema>;
 
 /**
  * Arma lo que valida productFormSchema a partir del formulario: Object.fromEntries pierde

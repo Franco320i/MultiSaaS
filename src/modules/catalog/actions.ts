@@ -20,6 +20,7 @@ import {
   productFlagSchema,
   productFormFromData,
   productFormSchema,
+  productQuickSchema,
 } from "./schemas";
 
 /**
@@ -146,6 +147,31 @@ export async function updateProductAction(
   if (!result.ok) return { error: result.error, fields: submitted(formData) };
   revalidatePublicCatalog(access.tenantId);
   redirect(`/${access.slug}/productos`);
+}
+
+export type QuickEditState = FormState & { saved?: boolean };
+
+/**
+ * Hoja de edición rápida de la lista: guarda los seis campos de la hoja y no redirige
+ * (la lista queda donde estaba, con su filtro y su búsqueda).
+ */
+export async function quickUpdateProductAction(
+  tenantSlug: string,
+  productId: string,
+  _prev: QuickEditState,
+  formData: FormData,
+): Promise<QuickEditState> {
+  const { access, supabase } = await context(tenantSlug);
+  const id = idSchema.safeParse(productId);
+  if (!id.success) return { error: "El producto no existe." };
+  const parsed = productQuickSchema.safeParse(Object.fromEntries(formData));
+  if (!parsed.success) return { error: firstError(parsed.error), fields: submitted(formData) };
+
+  const result = await mutations.updateProductBasics(supabase, access.tenantId, id.data, parsed.data);
+  if (!result.ok) return { error: result.error, fields: submitted(formData) };
+  revalidatePublicCatalog(access.tenantId);
+  refresh();
+  return { saved: true };
 }
 
 export async function deleteProductAction(tenantSlug: string, productId: string): Promise<FormState> {
