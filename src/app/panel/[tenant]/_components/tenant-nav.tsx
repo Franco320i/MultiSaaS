@@ -74,7 +74,7 @@ export function TenantNav({
               >
                 {/* Lo elegido en verde claro (sistema visual): una píldora alrededor de ícono + texto. */}
                 <span
-                  className={`flex flex-col items-center gap-0.5 rounded-full px-4 py-1 md:flex-row md:gap-2 md:px-3.5 md:py-1.5 ${
+                  className={`flex flex-col items-center gap-0.5 rounded-full px-3 py-1 md:flex-row md:gap-2 md:px-3.5 md:py-1.5 ${
                     active ? "bg-accent-soft" : ""
                   }`}
                 >

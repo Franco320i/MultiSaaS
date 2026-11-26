@@ -131,7 +131,7 @@ function ProductItem({
         onClick={toggle}
         className="flex min-h-11 shrink-0 flex-col items-center justify-center gap-1 px-1 text-[11px] text-muted"
       >
-        <span className={`relative h-7 w-12 rounded-full transition-colors ${available ? "bg-accent" : "bg-line"}`}>
+        <span className={`relative h-7 w-12 rounded-full transition-colors ${available ? "bg-accent" : "bg-line-strong"}`}>
           <span className={`absolute top-1 size-5 rounded-full bg-white shadow transition-all ${available ? "left-6" : "left-1"}`} />
         </span>
         {available ? "Hay stock" : "Sin stock"}

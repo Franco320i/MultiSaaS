@@ -214,7 +214,7 @@ function OptionRow({
           }
           className="flex min-h-11 shrink-0 flex-col items-center justify-center gap-0.5 px-1 text-[11px] text-muted"
         >
-          <span className={`relative h-6 w-10 rounded-full transition-colors ${available ? "bg-accent" : "bg-line"}`}>
+          <span className={`relative h-6 w-10 rounded-full transition-colors ${available ? "bg-accent" : "bg-line-strong"}`}>
             <span className={`absolute top-1 size-4 rounded-full bg-white shadow transition-all ${available ? "left-5" : "left-1"}`} />
           </span>
           {available ? "Hay" : "No hay"}

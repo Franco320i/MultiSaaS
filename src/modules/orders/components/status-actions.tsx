@@ -52,7 +52,7 @@ export function StatusActions({
                 <button
                   type="submit"
                   disabled={pending}
-                  className={buttonClasses("danger")}
+                  className={buttonClasses("danger-outline")}
                 >
                   Sí, cancelar
                 </button>

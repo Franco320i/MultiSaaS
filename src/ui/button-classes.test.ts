@@ -46,6 +46,14 @@ describe("buttonClasses", () => {
     expect(c).toContain("hover:brightness-95");
   });
 
+  it("el de confirmar algo irreversible tiene borde rojo, relleno normal y sin fondo rojo", () => {
+    const classes = buttonClasses("danger-outline").split(" ");
+    expect(classes).toContain("border-danger");
+    expect(classes).toContain("text-danger");
+    expect(classes).toContain("px-5");
+    expect(classes).not.toContain("bg-danger");
+  });
+
   it("todas las variantes tienen foco visible en verde", () => {
     for (const v of VARIANTS) expect(buttonClasses(v)).toContain("focus-visible:outline-accent");
   });

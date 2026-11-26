@@ -2,7 +2,7 @@
  * Clases del botón común del panel (docs/design/sistema-visual.md, "Piezas comunes").
  * Verde = hacer algo; uno solo principal por zona. Siempre píldora y 44 px en el celular.
  */
-export type ButtonVariant = "primary" | "secondary" | "soft" | "text" | "whatsapp" | "danger";
+export type ButtonVariant = "primary" | "secondary" | "soft" | "text" | "whatsapp" | "danger" | "danger-outline";
 export type ButtonSize = "md" | "sm";
 
 const BASE =
@@ -26,6 +26,8 @@ const VARIANTS: Record<ButtonVariant, string> = {
   // Se oscurece al pasar el mouse: aclararlo bajaría el contraste del texto blanco.
   whatsapp: "bg-whatsapp text-white hover:brightness-95",
   danger: "text-danger hover:underline",
+  // Confirmación final de algo que no se deshace ("Sí, cancelar"): pesa más que "No".
+  "danger-outline": "border border-danger bg-transparent text-danger hover:bg-danger-soft",
 };
 
 export function buttonClasses(variant: ButtonVariant = "primary", size: ButtonSize = "md", extra?: string): string {

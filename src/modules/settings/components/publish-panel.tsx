@@ -94,7 +94,7 @@ export function PublishPanel({
           {confirmUnpublish ? (
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-[15px]">¿Despublicar? Tus clientes van a ver “Catálogo no disponible”.</span>
-              <button type="button" disabled={pending} onClick={() => run(false)} className={buttonClasses("danger")}>
+              <button type="button" disabled={pending} onClick={() => run(false)} className={buttonClasses("danger-outline")}>
                 Sí, despublicar
               </button>
               <button type="button" onClick={() => setConfirmUnpublish(false)} className="min-h-11 px-3 text-[15px] font-semibold text-muted">
