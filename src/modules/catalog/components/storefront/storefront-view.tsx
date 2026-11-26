@@ -39,6 +39,9 @@ export function StorefrontView({
   const brandStyle = {
     "--brand": storefront.brand,
     "--brand-foreground": storefront.brandForeground,
+    "--brand-2": storefront.brand2,
+    "--brand-tint": storefront.brandTint,
+    "--brand-page": storefront.brandPage,
   } as CSSProperties;
 
   const actions: ProductActions = {};

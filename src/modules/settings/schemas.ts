@@ -1,3 +1,4 @@
+import { BRAND_PALETTE } from "@/lib/brand-palette";
 import { z } from "zod";
 import { isValidSlug } from "@/core/tenancy/slug";
 import { HIGHLIGHT_MAX, MAX_HIGHLIGHTS, PAYMENT_METHOD_VALUES } from "@/lib/catalog-options";
@@ -39,17 +40,7 @@ const optionalText = (max: number) =>
     .transform((value) => (value ? value : null));
 
 /** Colores de marca que puede elegir el comercio: todos con texto blanco legible (AA). */
-export const BRAND_PALETTE = [
-  "#c2410c",
-  "#b91c1c",
-  "#9d174d",
-  "#7e22ce",
-  "#1d4ed8",
-  "#0f766e",
-  "#4d7c0f",
-  "#78350f",
-  "#334155",
-] as const;
+export { BRAND_PALETTE } from "@/lib/brand-palette";
 
 export const provisionSchema = z.object({
   name: z.string().trim().min(2, "Escribí el nombre del comercio.").max(80),

@@ -31,3 +31,31 @@ export const WHITE = "#ffffff";
 export function readableTextOn(background: string): string {
   return contrastRatio(background, WHITE) >= 4.5 ? WHITE : INK;
 }
+
+/** Mezcla dos colores `#rrggbb` en sRGB; `weight` es la proporción de `a` (0 a 1). */
+export function mixHex(a: string, b: string, weight: number): string {
+  const channel = (hex: string, i: number) => parseInt(hex.slice(i, i + 2), 16);
+  return (
+    "#" +
+    [1, 3, 5]
+      .map((i) => Math.round(channel(a, i) * weight + channel(b, i) * (1 - weight)))
+      .map((c) => c.toString(16).padStart(2, "0"))
+      .join("")
+  );
+}
+
+const PAGE_BASE = "#fbfbf9";
+
+/**
+ * Colores del catálogo derivados del color del comercio (rediseño 11b): segundo color
+ * (más oscuro, para el degradé de la portada), tinte muy claro (fondos de íconos y
+ * etiquetas) y fondo de página apenas teñido. El comercio no los elige; las pruebas
+ * verifican el contraste AA para los colores de BRAND_PALETTE.
+ */
+export function brandShades(brand: string): { brand2: string; tint: string; page: string } {
+  return {
+    brand2: mixHex(brand, "#000000", 0.62),
+    tint: mixHex(brand, WHITE, 0.07),
+    page: mixHex(brand, PAGE_BASE, 0.04),
+  };
+}

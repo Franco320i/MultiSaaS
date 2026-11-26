@@ -2,7 +2,7 @@ import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { z } from "zod";
 import { cacheTags } from "@/lib/cache/tags";
-import { parseHexColor, readableTextOn } from "@/lib/color";
+import { brandShades, parseHexColor, readableTextOn } from "@/lib/color";
 import { createSupabasePublicClient } from "@/lib/supabase/public";
 import { normalizeHost } from "./host";
 
@@ -67,6 +67,10 @@ const resultSchema = z.union([z.null(), z.object({ available: z.literal(false) }
 export type Storefront = Omit<z.infer<typeof availableSchema>, "theme"> & {
   brand: string;
   brandForeground: string;
+  /** Derivados de `brand` (brandShades): segundo color, tinte y fondo teñido. */
+  brand2: string;
+  brandTint: string;
+  brandPage: string;
 };
 
 export type StorefrontResult = null | { available: false } | Storefront;
@@ -104,5 +108,13 @@ export async function getStorefront(host: string): Promise<StorefrontResult> {
 
   const { theme, ...rest } = parsed;
   const brand = parseHexColor(theme.brand) ?? DEFAULT_BRAND;
-  return { ...rest, brand, brandForeground: readableTextOn(brand) };
+  const shades = brandShades(brand);
+  return {
+    ...rest,
+    brand,
+    brandForeground: readableTextOn(brand),
+    brand2: shades.brand2,
+    brandTint: shades.tint,
+    brandPage: shades.page,
+  };
 }
