@@ -14,6 +14,7 @@ import {
   StatusPill,
   timeAgo,
   type OrderListItem,
+  type OrderStatus,
 } from "@/modules/orders";
 import { setOrderStatusAction } from "@/modules/orders/actions";
 
@@ -34,12 +35,12 @@ export default function OrdersPage({ params, searchParams }: PageProps<"/panel/[
   );
 }
 
-const GROUPS = [
-  { status: "new", title: "Nuevos" },
-  { status: "confirmed", title: "Confirmados" },
-  { status: "preparing", title: "En preparación" },
-  { status: "ready", title: "Listos para entregar" },
-] as const;
+// Nuevo → Confirmado → Entregado. Los pedidos viejos "En preparación" o "Listos" van con
+// los confirmados (su etiqueta sigue diciendo su estado) para que no desaparezcan.
+const GROUPS: { statuses: OrderStatus[]; title: string }[] = [
+  { statuses: ["new"], title: "Nuevos" },
+  { statuses: ["confirmed", "preparing", "ready"], title: "Confirmados" },
+];
 
 async function Orders({ params, searchParams }: PageProps<"/panel/[tenant]/pedidos">) {
   const { tenant: slug } = await params;
@@ -106,11 +107,12 @@ async function Orders({ params, searchParams }: PageProps<"/panel/[tenant]/pedid
         </div>
       ) : view === "open" ? (
         GROUPS.map((group) => {
-          const items = orders.filter((o) => o.status === group.status);
+          const items = orders.filter((o) => group.statuses.includes(o.status));
+          const id = `g-${group.statuses[0]}`;
           if (items.length === 0) return null;
           return (
-            <section key={group.status} aria-labelledby={`g-${group.status}`} className="flex flex-col gap-1">
-              <h2 id={`g-${group.status}`} className="text-[13px] font-semibold uppercase tracking-wide text-muted">
+            <section key={id} aria-labelledby={id} className="flex flex-col gap-1">
+              <h2 id={id} className="text-[13px] font-semibold uppercase tracking-wide text-muted">
                 {group.title} · {items.length}
               </h2>
               <ul className="divide-y divide-line">{items.map((o) => row(o, true))}</ul>

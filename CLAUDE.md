@@ -204,7 +204,7 @@ Funciones auxiliares de RLS: `private.my_tenant_ids(roles)`, `private.my_teammat
 - Base: `orders` y `order_items` (nadie inserta desde el navegador; los miembros solo cambian `status`), `private.create_order` (precios, envío, mínimo, numeración por comercio, idempotencia y `order.created`), `private.rate_limit_hit` y sus envoltorios `public.*`, que solo puede ejecutar `service_role`.
 - Catálogo: `AddToCartButton` y `Ordering` (barra "Ver pedido" + hoja en `<dialog>`) del módulo `orders`, conectados por la ruta `/sites/[host]` con los espacios de `StorefrontView`. El carrito vive en `localStorage` (`pedido:v1`) y los datos del cliente en `datos:v1`.
 - `POST /api/orders` (`src/app/api/orders/route.ts`): comercio desde el header Host → `submitOrder` (`src/modules/orders/submit.ts`, sin Next y probado) → `createOrder` / `withinRateLimits` (`create.ts`, el único archivo con la clave secreta). Mensaje y link de WhatsApp en `whatsapp.ts`.
-- Panel: `/[tenant]/pedidos` (en curso y terminados) y `/[tenant]/pedidos/[id]`, con permiso `orders.manage`, `setOrderStatusAction`, actualización cada 20 s (`OrdersAutoRefresh`) y "(N)" en el título de la pestaña.
+- Panel: `/[tenant]/pedidos` (en curso y terminados) y `/[tenant]/pedidos/[id]`, con permiso `orders.manage`, `setOrderStatusAction`, actualización cada 20 s (`OrdersAutoRefresh`) y "(N)" en el título de la pestaña. Recorrido en el panel: **Nuevo → Confirmado → Entregado** + Cancelar (2026-11-26, ver `0002`); `preparing`/`ready` quedan solo para pedidos viejos.
 - Seed: Alfa #1 (nuevo, envío), Alfa #2 (confirmado) y Beta #1. Las pruebas de integración cambian estados y consumen números: `npm run db:reset` deja todo como al principio.
 
 ## Alta de comercios (cómo está armado)

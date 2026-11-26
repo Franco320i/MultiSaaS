@@ -15,6 +15,14 @@ Completa la sección 11 del diseño (`docs/diseno-tecnico-v1.md`). Si se cambia 
 7. **El carrito guarda solo IDs y cantidades.** Nombres y precios se toman del catálogo actual, y lo que ya no se puede pedir se oculta del carrito.
 8. **El catálogo y los pedidos no se importan entre sí.** `StorefrontView` (módulo catálogo) tiene espacios (`productAction`, `children`) que llena la ruta con componentes del módulo pedidos.
 
+## Cambio del 2026-11-26: recorrido corto en el panel
+
+**Nuevo → Confirmado → Entregado**, más "Cancelar" mientras no esté entregado. El envío y la venta se coordinan por WhatsApp entre cliente y vendedor, y nadie más veía "En preparación" ni "Listo" (el cliente no tiene seguimiento y ningún número sale de ahí). Lo que sí sirve: "Nuevo" alimenta el número del menú, el "(N)" de la pestaña y el aviso del Inicio; "Cancelado" deja los cancelados fuera de los resultados; "Entregado" saca el pedido de "En curso".
+
+- Solo cambia el panel (`NEXT_STEP` en `src/modules/orders/status.ts` y las secciones de `/[tenant]/pedidos`). La base no cambia: `private.check_order_status_change` ya deja saltar pasos hacia adelante.
+- `preparing` y `ready` siguen en el CHECK de `orders.status` para los pedidos viejos, que se muestran con los confirmados y pasan directo a entregado.
+- Si algún día hay seguimiento para el cliente o cocina con varios empleados, se pueden volver a mostrar.
+
 ## Pendiente respecto del diseño
 
 - **Notas internas del pedido.** La tabla de políticas del diseño dice que el staff puede editar "estado y notas internas", pero la tabla de columnas de `orders` no tiene esa columna. En v1 solo se cambia el estado. Si se quieren, agregar `internal_notes` con su permiso de `UPDATE` por columna y sus pruebas.

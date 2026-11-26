@@ -27,11 +27,17 @@ export const STATUS_TONE: Record<OrderStatus, PillTone> = {
   cancelled: "danger",
 };
 
-/** Botón del paso siguiente (verbo + objeto, lenguaje de mostrador). */
+/**
+ * Botón del paso siguiente (verbo + objeto, lenguaje de mostrador). Recorrido en el panel:
+ * Nuevo → Confirmado → Entregado, más Cancelar (decidido el 2026-11-26: el envío y la venta
+ * se coordinan por WhatsApp; "En preparación" y "Listo" no le servían a nadie). Siguen
+ * existiendo en la base para los pedidos viejos, que pasan directo a entregado. La base
+ * permite saltar pasos hacia adelante (private.check_order_status_change).
+ */
 export const NEXT_STEP: Partial<Record<OrderStatus, { status: OrderStatus; label: string }>> = {
   new: { status: "confirmed", label: "Confirmar pedido" },
-  confirmed: { status: "preparing", label: "Empezar a preparar" },
-  preparing: { status: "ready", label: "Marcar como listo" },
+  confirmed: { status: "completed", label: "Marcar como entregado" },
+  preparing: { status: "completed", label: "Marcar como entregado" },
   ready: { status: "completed", label: "Marcar como entregado" },
 };
 
