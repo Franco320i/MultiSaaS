@@ -63,13 +63,15 @@
 }
 
 /*
- * Panel del comercio: títulos sin serifa (Hanken Grotesk gruesa). El catálogo,
- * la página principal y el panel central siguen con su letra.
+ * Panel del comercio y catálogo público: títulos sin serifa (Hanken Grotesk gruesa).
+ * La página principal y el panel central siguen con su letra.
  */
-[data-surface="panel"] {
+[data-surface="panel"],
+[data-surface="storefront"] {
   --font-display-family: var(--font-hanken);
 }
-[data-surface="panel"] .font-display {
+[data-surface="panel"] .font-display,
+[data-surface="storefront"] .font-display {
   font-weight: 800;
   letter-spacing: -0.02em;
 }

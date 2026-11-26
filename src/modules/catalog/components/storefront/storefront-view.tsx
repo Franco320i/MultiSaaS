@@ -50,7 +50,7 @@ export function StorefrontView({
   }
 
   return (
-    <div style={brandStyle} className="flex min-h-full flex-1 flex-col bg-background">
+    <div data-surface="storefront" style={brandStyle} className="flex min-h-full flex-1 flex-col bg-background">
       {/* Portada: la foto del comercio con un velo oscuro abajo para que el texto blanco se lea,
           o, sin foto, el color de la marca. */}
       <header
