@@ -124,6 +124,17 @@ Una sola versión de cada una, en `src/ui/`. Las pantallas no arman botones ni e
 - **Esqueletos** (`skeleton.tsx`: `Skeleton`, `FormSkeleton`, `ListSkeleton`): la forma de lo que viene; sin animación con `prefers-reduced-motion`. Nunca "Cargando…" suelto.
 - **Cabecera de pantalla** (`page-header.tsx`, `<PageHeader eyebrow title description action>`): sobretítulo dorado (`accent-2`) en mayúsculas, título `font-display` 28 px, una línea que dice para qué sirve la pantalla y una sola acción a la derecha. Se aplica en la parte 3 del rediseño.
 
+## Panel del comercio: aspecto (rediseño 11c, 2026-11-26)
+
+Diseño: `docs/superpowers/specs/2026-11-26-rediseno-panel-aspecto-design.md`. La calma visual del panel de PPW.
+
+- **Cabecera común** (`PageHeader`) en Inicio, Productos, Categorías, Pedidos y Mi local: sobretítulo dorado ("Tu local", "Catálogo", "Ventas"), título, una línea que dice para qué sirve la pantalla y, si corresponde, una sola acción.
+- **Inicio igual para dueño y staff:** aviso de pedidos nuevos en `warning-soft`; **4 números** en una grilla de 2 × 2 con divisorias de 1 px (pedidos del mes con la comparación, ventas del mes sin cancelados, productos con cuántos sin stock, el más pedido), cada uno es un atajo con ↗; **tarjeta del link** en `accent` con "Copiar link" (aviso breve "Link copiado") y "Compartir · QR" (solo el dueño, lleva a Publicar); dos accesos rápidos. No hay guía de primeros pasos: los catálogos los arma la plataforma ("Pedí tu demo").
+- **"Para completar"** (`SetupChecklist`) arriba de Mi local, solo si falta algo.
+- **Productos:** píldoras con su número que filtran (Todos, Sin stock en ámbar, Sin categoría, Ocultos y una por categoría; las de 0 no se muestran). Filtro por la dirección (`?ver=sin-stock`, `?ver=ocultos`, `?categoria=`), calculado con `productCounts` y `filterPanelProducts`.
+- **Pedidos:** dos recuadros arriba en "En curso" (Nuevos en `warning-soft`, Confirmados en `info-soft`) que llevan a su sección.
+- **Confirmaciones de algo que no se deshace** ("Sí, cancelar", "Sí, despublicar"): variante `danger-outline` (borde rojo).
+
 ## Modo oscuro
 
 - Se define en tokens con `prefers-color-scheme`. Cada componente usa tokens, así cambia solo.
