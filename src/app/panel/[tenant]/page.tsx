@@ -6,8 +6,11 @@ import { requireTenantAccess } from "@/core/tenancy/require-access";
 import { env } from "@/lib/env";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { platformUrl } from "@/lib/urls";
-import { getOrderStats, OrderStatsCard } from "@/modules/orders";
-import { getSetupStatus, SetupChecklist } from "@/modules/settings";
+import { listProducts, productCounts } from "@/modules/catalog";
+import { describeOrderStats, getOrderStats } from "@/modules/orders";
+import { PageHeader } from "@/ui/page-header";
+import { CatalogLinkCard } from "./_components/catalog-link-card";
+import { HomeStats } from "./_components/home-stats";
 
 export const metadata: Metadata = { title: "Inicio" };
 
@@ -35,40 +38,37 @@ async function TenantDashboard({ params }: Pick<PageProps<"/panel/[tenant]">, "p
   const { tenant: slug } = await params;
   const access = await requireTenantAccess(slug, "panel.view");
   const supabase = await createSupabaseServerClient();
-  const [stats, tenant, setup] = await Promise.all([
+  const [stats, tenant, products] = await Promise.all([
     getOrderStats(supabase, access.tenantId),
     supabase.from("tenants").select("published_at").eq("id", access.tenantId).maybeSingle(),
-    access.role === "owner" ? getSetupStatus(supabase, access.tenantId) : Promise.resolve(null),
+    listProducts(supabase, access.tenantId),
   ]);
   const catalogUrl = tenant.data?.published_at ? platformUrl(env.ROOT_DOMAIN, access.slug) : null;
   const newOrders = stats?.newOrders ?? 0;
+  const text = stats ? describeOrderStats(stats) : null;
+  const counts = productCounts(products);
+  const month = text?.monthLabel.toLowerCase() ?? "este mes";
 
   const actions = [
     { href: `/${access.slug}/productos/nuevo`, label: "Cargar producto", detail: "Con foto y precio", icon: "plus" as const },
     { href: `/${access.slug}/productos`, label: "Precios y stock", detail: "Cambialos rápido", icon: "list" as const },
-    ...(catalogUrl ? [{ href: catalogUrl, label: "Ver mi catálogo", detail: "Como lo ven tus clientes", icon: "open" as const, external: true }] : []),
-    ...(access.role === "owner"
-      ? [{ href: `/${access.slug}/configurar?paso=publicar`, label: "Compartir", detail: "Link y código QR", icon: "share" as const }]
-      : []),
   ];
 
   return (
     <>
-      <header className="flex flex-col gap-2">
-        <h1 className="font-display text-[28px] leading-tight text-balance">{access.name}</h1>
-        <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[15px] text-muted">
-          <Pill tone={access.status === "past_due" || access.status === "suspended" ? "danger" : "neutral"}>
-            {STATUS_LABEL[access.status]}
-          </Pill>
-          <span>{access.role === "owner" ? "Dueño" : "Staff"}</span>
-        </p>
-      </header>
+      <PageHeader
+        eyebrow="Tu local"
+        title={access.name}
+        description={`Cómo va ${month}.`}
+        action={
+          access.status === "past_due" || access.status === "suspended" || access.status === "trial" ? (
+            <Pill tone={access.status === "trial" ? "neutral" : "danger"}>{STATUS_LABEL[access.status]}</Pill>
+          ) : null
+        }
+      />
 
       {newOrders > 0 ? (
-        <Link
-          href={`/${access.slug}/pedidos`}
-          className="flex items-center gap-4 rounded-2xl bg-surface-muted p-4"
-        >
+        <Link href={`/${access.slug}/pedidos`} className="flex items-center gap-4 rounded-2xl bg-warning-soft p-4">
           <span className="grid size-11 shrink-0 place-items-center rounded-full bg-danger text-[17px] font-bold text-background">{newOrders}</span>
           <span className="flex flex-col">
             <span className="text-[17px] font-semibold">{newOrders === 1 ? "Tenés un pedido nuevo" : `Tenés ${newOrders} pedidos nuevos`}</span>
@@ -77,28 +77,36 @@ async function TenantDashboard({ params }: Pick<PageProps<"/panel/[tenant]">, "p
         </Link>
       ) : null}
 
-      {stats ? <OrderStatsCard stats={stats} catalogUrl={catalogUrl} /> : null}
+      <HomeStats
+        slug={access.slug}
+        monthOrders={stats?.monthOrders ?? 0}
+        change={text?.change ?? null}
+        monthTotal={stats?.monthTotal ?? 0}
+        productsTotal={counts.all}
+        outOfStock={counts.outOfStock}
+        topProduct={stats?.topProduct ?? null}
+      />
 
+      <CatalogLinkCard slug={access.slug} url={catalogUrl} canPublish={access.role === "owner"} />
 
       <ul className="grid grid-cols-2 gap-3">
         {actions.map((action) => (
           <li key={action.label}>
             <Link
               href={action.href}
-              {...("external" in action ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-              className="flex min-h-28 flex-col gap-2 rounded-2xl border border-line bg-surface p-4 hover:border-accent"
+              className="flex min-h-16 items-center gap-3 rounded-2xl border border-line bg-surface p-3 hover:border-accent"
             >
-              <span className="grid size-10 place-items-center rounded-xl bg-surface-muted text-accent">
+              <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-accent-soft text-accent">
                 <ActionIcon name={action.icon} />
               </span>
-              <span className="text-[16px] leading-tight font-semibold">{action.label}</span>
-              <span className="-mt-1 text-[13px] text-muted">{action.detail}</span>
+              <span className="flex min-w-0 flex-col">
+                <span className="text-[15px] leading-tight font-semibold">{action.label}</span>
+                <span className="text-[12px] text-muted">{action.detail}</span>
+              </span>
             </Link>
           </li>
         ))}
       </ul>
-
-      {setup ? <SetupChecklist slug={access.slug} status={setup} /> : null}
     </>
   );
 }
