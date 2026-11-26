@@ -75,7 +75,9 @@ export function CatalogBrowser({
 
   return (
     <>
-      <div className="flex gap-2 pt-2">
+      {/* Buscador, orden y categorías: quedan fijos arriba al bajar. */}
+      <div className="sticky top-0 z-10 -mx-4 mt-3 flex flex-col gap-2 bg-brand-page/95 px-4 py-2 shadow-[0_8px_16px_-14px_rgb(0_0_0/0.35)] backdrop-blur dark:bg-background/95">
+      <div className="flex gap-2">
         <label className="relative min-w-0 flex-1">
           <span className="sr-only">Buscar en el catálogo</span>
           <SearchIcon className="pointer-events-none absolute top-1/2 left-3.5 size-5 -translate-y-1/2 text-muted" />
@@ -85,7 +87,7 @@ export function CatalogBrowser({
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Buscar"
             enterKeyHint="search"
-            className="min-h-12 w-full rounded-full border border-line bg-surface pr-4 pl-11 text-[16px] placeholder:text-muted focus:border-brand focus:outline-none"
+            className="min-h-12 w-full rounded-[14px] border border-black/[0.07] bg-surface pr-4 pl-11 text-[16px] placeholder:text-muted focus:border-brand focus:outline-none dark:border-line"
           />
         </label>
         <label className="shrink-0">
@@ -93,13 +95,15 @@ export function CatalogBrowser({
           <select
             value={order}
             onChange={(e) => setOrder(e.target.value as PriceOrder)}
-            className="min-h-12 rounded-full border border-line bg-surface px-4 text-[15px] focus:border-brand focus:outline-none"
+            className="min-h-12 rounded-[14px] border border-black/[0.07] bg-surface px-4 text-[15px] focus:border-brand focus:outline-none dark:border-line"
           >
             <option value="none">Ordenar</option>
             <option value="asc">Menor precio</option>
             <option value="desc">Mayor precio</option>
           </select>
         </label>
+      </div>
+      {searching ? null : <CategoryPills items={sections.map((s) => ({ id: s.id, label: s.label }))} />}
       </div>
 
       {searching ? (
@@ -128,14 +132,14 @@ export function CatalogBrowser({
         </section>
       ) : (
         <>
-          <CategoryPills items={sections.map((s) => ({ id: s.id, label: s.label }))} />
           {sections.map((section) => (
-            <section key={section.id} id={section.id} aria-labelledby={`${section.id}-t`} className="scroll-mt-20 pt-6">
-              <h2 id={`${section.id}-t`} className="font-display text-[22px]">
+            <section key={section.id} id={section.id} aria-labelledby={`${section.id}-t`} className="scroll-mt-36 pt-7">
+              <h2 id={`${section.id}-t`} className="font-display text-[24px] leading-tight">
                 {section.label}
               </h2>
               {section.description ? <p className="mt-1 text-[15px] text-muted">{section.description}</p> : null}
-              <div className="mt-3">{grid(section.products)}</div>
+              <span aria-hidden className="mt-2.5 mb-3 block h-[3px] w-7 rounded-full bg-brand" />
+              {grid(section.products)}
             </section>
           ))}
         </>
@@ -171,7 +175,7 @@ function CategoryPills({ items }: { items: { id: string; label: string }[] }) {
   if (items.length < 2) return null;
 
   return (
-    <nav aria-label="Categorías" className="sticky top-0 z-10 -mx-4 mt-3 bg-background/95 py-2 backdrop-blur">
+    <nav aria-label="Categorías" className="-mx-4">
       <ul ref={listRef} className="flex gap-2 overflow-x-auto px-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {items.map((item) => {
           const isActive = item.id === active;
@@ -181,8 +185,10 @@ function CategoryPills({ items }: { items: { id: string; label: string }[] }) {
                 href={`#${item.id}`}
                 data-id={item.id}
                 aria-current={isActive ? "true" : undefined}
-                className={`flex min-h-11 items-center rounded-full px-4 text-[15px] whitespace-nowrap transition-colors ${
-                  isActive ? "bg-brand font-semibold text-brand-foreground" : "border border-line text-foreground hover:bg-surface-muted"
+                className={`flex min-h-11 items-center rounded-full px-4 text-[15px] font-[650] whitespace-nowrap transition-colors ${
+                  isActive
+                    ? "bg-brand text-brand-foreground shadow-[0_6px_14px_-6px_var(--brand)]"
+                    : "text-muted hover:text-foreground"
                 }`}
               >
                 {item.label}
