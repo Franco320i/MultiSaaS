@@ -99,5 +99,12 @@ export function summarizeHours(hours: HoursRange[]): string[] {
 
 /** Horario de hoy en la zona del comercio ("19:00 a 0:30") o "Cerrado hoy". Depende de la hora: se calcula en el navegador. */
 export function todayHours(hours: HoursRange[], date: Date, timeZone: string): string {
-  return rangesOf(hours, localTime(date, timeZone).weekday) || "Cerrado hoy";
+  const now = localTime(date, timeZone);
+  // Pasada la medianoche, si sigue abierto el rango de ayer que cruza la medianoche,
+  // "hoy" es ese rango: así no dice "Cerrado hoy" al lado de "Abierto ahora".
+  const yesterday = (now.weekday + 6) % 7;
+  const inYesterdayTail = hours.some(
+    (h) => h.weekday === yesterday && toMinutes(h.closes_at) < toMinutes(h.opens_at) && now.minutes < toMinutes(h.closes_at),
+  );
+  return rangesOf(hours, inYesterdayTail ? yesterday : now.weekday) || "Cerrado hoy";
 }

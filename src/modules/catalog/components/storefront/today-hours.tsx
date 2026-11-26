@@ -23,7 +23,7 @@ export function TodayHours({ hours, timeZone }: { hours: HoursRange[]; timeZone:
   const week = summarizeHours(hours);
 
   return (
-    <details className="group col-span-2 rounded-xl open:bg-brand-tint/60 sm:col-span-1 dark:open:bg-surface-muted">
+    <details className="group rounded-xl open:col-span-2 open:bg-brand-tint/60 dark:open:bg-surface-muted">
       <summary className="flex min-h-11 cursor-pointer list-none items-center gap-2.5 rounded-xl p-2 [&::-webkit-details-marker]:hidden">
         <StatusIcon>
           <ClockIcon />

@@ -72,7 +72,7 @@ async function Storefront({ params }: Pick<Props, "params">) {
   };
 
   return (
-    <ToastProvider>
+    <ToastProvider aboveBar>
       <StorefrontView
         storefront={storefront}
         catalog={catalog}

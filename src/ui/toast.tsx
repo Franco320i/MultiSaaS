@@ -13,7 +13,11 @@ const ToastContext = createContext<{ show: (message: string, tone?: Tone) => voi
 
 const DURATION_MS = 3000;
 
-export function ToastProvider({ children }: { children: ReactNode }) {
+/**
+ * `aboveBar`: hay una barra fija abajo en todas las pantallas (la del pedido en el catálogo),
+ * así que el aviso queda por encima también en tablet y compu.
+ */
+export function ToastProvider({ children, aboveBar = false }: { children: ReactNode; aboveBar?: boolean }) {
   const [toast, setToast] = useState<Toast | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -36,7 +40,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
       <div
         aria-live="polite"
         aria-atomic="true"
-        className="pointer-events-none fixed inset-x-0 z-40 flex justify-center px-4 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] md:bottom-6"
+        className={`pointer-events-none fixed inset-x-0 z-40 flex justify-center px-4 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] ${
+          aboveBar ? "" : "md:bottom-6"
+        }`}
       >
         {toast ? (
           <p

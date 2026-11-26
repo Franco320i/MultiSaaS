@@ -92,6 +92,10 @@ describe("todayHours", () => {
     // 2026-11-18 01:30 UTC = martes 17 a las 22:30 en Buenos Aires.
     expect(todayHours(nights, new Date("2026-11-18T01:30:00Z"), TZ)).toBe("19:00 a 0:30");
   });
+  it("pasada la medianoche, en la cola del rango de ayer, muestra el horario de ayer", () => {
+    // Lunes 0:15: cerrado los lunes, pero sigue abierto el rango del domingo (19:00 a 0:30).
+    expect(todayHours(nights, ar("2026-11-16T00:15:00"), TZ)).toBe("19:00 a 0:30");
+  });
   it("un día sin horario dice cerrado", () => {
     expect(todayHours(nights, ar("2026-11-16T12:00:00"), TZ)).toBe("Cerrado hoy");
   });

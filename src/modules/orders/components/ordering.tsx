@@ -130,7 +130,7 @@ export function Ordering({ config }: { config: OrderingConfig }) {
               <span className="block truncate text-[12px] opacity-70">Tu pedido</span>
             </span>
             <span className="text-right leading-tight tabular-nums">
-              <span className="block text-[11px] opacity-70">Total</span>
+              <span className="block text-[11px] opacity-70">Subtotal</span>
               <span className="block text-[15px] font-bold">{money(subtotal)}</span>
             </span>
             <span className="rounded-[13px] bg-brand px-3 py-2.5 text-[14px] font-bold whitespace-nowrap text-brand-foreground">Ver pedido ›</span>

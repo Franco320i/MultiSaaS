@@ -5,7 +5,7 @@ import { publicImageUrl } from "@/lib/images/url";
 import { catalogLayout, mapsUrl, storeStatus } from "@/modules/catalog/presentation";
 import type { PublicCatalog, PublicProduct } from "@/modules/catalog/public-queries";
 import { CatalogBrowser, type ProductActions } from "./catalog-browser";
-import { CheckIcon, MapPinIcon, StoreIcon, TruckIcon } from "./icons";
+import { BagIcon, CheckIcon, MapPinIcon, StoreIcon, TruckIcon } from "./icons";
 import { OpenStatus } from "./open-status";
 import { StatusIcon, TodayHours } from "./today-hours";
 
@@ -115,12 +115,13 @@ export function StorefrontView({
         {/* Tarjeta de estado: todo lo que el cliente necesita saber antes de pedir. */}
         <section
           aria-label="Estado del local"
-          className="grid grid-cols-2 gap-1 rounded-[18px] border border-black/5 bg-surface p-1.5 shadow-[0_10px_26px_-14px_rgb(20_24_18/0.35)] sm:max-w-3xl sm:grid-cols-4 dark:border-line"
+          // En 2 columnas, el último dato impar ocupa toda la fila: así no queda media celda vacía.
+          className="grid grid-cols-2 gap-1 rounded-[18px] border border-black/5 bg-surface p-1.5 shadow-[0_10px_26px_-14px_rgb(20_24_18/0.35)] sm:max-w-3xl sm:grid-cols-4 dark:border-line [&>*:last-child:nth-child(odd)]:col-span-2 sm:[&>*:last-child:nth-child(odd)]:col-span-1"
         >
           {showOpen ? (
             <div className="flex min-h-11 items-center gap-2.5 p-2">
               <StatusIcon>
-                <CheckIcon />
+                <StoreIcon />
               </StatusIcon>
               <span className="min-w-0">
                 <span className="block text-[12px] leading-tight text-muted">Estado</span>
@@ -136,12 +137,12 @@ export function StorefrontView({
             </div>
           ) : null}
           {status.minimum ? (
-            <StatusItem icon={<StoreIcon />} label="Pedido mínimo" value={status.minimum} />
+            <StatusItem icon={<BagIcon />} label="Pedido mínimo" value={status.minimum} />
           ) : null}
           {status.delivery ? <StatusItem icon={<TruckIcon />} label="Envío" value={status.delivery} /> : null}
           {storefront.hours.length > 0 ? <TodayHours hours={storefront.hours} timeZone={storefront.timezone} /> : null}
         </section>
-        {status.payments ? <p className="text-[14px] text-muted">Pagás con {status.payments.toLowerCase()}</p> : null}
+        {status.payments ? <p className="text-[14px] text-muted">Medios de pago: {status.payments}</p> : null}
 
         {storefront.highlights.length > 0 ? (
           <section
