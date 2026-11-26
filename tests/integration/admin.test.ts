@@ -1,3 +1,4 @@
+import { createClient } from "@supabase/supabase-js";
 import { afterAll, describe, expect, it } from "vitest";
 import * as admin from "@/core/admin/service";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
@@ -19,6 +20,15 @@ afterAll(async () => {
   const { data } = await service.rpc("admin_user_id_by_email", { p_email: invitedEmail });
   if (data) await service.auth.admin.deleteUser(data as string);
 });
+
+/** Inicia sesión como lo haría el dueño en el panel (devuelve el error de Auth, si hay). */
+async function signInWith(email: string, password: string) {
+  const client = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const { error } = await client.auth.signInWithPassword({ email, password, options: { captchaToken: "XXXX.DUMMY.TOKEN.XXXX" } });
+  return error;
+}
 
 describe("panel central (base real, clave secreta local)", () => {
   it("suspender y reactivar quedan auditados; un dueño no puede hacerlo", async () => {
@@ -55,35 +65,64 @@ describe("panel central (base real, clave secreta local)", () => {
     expect(second).toEqual({ past_due: [], rate_limits_cleaned: 0 });
   });
 
-  it("alta asistida: invita al dueño nuevo y crea su comercio en prueba", async () => {
+  it("alta asistida: crea al dueño con una contraseña generada (sin correo) y su comercio en prueba", async () => {
     const slug = `asistido-${tag}`;
     createdSlugs.push(slug);
     const result = await admin.provisionAssisted(
       ADMIN,
       { ownerEmail: invitedEmail, name: "Comercio Asistido", slug, businessType: "general", whatsappPhone: "+5492954000044" },
       "localhost",
-      "http://app.localhost:3000/auth/callback?next=%2Fauth%2Fnueva-contrasena",
     );
-    expect(result).toMatchObject({ ok: true, slug, invited: true });
+    expect(result).toMatchObject({ ok: true, slug });
+    const password = (result as { password?: string }).password;
+    expect(password).toMatch(/^[A-Za-z2-9]{12}$/);
+    expect(await signInWith(invitedEmail, password!)).toBeNull();
 
     const detail = await admin.getTenantDetail((result as { tenantId: string }).tenantId);
     expect(detail?.tenant.status).toBe("trial");
     expect(detail?.members.map((m) => [m.email, m.role])).toEqual([[invitedEmail, "owner"]]);
   });
 
-  it("alta asistida para alguien que ya tiene cuenta: no invita y suma el comercio", async () => {
+  it("alta asistida para alguien que ya tiene cuenta: no toca su contraseña y suma el comercio", async () => {
     const slug = `sucursal-${tag}`;
     createdSlugs.push(slug);
     const result = await admin.provisionAssisted(
       ADMIN,
       { ownerEmail: SEED.users.ownerAlfa.email, name: "Alfa Sucursal", slug, businessType: "gastronomia", whatsappPhone: "+5492954000045" },
       "localhost",
-      "http://app.localhost:3000/auth/callback",
     );
-    expect(result).toMatchObject({ ok: true, invited: false });
+    expect(result).toMatchObject({ ok: true });
+    expect((result as { password?: string }).password).toBeUndefined();
     const owner = await signInAs("ownerAlfa");
     const { data } = await owner.from("tenants").select("slug").order("slug");
     expect(data?.map((t) => t.slug)).toContain(slug);
+  });
+
+  it("nueva contraseña: el dueño entra con la nueva y no con la vieja, y queda auditado sin la contraseña", async () => {
+    const slug = createdSlugs[0];
+    const service = createSupabaseServiceClient();
+    const { data: tenant } = await service.from("tenants").select("id").eq("slug", slug).single();
+    const first = await signInWith(invitedEmail, "no-es-esta");
+    expect(first).not.toBeNull();
+
+    const result = await admin.resetOwnerPassword(ADMIN, tenant!.id);
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.email).toBe(invitedEmail);
+    expect(await signInWith(invitedEmail, result.password)).toBeNull();
+
+    const { data: audit } = await service
+      .from("audit_log")
+      .select("changes, reason")
+      .eq("tenant_id", tenant!.id)
+      .eq("action", "owner.password_reset");
+    expect(audit).toHaveLength(1);
+    expect(JSON.stringify(audit)).not.toContain(result.password);
+  });
+
+  it("nueva contraseña: solo un superadmin", async () => {
+    const result = await admin.resetOwnerPassword(SEED.users.ownerAlfa.id, SEED.tenants.alfa);
+    expect(result).toEqual({ ok: false, code: "not_superadmin" });
   });
 
   it("el barrido de fotos no borra fotos que siguen en uso ni archivos recientes", async () => {

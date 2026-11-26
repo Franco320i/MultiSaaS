@@ -5,8 +5,9 @@ import { useActionState, useId, useState } from "react";
 import { slugify } from "@/lib/slugify";
 import { provisionAssistedAction, type AssistedState } from "@/app/admin/(panel)/actions";
 import { adminInput } from "@/app/admin/(panel)/admin-form";
+import { CredentialsCard } from "@/app/admin/(panel)/credentials-card";
 
-/** Alta asistida: datos del comercio y email del dueño, que recibe la invitación. */
+/** Alta asistida: datos del comercio y email del dueño. Sin correos: los datos de acceso se copian y se mandan por WhatsApp. */
 export function AssistedForm({ templates, domainSuffix }: { templates: { key: string; name: string }[]; domainSuffix: string }) {
   const id = useId();
   const [state, action, pending] = useActionState<AssistedState, FormData>(provisionAssistedAction, {});
@@ -20,7 +21,8 @@ export function AssistedForm({ templates, domainSuffix }: { templates: { key: st
     return (
       <div role="status" className="flex flex-col gap-3 rounded-xl border border-accent/40 bg-surface p-5">
         <p className="font-semibold text-accent">{state.saved}</p>
-        <p className="text-[14px] text-muted">El comercio quedó en prueba por 14 días. Podés cargar su marca y sus productos desde su ficha.</p>
+        <p className="text-[14px] text-muted">El comercio quedó en prueba por 14 días. Cuando termines de armarlo, mandale al dueño estos datos por WhatsApp.</p>
+        {state.credentials ? <CredentialsCard credentials={state.credentials} /> : null}
         <div className="flex flex-wrap gap-2">
           <Link href={`/comercios/${state.tenantId}`} className="admin-btn flex min-h-10 items-center rounded-[10px] bg-accent px-4 text-[14px] font-semibold text-accent-foreground">
             Ver la ficha
@@ -90,7 +92,7 @@ export function AssistedForm({ templates, domainSuffix }: { templates: { key: st
         </p>
       ) : null}
       <button type="submit" disabled={pending} className="admin-btn min-h-10 w-fit rounded-[10px] bg-accent px-4 text-[14px] font-semibold text-accent-foreground disabled:opacity-60">
-        {pending ? "Creando…" : "Crear comercio e invitar al dueño"}
+        {pending ? "Creando…" : "Crear comercio"}
       </button>
     </form>
   );

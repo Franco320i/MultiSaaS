@@ -117,7 +117,10 @@ export async function extendPeriodAction(tenantId: string, _prev: AdminFormState
 // Alta asistida
 // -----------------------------------------------------------------------------
 
-export type AssistedState = AdminFormState & { tenantId?: string; fields?: Record<string, string> };
+/** Datos para pasarle al dueño por WhatsApp. La contraseña se muestra una sola vez. */
+export type OwnerCredentials = { panelUrl: string; email: string; password?: string };
+
+export type AssistedState = AdminFormState & { tenantId?: string; fields?: Record<string, string>; credentials?: OwnerCredentials };
 
 const ASSISTED_MESSAGES: Record<string, string> = {
   ...MESSAGES,
@@ -127,7 +130,7 @@ const ASSISTED_MESSAGES: Record<string, string> = {
   invalid_business_type: "Elegí un rubro.",
   invalid_name: "Escribí el nombre del comercio.",
   owner_not_found: "No encontramos al dueño. Probá de nuevo.",
-  invite_failed: "No pudimos mandar la invitación. Revisá el email y probá de nuevo.",
+  create_user_failed: "No pudimos crear la cuenta del dueño. Revisá el email y probá de nuevo.",
 };
 
 export async function provisionAssistedAction(_prev: AssistedState, formData: FormData): Promise<AssistedState> {
@@ -149,17 +152,36 @@ export async function provisionAssistedAction(_prev: AssistedState, formData: Fo
     .safeParse(fields);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message, fields };
 
-  const result = await admin.provisionAssisted(
-    access.userId,
-    parsed.data,
-    env.ROOT_DOMAIN,
-    platformUrl(env.ROOT_DOMAIN, "app", "/auth/callback?next=%2Fauth%2Fnueva-contrasena"),
-  );
+  const result = await admin.provisionAssisted(access.userId, parsed.data, env.ROOT_DOMAIN);
   if (!result.ok) return { error: ASSISTED_MESSAGES[result.code] ?? "No pudimos crear el comercio. Probá de nuevo.", fields };
   return {
     tenantId: result.tenantId,
-    saved: result.invited
-      ? `Listo: creamos ${parsed.data.name} y le mandamos la invitación a ${parsed.data.ownerEmail}.`
-      : `Listo: creamos ${parsed.data.name}. ${parsed.data.ownerEmail} ya tenía cuenta: lo va a ver al entrar a su panel.`,
+    credentials: { panelUrl: platformUrl(env.ROOT_DOMAIN, "app"), email: parsed.data.ownerEmail, password: result.password },
+    saved: result.password
+      ? `Listo: creamos ${parsed.data.name} y la cuenta del dueño.`
+      : `Listo: creamos ${parsed.data.name}. ${parsed.data.ownerEmail} ya tenía cuenta: lo va a ver al entrar a su panel con su contraseña de siempre.`,
+  };
+}
+
+export type ResetPasswordState = AdminFormState & { credentials?: OwnerCredentials };
+
+const RESET_MESSAGES: Record<string, string> = {
+  ...MESSAGES,
+  tenant_cancelled: "El comercio está cancelado.",
+  owner_not_found: "El comercio no tiene dueño.",
+};
+
+/** "Nueva contraseña" para el dueño (solo superadmin). Queda en la auditoría, sin la contraseña. */
+export async function resetOwnerPasswordAction(tenantId: string, _prev: ResetPasswordState): Promise<ResetPasswordState> {
+  const access = await superadmin(tenantId);
+  const id = idSchema.safeParse(tenantId);
+  if (!id.success) return { error: MESSAGES.tenant_not_found };
+
+  const result = await admin.resetOwnerPassword(access.userId, id.data);
+  if (!result.ok) return { error: RESET_MESSAGES[result.code] ?? "No pudimos cambiar la contraseña. Probá de nuevo." };
+  refresh();
+  return {
+    saved: "Listo: la contraseña anterior ya no sirve.",
+    credentials: { panelUrl: platformUrl(env.ROOT_DOMAIN, "app"), email: result.email, password: result.password },
   };
 }

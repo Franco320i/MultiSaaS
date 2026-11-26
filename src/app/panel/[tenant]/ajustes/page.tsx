@@ -34,6 +34,7 @@ export const metadata: Metadata = { title: "Mi local" };
 
 const PLATFORM_ACTION: Record<string, string> = {
   "support.viewed": "Soporte entró a ver tu comercio",
+  "owner.password_reset": "Te generamos una contraseña nueva",
   "subscription.paid": "Registramos un pago",
   "subscription.plan_changed": "Cambio de plan",
   "subscription.extended": "Extendimos tu vencimiento",

@@ -549,6 +549,9 @@ isOneToOne: false
 "admin_extend_period":
 { Args: { "p_actor": string,"p_days": number,"p_reason": string,"p_tenant_id": string }; Returns: string
                            },
+"admin_log_owner_password_reset":
+{ Args: { "p_actor": string,"p_tenant_id": string }; Returns: string
+                           },
 "admin_log_support_view":
 { Args: { "p_actor": string,"p_tenant_id": string }; Returns: undefined
                            },

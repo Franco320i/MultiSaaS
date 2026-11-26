@@ -10,6 +10,7 @@ import { formatCents } from "@/lib/money";
 import { platformUrl } from "@/lib/urls";
 import { changePlanAction, extendPeriodAction, recordPaymentAction, setStatusAction } from "@/app/admin/(panel)/actions";
 import { AdminForm, adminInput } from "@/app/admin/(panel)/admin-form";
+import { ResetPassword } from "./reset-password";
 import { ACTION_LABEL, ACTOR_LABEL, dueLabel, formatDate, formatDateTime, PageHeader, Section, TenantStatusPill } from "@/app/admin/(panel)/ui";
 
 export const metadata: Metadata = { title: "Ficha del comercio" };
@@ -144,6 +145,11 @@ async function Tenant({ params }: Pick<PageProps<"/admin/comercios/[id]">, "para
         <div className="flex flex-col gap-6">
           {isSuperadmin ? (
             <>
+              <Section title="Acceso del dueño">
+                <div className="rounded-xl border border-line bg-surface p-4">
+                  <ResetPassword tenantId={tenant.id} />
+                </div>
+              </Section>
               <Section title="Registrar pago">
                 <div className="rounded-xl border border-line bg-surface p-4">
                   <AdminForm action={recordPaymentAction.bind(null, tenant.id)} submitLabel="Registrar pago">

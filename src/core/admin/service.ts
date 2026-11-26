@@ -1,4 +1,5 @@
 import "server-only";
+import { generatePassword } from "@/lib/password";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 
 /**
@@ -240,20 +241,21 @@ export async function runDailyMaintenance() {
 }
 
 // -----------------------------------------------------------------------------
-// Alta asistida (diseño, sección 10): el dueño recibe una invitación por correo
-// ("Tu catálogo está listo", supabase/templates/invite.html) para elegir su contraseña.
-// Si ya tiene cuenta, el comercio nuevo aparece en su panel sin invitación.
+// Alta asistida (diseño, sección 10; rediseño 11e): sin correos. Si el dueño no tiene
+// cuenta, se crea con el correo ya confirmado y una contraseña generada, que vuelve una
+// sola vez para mostrarla en el panel central y mandarla por WhatsApp. Nunca se guarda ni
+// se registra. Si ya tiene cuenta, el comercio nuevo aparece en su panel y su contraseña
+// no se toca.
 // -----------------------------------------------------------------------------
 
 export type AssistedResult =
-  | { ok: true; tenantId: string; slug: string; invited: boolean }
+  | { ok: true; tenantId: string; slug: string; password?: string }
   | { ok: false; code: string };
 
 export async function provisionAssisted(
   actor: string,
   input: { ownerEmail: string; name: string; slug: string; businessType: string; whatsappPhone: string },
   rootDomain: string,
-  inviteRedirectTo: string,
 ): Promise<AssistedResult> {
   const supabase = createSupabaseServiceClient();
 
@@ -261,15 +263,15 @@ export async function provisionAssisted(
   if (lookupError) return { ok: false, code: "unknown" };
 
   let ownerId = existing as string | null;
-  let invited = false;
+  let password: string | undefined;
   if (!ownerId) {
-    const { data, error } = await supabase.auth.admin.inviteUserByEmail(input.ownerEmail, { redirectTo: inviteRedirectTo });
+    password = generatePassword();
+    const { data, error } = await supabase.auth.admin.createUser({ email: input.ownerEmail, password, email_confirm: true });
     if (error || !data.user) {
-      console.error("inviteUserByEmail falló", { code: error?.code, status: error?.status });
-      return { ok: false, code: "invite_failed" };
+      console.error("createUser falló", { code: error?.code, status: error?.status });
+      return { ok: false, code: "create_user_failed" };
     }
     ownerId = data.user.id;
-    invited = true;
   }
 
   const { data, error } = await supabase.rpc("admin_provision_tenant", {
@@ -278,9 +280,36 @@ export async function provisionAssisted(
     p_input: { name: input.name, slug: input.slug, business_type: input.businessType, whatsapp_phone: input.whatsappPhone },
     p_root_domain: rootDomain,
   });
-  if (error) return { ok: false, code: error.code === "P0001" ? error.message : "unknown" };
+  if (error) {
+    // Si la cuenta se creó recién, se borra: si no, el reintento la encontraría "existente"
+    // y nadie tendría su contraseña.
+    if (password) await supabase.auth.admin.deleteUser(ownerId);
+    return { ok: false, code: error.code === "P0001" ? error.message : "unknown" };
+  }
   const result = data as { tenant_id: string; slug: string };
-  return { ok: true, tenantId: result.tenant_id, slug: result.slug, invited };
+  return { ok: true, tenantId: result.tenant_id, slug: result.slug, password };
+}
+
+/**
+ * "Nueva contraseña" para el dueño de un comercio (solo superadmin). Primero la base
+ * verifica al actor, busca al dueño y lo deja en la auditoría (sin la contraseña);
+ * después Auth cambia la contraseña. La nueva vuelve una sola vez.
+ */
+export async function resetOwnerPassword(
+  actor: string,
+  tenantId: string,
+): Promise<{ ok: true; email: string; password: string } | { ok: false; code: string }> {
+  const supabase = createSupabaseServiceClient();
+  const { data: ownerId, error } = await supabase.rpc("admin_log_owner_password_reset", { p_actor: actor, p_tenant_id: tenantId });
+  if (error) return { ok: false, code: error.code === "P0001" ? error.message : "unknown" };
+
+  const password = generatePassword();
+  const { data, error: authError } = await supabase.auth.admin.updateUserById(ownerId, { password });
+  if (authError || !data.user?.email) {
+    console.error("updateUserById falló", { code: authError?.code, status: authError?.status });
+    return { ok: false, code: "unknown" };
+  }
+  return { ok: true, email: data.user.email, password };
 }
 
 // -----------------------------------------------------------------------------

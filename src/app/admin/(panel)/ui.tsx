@@ -105,6 +105,7 @@ export const ACTION_LABEL: Record<string, string> = {
   "subscription.plan_changed": "Cambio de plan",
   "subscription.extended": "Vencimiento extendido",
   "support.viewed": "Entró soporte",
+  "owner.password_reset": "Nueva contraseña del dueño",
 };
 
 export const ACTOR_LABEL: Record<string, string> = {
