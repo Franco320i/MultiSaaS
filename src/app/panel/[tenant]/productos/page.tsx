@@ -63,7 +63,7 @@ async function ProductList({ params, searchParams }: PageProps<"/panel/[tenant]/
       <PageHeader
         eyebrow="Catálogo"
         title="Productos"
-        description="Tocá uno para cambiarlo. El interruptor dice si hay stock."
+        description="Tocá uno para cambiar el precio o el nombre. El interruptor dice si hay stock."
         action={
           <details className="relative">
             <summary className={buttonClasses("secondary", "md", "cursor-pointer list-none [&::-webkit-details-marker]:hidden")}>
@@ -114,12 +114,15 @@ async function ProductList({ params, searchParams }: PageProps<"/panel/[tenant]/
         <ProductsBrowser
           slug={access.slug}
           reorderable={reorderable}
+          categories={categories.map((c) => ({ id: c.id, name: c.name }))}
           products={products.map((p) => {
             const thumb = thumbnails.get(p.id)?.storage_path;
             return {
               id: p.id,
               name: p.name,
               price: p.price,
+              compareAtPrice: p.compare_at_price,
+              categoryId: p.category_id,
               categoryName: p.category_id ? (categoryName.get(p.category_id) ?? "Sin categoría") : "Sin categoría",
               isPublished: p.is_published,
               isAvailable: p.is_available,

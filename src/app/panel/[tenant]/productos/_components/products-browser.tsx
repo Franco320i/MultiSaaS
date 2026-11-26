@@ -1,15 +1,17 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
-import { useOptimistic, useState, useTransition } from "react";
+import { useCallback, useOptimistic, useState, useTransition } from "react";
 import { formatCents } from "@/lib/money";
 import { moveProductAction, setProductFlagAction } from "@/modules/catalog/actions";
+import { QuickEditSheet } from "./quick-edit-sheet";
 
 export type ProductRow = {
   id: string;
   name: string;
   price: number;
+  compareAtPrice: number | null;
+  categoryId: string | null;
   categoryName: string;
   isPublished: boolean;
   isAvailable: boolean;
@@ -18,19 +20,24 @@ export type ProductRow = {
 
 /**
  * Lista de productos del panel (docs/superpowers/specs/2026-11-23-panel-facil-design.md):
- * buscador, filas enteras tocables y el interruptor "Hay stock / Sin stock", que cambia al
+ * buscador, filas enteras tocables (abren la hoja de edición rápida) y el interruptor "Hay stock / Sin stock", que cambia al
  * instante y se guarda con setProductFlagAction (verifica el acceso del lado del servidor).
  */
 export function ProductsBrowser({
   slug,
   products,
+  categories,
   reorderable,
 }: {
   slug: string;
   products: ProductRow[];
+  categories: { id: string; name: string }[];
   reorderable: boolean;
 }) {
   const [query, setQuery] = useState("");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const closeSheet = useCallback(() => setEditingId(null), []);
+  const editing = editingId ? products.find((p) => p.id === editingId) : undefined;
   const words = normalize(query).split(" ").filter(Boolean);
   const shown = words.length === 0 ? products : products.filter((p) => words.every((w) => normalize(p.name).includes(w)));
 
@@ -61,10 +68,12 @@ export function ProductsBrowser({
               slug={slug}
               product={product}
               reorder={reorderable && !query ? { first: index === 0, last: index === shown.length - 1 } : null}
+              onEdit={() => setEditingId(product.id)}
             />
           ))}
         </ul>
       )}
+      {editing ? <QuickEditSheet key={editing.id} slug={slug} product={editing} categories={categories} onClose={closeSheet} /> : null}
     </div>
   );
 }
@@ -73,10 +82,12 @@ function ProductItem({
   slug,
   product,
   reorder,
+  onEdit,
 }: {
   slug: string;
   product: ProductRow;
   reorder: { first: boolean; last: boolean } | null;
+  onEdit: () => void;
 }) {
   const [available, setAvailable] = useOptimistic(product.isAvailable);
   const [, startTransition] = useTransition();
@@ -105,14 +116,14 @@ function ProductItem({
           </form>
         </div>
       ) : null}
-      <Link href={`/${slug}/productos/${product.id}`} className="flex min-w-0 flex-1 items-center gap-3">
+      <button type="button" onClick={onEdit} className="flex min-w-0 flex-1 items-center gap-3 rounded-xl text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
         {product.thumbUrl ? (
           <Image src={product.thumbUrl} alt="" width={56} height={56} unoptimized className="size-14 shrink-0 rounded-xl object-cover" />
         ) : (
           <span className="grid size-14 shrink-0 place-items-center rounded-xl bg-surface-muted text-[11px] text-muted">Sin foto</span>
         )}
         <span className="flex min-w-0 flex-col">
-          <span className="truncate text-[16px] font-semibold">{product.name}</span>
+          <span className="truncate text-[16px] font-semibold"><span className="sr-only">Editar </span>{product.name}</span>
           <span className="text-[14px] text-muted tabular-nums">{formatCents(product.price)}</span>
           {!product.isPublished ? (
             <span className="text-[13px] font-semibold text-muted">Oculto: no se ve en tu catálogo</span>
@@ -122,7 +133,7 @@ function ProductItem({
             <span className="truncate text-[13px] text-muted">{product.categoryName}</span>
           )}
         </span>
-      </Link>
+      </button>
       <button
         type="button"
         role="switch"
