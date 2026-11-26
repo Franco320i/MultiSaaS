@@ -174,7 +174,10 @@ enable_refresh_token_rotation = true
 # Requires enable_refresh_token_rotation = true.
 refresh_token_reuse_interval = 10
 # Allow/disallow new user signups to your project. Existing users can still sign in.
-enable_signup = true
+# Rediseño 11e: sin registro automático. Las cuentas las crea el panel central con la API
+# de administración (auth.admin.createUser), que no depende de esto. En staging y
+# producción se apaga a mano en el panel de Supabase (ver docs/runbooks).
+enable_signup = false
 # Allow/disallow anonymous sign-ins to your project.
 enable_anonymous_sign_ins = false
 # Allow/disallow testing manual linking of accounts

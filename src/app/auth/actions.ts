@@ -1,6 +1,5 @@
 "use server";
 
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { CAPTCHA_ERROR, captchaTokenFrom, isCaptchaError } from "@/core/auth/captcha";
@@ -61,33 +60,6 @@ export async function signOutAction(): Promise<void> {
   const supabase = await createSupabaseServerClient();
   await supabase.auth.signOut();
   redirect("/auth/login");
-}
-
-const resetRequestSchema = z.object({ email: emailSchema });
-
-export async function requestPasswordResetAction(
-  _prev: AuthFormState,
-  formData: FormData,
-): Promise<AuthFormState> {
-  const parsed = resetRequestSchema.safeParse({ email: formData.get("email") });
-  if (!parsed.success) return { error: "Ingresá un email válido." };
-  const captchaToken = captchaTokenFrom(formData);
-  if (!captchaToken) return { error: CAPTCHA_ERROR };
-
-  // El enlace vuelve a este mismo host (app. o admin.). Supabase solo acepta
-  // destinos que estén en su lista de redirecciones permitidas.
-  const requestHeaders = await headers();
-  const host = requestHeaders.get("host");
-  const protocol = requestHeaders.get("x-forwarded-proto") ?? "http";
-  const redirectTo = `${protocol}://${host}/auth/callback?next=${encodeURIComponent("/auth/nueva-contrasena")}`;
-
-  const supabase = await createSupabaseServerClient();
-  const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, { redirectTo, captchaToken });
-  // El captcha falla igual exista o no la cuenta: avisarlo no revela nada.
-  if (isCaptchaError(error)) return { error: CAPTCHA_ERROR };
-
-  // Misma respuesta exista o no la cuenta.
-  return { message: "Si hay una cuenta con ese email, te enviamos un enlace para crear una contraseña nueva." };
 }
 
 const newPasswordSchema = z

@@ -28,6 +28,15 @@ const serverEnvSchema = z.object({
    */
   DEMO_CATALOG_SLUG: z.string().trim().regex(/^[a-z0-9-]{2,40}$/).optional(),
   DEMO_TENANT_ID: z.uuid().optional(),
+  /**
+   * WhatsApp de la plataforma para "Pedí tu demo" (opcional, con código de país: +549…).
+   * Sin él no se muestran los botones de demo.
+   */
+  SALES_WHATSAPP: z
+    .string()
+    .transform((v) => v.replace(/[\s()-]/g, ""))
+    .pipe(z.string().regex(/^\+[1-9][0-9]{7,14}$/, "SALES_WHATSAPP va con código de país, por ejemplo +5492954123456"))
+    .optional(),
 });
 
 // SUPABASE_SECRET_KEY no está acá a propósito: la lee y valida solo
@@ -43,4 +52,5 @@ export const env: ServerEnv = serverEnvSchema.parse({
   CRON_SECRET: process.env.CRON_SECRET,
   DEMO_CATALOG_SLUG: process.env.DEMO_CATALOG_SLUG || undefined,
   DEMO_TENANT_ID: process.env.DEMO_TENANT_ID || undefined,
+  SALES_WHATSAPP: process.env.SALES_WHATSAPP || undefined,
 });

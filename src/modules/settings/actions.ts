@@ -3,10 +3,8 @@
 import { refresh } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/core/auth/session";
-import { provisionTenant, setTenantPublished } from "@/core/tenancy/provision";
+import { setTenantPublished } from "@/core/tenancy/provision";
 import { requireTenantAccess } from "@/core/tenancy/require-access";
-import { isValidSlug } from "@/core/tenancy/slug";
-import { env } from "@/lib/env";
 import { ImageError, MAX_UPLOAD_BYTES, processProductImage } from "@/lib/images/process";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { revalidateStorefrontHosts, revalidateStorefrontSettings } from "./cache";
@@ -18,13 +16,11 @@ import {
   deliverySchema,
   hoursFromForm,
   hoursSchema,
-  provisionSchema,
   WIZARD_STEPS,
 } from "./schemas";
 
 /**
- * Server Actions del alta y de la configuración del comercio. Endpoints públicos:
- * - alta: requireUser (el usuario sale de la sesión verificada, nunca del formulario);
+ * Server Actions de la configuración del comercio. Endpoints públicos:
  * - configuración: requireTenantAccess(slug, "settings.write"), solo el dueño;
  * - publicar: requireTenantAccess(slug, "catalog.publish").
  * Después de escribir se invalida la caché del catálogo con el tenantId verificado.
@@ -50,48 +46,6 @@ function done(slug: string, formData: FormData): SettingsFormState {
   }
   refresh();
   return { saved: true };
-}
-
-// -----------------------------------------------------------------------------
-// Alta (paso 1)
-// -----------------------------------------------------------------------------
-
-const PROVISION_MESSAGES: Record<string, string> = {
-  user_not_confirmed: "Confirmá tu email antes de crear el comercio.",
-  invalid_name: "Escribí el nombre del comercio.",
-  invalid_slug: "Esa dirección no se puede usar. Probá con otra.",
-  slug_taken: "Esa dirección ya la usa otro comercio. Probá con otra.",
-  invalid_business_type: "Elegí un rubro.",
-  invalid_whatsapp: "Escribí el WhatsApp con código de país, por ejemplo +54 9 2954 123456.",
-};
-
-export async function provisionTenantAction(_prev: SettingsFormState, formData: FormData): Promise<SettingsFormState> {
-  const user = await requireUser("/nuevo");
-  const parsed = provisionSchema.safeParse({
-    name: formData.get("name"),
-    slug: formData.get("slug"),
-    businessType: formData.get("businessType"),
-    whatsappPhone: formData.get("whatsappPhone"),
-  });
-  if (!parsed.success) return { error: parsed.error.issues[0]?.message, fields: fieldsOf(formData) };
-
-  const result = await provisionTenant(user.id, parsed.data, env.ROOT_DOMAIN);
-  if (!result.ok) {
-    return {
-      error: PROVISION_MESSAGES[result.error] ?? "No pudimos crear el comercio. Probá de nuevo en unos minutos.",
-      fields: fieldsOf(formData),
-    };
-  }
-  redirect(`/${result.slug}/configurar`);
-}
-
-export async function checkSlugAction(slug: string): Promise<{ available: boolean; reason?: "invalid" | "taken" }> {
-  await requireUser("/nuevo");
-  const candidate = typeof slug === "string" ? slug.trim().toLowerCase() : "";
-  if (!isValidSlug(candidate)) return { available: false, reason: "invalid" };
-  const supabase = await createSupabaseServerClient();
-  const { data } = await supabase.rpc("slug_available", { p_slug: candidate });
-  return data === true ? { available: true } : { available: false, reason: "taken" };
 }
 
 // -----------------------------------------------------------------------------

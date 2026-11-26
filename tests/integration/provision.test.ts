@@ -1,29 +1,51 @@
-import { afterAll, describe, expect, it } from "vitest";
-import { provisionTenant, setTenantPublished } from "@/core/tenancy/provision";
+import { createClient } from "@supabase/supabase-js";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { setTenantPublished } from "@/core/tenancy/provision";
 import { createSupabaseServiceClient } from "@/lib/supabase/service";
 import { SEED, signInAs } from "./helpers";
 
 /**
- * Alta de comercios con la base real (diseño, sección 10). Usa al usuario confirmado
- * sin comercio del seed (sin.comercio@example.com) y borra lo creado al terminar.
+ * Alta y publicación con la base real (diseño, sección 10; rediseño 11e: sin registro
+ * automático, los comercios los crea el panel central). Usa al usuario confirmado sin
+ * comercio del seed (sin.comercio@example.com) y borra lo creado al terminar.
  */
 
 const slug = `prueba-${Date.now().toString(36)}`;
+let tenantId: string;
+
+beforeAll(async () => {
+  // Como la alta asistida: la base verifica al superadmin y crea el comercio en prueba.
+  const service = createSupabaseServiceClient();
+  const { data, error } = await service.rpc("admin_provision_tenant", {
+    p_actor: SEED.users.superadmin.id,
+    p_owner_id: SEED.users.outsider.id,
+    p_input: { name: "Local de Prueba", slug, business_type: "dietetica", whatsapp_phone: "+5492954000077" },
+    p_root_domain: "localhost",
+  });
+  if (error) throw new Error(`No se pudo crear el comercio de prueba: ${error.message}`);
+  tenantId = (data as { tenant_id: string }).tenant_id;
+});
 
 afterAll(async () => {
   const service = createSupabaseServiceClient();
   await service.from("tenants").delete().eq("slug", slug);
 });
 
-describe("alta de comercios (base real)", () => {
-  it("crea el comercio y el nuevo dueño lo ve con su sesión", async () => {
-    const result = await provisionTenant(
-      SEED.users.outsider.id,
-      { name: "Local de Prueba", slug, businessType: "dietetica", whatsappPhone: "+5492954000077" },
-      "localhost",
-    );
-    expect(result).toMatchObject({ ok: true, slug, created: true });
+describe("alta y publicación de comercios (base real)", () => {
+  it("el registro directo está cerrado: nadie crea una cuenta sin el panel central", async () => {
+    const client = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+    const { data, error } = await client.auth.signUp({
+      email: `intruso-${Date.now().toString(36)}@example.com`,
+      password: "Clave-de-prueba-2026",
+      options: { captchaToken: "XXXX.DUMMY.TOKEN.XXXX" },
+    });
+    expect(error).not.toBeNull();
+    expect(data.user).toBeNull();
+  });
 
+  it("el dueño ve su comercio nuevo con su sesión, con las categorías del rubro", async () => {
     const owner = await signInAs("outsider");
     const { data: tenants } = await owner.from("tenants").select("slug, status");
     expect(tenants).toEqual([{ slug, status: "trial" }]);
@@ -32,28 +54,8 @@ describe("alta de comercios (base real)", () => {
     expect(categories?.map((c) => c.name)).toEqual(["Frutos secos", "Harinas", "Sin TACC", "Suplementos"]);
   });
 
-  it("un segundo envío retoma el mismo comercio", async () => {
-    const result = await provisionTenant(
-      SEED.users.outsider.id,
-      { name: "Otro nombre", slug: `${slug}-2`, businessType: "general", whatsappPhone: "+5492954000077" },
-      "localhost",
-    );
-    expect(result).toMatchObject({ ok: true, slug, created: false });
-  });
-
-  it("un slug ocupado devuelve un error claro", async () => {
-    const result = await provisionTenant(
-      SEED.users.superadmin.id,
-      { name: "Copia", slug: "alfa", businessType: "general", whatsappPhone: "+5492954000077" },
-      "localhost",
-    );
-    expect(result).toEqual({ ok: false, error: "slug_taken" });
-  });
-
   it("no se publica sin productos; los otros usuarios no pueden ver el comercio nuevo", async () => {
-    const service = createSupabaseServiceClient();
-    const { data: tenant } = await service.from("tenants").select("id").eq("slug", slug).single();
-    expect(await setTenantPublished(tenant!.id, SEED.users.outsider.id, true)).toEqual({ ok: false, error: "no_products" });
+    expect(await setTenantPublished(tenantId, SEED.users.outsider.id, true)).toEqual({ ok: false, error: "no_products" });
 
     const alfaOwner = await signInAs("ownerAlfa");
     const { data } = await alfaOwner.from("tenants").select("id").eq("slug", slug);

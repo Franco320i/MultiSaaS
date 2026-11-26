@@ -1,11 +1,10 @@
 /**
- * Puerta de entrada del módulo de configuración del comercio (alta y Ajustes).
+ * Puerta de entrada del módulo de configuración del comercio (asistente y Mi local).
  * Server Actions en "@/modules/settings/actions".
  */
 export { BrandForm, BrandingImage } from "./components/brand-form";
 export { ContactForm } from "./components/contact-form";
 export { HoursForm } from "./components/hours-form";
-export { ProvisionForm } from "./components/provision-form";
 export { PublishPanel } from "./components/publish-panel";
 export { SetupChecklist } from "./components/setup-checklist";
 export {
