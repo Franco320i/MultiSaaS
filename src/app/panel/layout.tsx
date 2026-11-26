@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function PanelLayout({ children }: LayoutProps<"/panel">) {
   return (
-    <div className="flex flex-1 flex-col">
+    <div data-surface="panel" className="flex flex-1 flex-col">
       <header className="flex items-center justify-between gap-3 border-b border-line bg-surface px-4 py-2.5 md:px-6">
         <Link href="/" className="font-display text-[20px]">
           Vidri

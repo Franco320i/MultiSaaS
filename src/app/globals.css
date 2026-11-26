@@ -13,10 +13,22 @@
   --line: #e3e6df;
   --accent: #3d6b47;
   --accent-foreground: #ffffff;
-  --accent-soft: var(--accent);
+  --accent-soft: #e4eee6;
+  --accent-2: #8c5f27;
+  --field: #f4f6f2;
+  --line-strong: #bcc3b6;
   --danger: #a8432f;
   --danger-soft: #f6e7e2;
   --warning: #8a5a12;
+  --warning-soft: #fbf0dc;
+  --info: #2f5e9e;
+  --info-soft: #e7effa;
+  --plum: #6b4c93;
+  --plum-soft: #f0eaf8;
+  --whatsapp: #1e8a4c;
+
+  /* Letra de los títulos: el panel la cambia (data-surface="panel"). */
+  --font-display-family: var(--font-young-serif);
 
   /* Color del comercio: lo pisa el catálogo con el de cada comercio. */
   --brand: #3d6b47;
@@ -33,11 +45,33 @@
     --line: #30362e;
     --accent: #8fbf98;
     --accent-foreground: #10200f;
+    --accent-soft: #25352a;
+    --accent-2: #d9ae6e;
+    --field: #20251f;
+    --line-strong: #4a5246;
     --danger: #e08a75;
     --danger-soft: #3a2420;
     --warning: #e5b86b;
+    --warning-soft: #3a2e19;
+    --info: #9dbdf0;
+    --info-soft: #1e2a3d;
+    --plum: #c9b0ec;
+    --plum-soft: #2d2440;
+    --whatsapp: #5cc98a;
     color-scheme: dark;
   }
+}
+
+/*
+ * Panel del comercio: títulos sin serifa (Hanken Grotesk gruesa). El catálogo,
+ * la página principal y el panel central siguen con su letra.
+ */
+[data-surface="panel"] {
+  --font-display-family: var(--font-hanken);
+}
+[data-surface="panel"] .font-display {
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
 /*
@@ -128,14 +162,23 @@
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent-soft: var(--accent-soft);
+  --color-accent-2: var(--accent-2);
+  --color-field: var(--field);
+  --color-line-strong: var(--line-strong);
   --color-danger: var(--danger);
   --color-danger-soft: var(--danger-soft);
   --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-plum: var(--plum);
+  --color-plum-soft: var(--plum-soft);
+  --color-whatsapp: var(--whatsapp);
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
 
   --font-sans: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
-  --font-display: var(--font-young-serif), ui-serif, Georgia, serif;
+  --font-display: var(--font-display-family), ui-serif, Georgia, serif;
   --font-mono: var(--font-plex-mono), ui-monospace, SFMono-Regular, monospace;
 }
 
