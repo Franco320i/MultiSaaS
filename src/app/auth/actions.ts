@@ -80,16 +80,20 @@ export async function updatePasswordAction(_prev: AuthFormState, formData: FormD
 
   const supabase = await createSupabaseServerClient();
   const { data: claims } = await supabase.auth.getClaims();
-  if (!claims?.claims?.sub) return { error: "El enlace venció. Pedí uno nuevo." };
+  if (!claims?.claims?.sub) return { error: "Tu sesión venció. Volvé a ingresar y probá de nuevo." };
 
   const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
   if (error) {
     if (error.code === "same_password") {
       return { error: "Es la misma contraseña que tenías. Elegí una distinta." };
     }
+    // secure_password_change (supabase/config.toml): con una sesión vieja, Supabase pide volver a ingresar.
+    if (error.code === "reauthentication_needed") {
+      return { error: "Por seguridad, salí del panel, volvé a ingresar y cambiala enseguida." };
+    }
     return error.code === "weak_password"
       ? { error: "Esa contraseña es demasiado débil o apareció en filtraciones. Probá con otra." }
-      : { error: "No pudimos cambiar la contraseña. Pedí un enlace nuevo." };
+      : { error: "No pudimos cambiar la contraseña. Probá de nuevo en unos minutos." };
   }
 
   return { redirectTo: "/" };

@@ -127,6 +127,19 @@ async function Settings({ params, searchParams }: PageProps<"/panel/[tenant]/aju
             })}
           </ul>
         </nav>
+        {/* La cuenta del dueño: la contraseña inicial llega por WhatsApp y se cambia acá. */}
+        <a
+          href="/auth/nueva-contrasena"
+          className="flex min-h-16 items-center gap-3 rounded-2xl border border-line bg-surface px-4 py-3 hover:bg-surface-muted focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-accent"
+        >
+          <span className="flex min-w-0 flex-1 flex-col">
+            <span className="text-[16px] font-semibold">Tu contraseña</span>
+            <span className="text-[14px] text-muted">Cambiá la que te pasamos por una propia.</span>
+          </span>
+          <span aria-hidden className="text-[22px] text-muted">
+            ›
+          </span>
+        </a>
       </>
     );
   }
