@@ -1,18 +1,14 @@
-import { STATUS_LABEL, type OrderStatus } from "../status";
+import { Pill } from "@/ui/pill";
+import { STATUS_LABEL, STATUS_TONE, type OrderStatus } from "../status";
 
 /**
  * Piezas visuales de los pedidos en el panel. El estado se lee siempre como texto;
- * el color solo refuerza (nuevo = acento, cancelado = rojo, el resto neutro).
+ * el color solo refuerza (STATUS_TONE: nuevo ámbar, confirmado azul, en preparación
+ * violeta, listo verde, entregado neutro, cancelado rojo).
  */
 
 export function StatusPill({ status }: { status: OrderStatus }) {
-  const tone =
-    status === "new"
-      ? "bg-accent text-accent-foreground"
-      : status === "cancelled"
-        ? "bg-danger-soft text-danger"
-        : "bg-surface-muted text-foreground";
-  return <span className={`rounded-full px-2.5 py-0.5 text-[13px] font-semibold ${tone}`}>{STATUS_LABEL[status]}</span>;
+  return <Pill tone={STATUS_TONE[status]}>{STATUS_LABEL[status]}</Pill>;
 }
 
 export function FulfillmentLabel({ fulfillment }: { fulfillment: "pickup" | "delivery" }) {

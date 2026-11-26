@@ -3,6 +3,8 @@
  * (trigger private.check_order_status_change); acá están los textos y el siguiente paso.
  */
 
+import type { PillTone } from "@/ui/pill";
+
 export const ORDER_STATUSES = ["new", "confirmed", "preparing", "ready", "completed", "cancelled"] as const;
 export type OrderStatus = (typeof ORDER_STATUSES)[number];
 
@@ -13,6 +15,16 @@ export const STATUS_LABEL: Record<OrderStatus, string> = {
   ready: "Listo",
   completed: "Entregado",
   cancelled: "Cancelado",
+};
+
+/** Color de la píldora de cada estado (el texto siempre acompaña). */
+export const STATUS_TONE: Record<OrderStatus, PillTone> = {
+  new: "warning",
+  confirmed: "info",
+  preparing: "plum",
+  ready: "accent",
+  completed: "neutral",
+  cancelled: "danger",
 };
 
 /** Botón del paso siguiente (verbo + objeto, lenguaje de mostrador). */
