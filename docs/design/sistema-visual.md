@@ -70,6 +70,18 @@ Los tokens de la tabla desde `accent-soft` se sumaron el 2026-11-26 (rediseño 1
 
 ## Catálogo público
 
+### Rediseño 11b (2026-11-26, estilo PPW)
+
+Manda sobre lo que contradiga en esta sección. Diseño: `docs/superpowers/specs/2026-11-26-rediseno-catalogo-design.md`.
+
+- **Letra:** `data-surface="storefront"` en `StorefrontView`; los títulos van en Hanken Grotesk 800 (−2 %), como el panel.
+- **Colores del comercio:** `brand` (lo elige el comercio de `BRAND_PALETTE`) y, derivados en el servidor con `brandShades` (`src/lib/color.ts`): `brand-2` (más oscuro, degradé de la portada), `brand-tint` (muy claro, fondos de íconos y "Todos los pedidos incluyen") y `brand-page` (fondo apenas teñido). El comercio no los elige; una prueba verifica AA para los 9 colores. En modo oscuro no hay fondo teñido: `background` y `surface` de siempre.
+- **Portada:** foto con velo en diagonal o degradé `brand` → `brand-2`; logo de 76 px (88 desde 640) montado sobre el borde, o círculo con iniciales; nombre, frase y "Cómo llegar" debajo, sobre el fondo de la página.
+- **Tarjeta de estado:** Estado (abierto ahora), Pedido mínimo, Envío y Hoy (horario de hoy, desplegable con la semana; se calcula en el navegador con `todayHours`). Medios de pago en una línea debajo.
+- **Buscador, orden y categorías** en un solo bloque fijo arriba; píldoras sin borde, la activa con el color del comercio y sombra teñida. Secciones con título de 24 px y rayita del color del comercio.
+- **Forma según el rubro** (`catalogLayout`, sin opción para el comercio): **Carta** para gastronomía, dietética y general (fila con la foto de 96 × 108 a la derecha; sin foto, solo texto) y **Grilla** para indumentaria y tecnología. Precio en el color del comercio.
+- **Pedido:** aviso "Agregado al pedido" al sumar desde la tarjeta; barra flotante oscura (`bg-foreground`) con cantidad, total y "Ver pedido ›"; desde 768 px la hoja del pedido es un panel lateral derecho de 440 px.
+
 **Una sola plantilla para todos los locales** (decidido el 2026-11-22, `docs/superpowers/specs/2026-11-22-catalogo-nuevo-design.md`). Cada local personaliza portada, logo, nombre, frase y color; el resto es igual.
 
 - Diseñado a 375 px. Grilla de 2 columnas; 3 desde 640 px y 4 desde 1024 px, centrada hasta 1024 px.

@@ -119,21 +119,21 @@ export function Ordering({ config }: { config: OrderingConfig }) {
             aria-label={`Ver pedido · ${count} · ${money(subtotal)}`}
             className="mx-auto flex min-h-[58px] w-full max-w-2xl items-center gap-3 rounded-[20px] bg-foreground py-2 pr-2 pl-3 text-left text-background shadow-[0_18px_40px_-12px_rgb(0_0_0/0.5)]"
           >
-            <span aria-hidden className="grid size-9 shrink-0 place-items-center rounded-[11px] bg-background/15">
+            <span aria-hidden className="hidden size-9 shrink-0 place-items-center rounded-[11px] bg-background/15 min-[360px]:grid">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="size-5">
                 <path d="M5.5 8h13l-1 12h-11z" />
                 <path d="M9 10V7a3 3 0 0 1 6 0v3" />
               </svg>
             </span>
             <span className="min-w-0 flex-1 leading-tight">
-              <span className="block text-[15px] font-bold">{count === 1 ? "1 producto" : `${count} productos`}</span>
-              <span className="block text-[12px] opacity-70">Tu pedido</span>
+              <span className="block truncate text-[15px] font-bold">{count === 1 ? "1 producto" : `${count} productos`}</span>
+              <span className="block truncate text-[12px] opacity-70">Tu pedido</span>
             </span>
             <span className="text-right leading-tight tabular-nums">
               <span className="block text-[11px] opacity-70">Total</span>
               <span className="block text-[15px] font-bold">{money(subtotal)}</span>
             </span>
-            <span className="rounded-[13px] bg-brand px-3 py-2.5 text-[14px] font-bold text-brand-foreground">Ver pedido ›</span>
+            <span className="rounded-[13px] bg-brand px-3 py-2.5 text-[14px] font-bold whitespace-nowrap text-brand-foreground">Ver pedido ›</span>
           </button>
         </div>
       ) : null}
