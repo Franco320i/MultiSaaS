@@ -57,7 +57,7 @@
     --info-soft: #1e2a3d;
     --plum: #c9b0ec;
     --plum-soft: #2d2440;
-    --whatsapp: #5cc98a;
+    --whatsapp: #1e8a4c; /* igual que en claro: lleva texto blanco */
     color-scheme: dark;
   }
 }

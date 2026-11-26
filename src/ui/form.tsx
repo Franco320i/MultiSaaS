@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useFormStatus } from "react-dom";
+import { buttonClasses } from "./button-classes";
 
 /** Componentes de formulario sin lógica de negocio (diseño, sección 2: src/ui). */
 
@@ -110,7 +111,7 @@ export function SubmitButton({ children, pendingLabel = "Guardando…" }: { chil
     <button
       type="submit"
       disabled={pending}
-      className="min-h-12 w-full rounded-full bg-accent px-6 text-[16px] font-semibold text-accent-foreground disabled:opacity-60 sm:w-auto"
+      className={buttonClasses("primary", "md", "w-full sm:w-auto")}
     >
       {pending ? pendingLabel : children}
     </button>
