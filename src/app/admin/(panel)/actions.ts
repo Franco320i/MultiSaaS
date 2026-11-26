@@ -172,7 +172,7 @@ const RESET_MESSAGES: Record<string, string> = {
 };
 
 /** "Nueva contraseña" para el dueño (solo superadmin). Queda en la auditoría, sin la contraseña. */
-export async function resetOwnerPasswordAction(tenantId: string, _prev: ResetPasswordState): Promise<ResetPasswordState> {
+export async function resetOwnerPasswordAction(tenantId: string): Promise<ResetPasswordState> {
   const access = await superadmin(tenantId);
   const id = idSchema.safeParse(tenantId);
   if (!id.success) return { error: MESSAGES.tenant_not_found };
