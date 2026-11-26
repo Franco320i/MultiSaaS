@@ -17,6 +17,7 @@ Estado del recorrido:
 - [x] Panel del dueño: Inicio, Productos, formulario y variantes, Historia, editor de Plantillas (9 pasos), Pedidos y Ajustes
 - [x] Recorrido de compra en escritorio
 - [x] Segundo recorrido (sección 6b): página principal entera, panel en pantalla chica, diseños en la vista previa, ficha con variantes, compra completa con recibo, pedido de prueba en el panel, Ajustes por dentro, Categorías y avisos
+- [x] Tercer recorrido (2026-11-26, Chrome): recorridos entre pantallas (sección 9), botones del panel medidos (sección 10) y traducción a los colores de Vidri (sección 11)
 - [ ] Panel central: no se puede ver, es interno de ellos. Se infiere del panel del dueño (sección 6).
 
 Comercio de prueba creado en MyShp: `myshp.link/prueba-vidri-cafe`, con un producto con 3 tamaños, la categoría "Cafeteria" y el pedido de prueba ORD-1746-001 (confirmado). Es de la cuenta del usuario y se puede borrar desde Ajustes → Zona de peligro.
@@ -62,7 +63,9 @@ Sale de las variables CSS de `:root` en la página principal. **Es lo más valio
 | Secundario | blanco | `#242930` | 40 | 0 16 | 14 / 600 |
 | Grande (formulario principal) | `#1d1d28` | blanco | 50 | 0 22 | 15 / 700 |
 
-**El primario es negro, no de color.** El verde de la marca aparece en detalles: palabras resaltadas del título, insignias, tildes y el globito de WhatsApp. Por eso el color "vale más".
+**En la página principal el primario es negro, no de color.** El verde de la marca aparece en detalles: palabras resaltadas del título, insignias, tildes y el globito de WhatsApp. Por eso el color "vale más".
+
+**Ojo: dentro del panel es distinto** (medido el 2026-11-26). Ahí el botón principal es **verde** (`#0f7a55`) y lo negro queda para lo "seleccionado": el ítem activo del menú, el filtro activo y el segmento activo. Ver la sección 10.
 
 ### Celular
 
@@ -628,7 +631,7 @@ Al usuario le gusta mucho, aunque la ve "muy cargada". Tomar el **nivel de termi
 | Barra de anuncio arriba | Catálogo | Chico | Se cruza con "promo del día" (parte 4, Pro) |
 | Ficha con enlace propio | Catálogo | Medio | Ya está en pendientes |
 | Carrito en 3 pasos | Catálogo | Medio | Sin códigos de descuento |
-| Botón primario negro y la marca en detalles | Página principal y panel | Chico | Revisar con "Noche" y "Sobremesa" |
+| Negro = "seleccionado", verde = "hacer" (sección 10) | Panel | Chico | En la página principal el primario es negro; en el panel, verde |
 | Fondo crema + superficies blancas + casi sin sombras | Todo | Medio | Encaja con "Sobremesa" |
 | Títulos con interletrado negativo fuerte (peso 800, −4 %) | Página principal | Chico | |
 | "vidri.ar/ + tu nombre" como inicio del registro | Página principal | Medio | Toca el alta (paso 1 del asistente) |
@@ -667,3 +670,139 @@ Al usuario le gusta mucho, aunque la ve "muy cargada". Tomar el **nivel de termi
 5. **Herramientas para vender:** "Historia" con QR, ficha con link propio.
 
 Cada parte: diseño corto en `docs/superpowers/specs/`, OK del usuario, `/diseno-interfaz` y recién después código.
+
+---
+
+## 9. Recorridos entre pantallas
+
+Agregado el 2026-11-26, después de recorrer el panel otra vez en Chrome. Las secciones 2 a 6b dicen **cómo es** cada pantalla; esta dice **cómo se pasa de una a otra**: qué se abre como página, como ventana o como hoja, a dónde se vuelve y qué pasa después de guardar. Al usuario le gustó tanto esto como el aspecto.
+
+### Reglas generales
+
+1. **Página para los lugares, ventana para las tareas.**
+   - Son páginas las secciones del menú (Inicio, Productos, Pedidos, Plantillas, Ajustes) y cada ajuste elegido.
+   - Crear o editar un producto y ver el detalle de un pedido se abren en una **ventana encima de la lista** (fondo oscurecido al 60 %). Al cerrarla, la lista sigue donde estaba, con el mismo filtro y la misma búsqueda.
+   - En el celular, la ventana es una hoja que sube desde abajo. En escritorio, el carrito del catálogo es un panel lateral.
+2. **Todo lo que cambia la pantalla queda en la dirección**: `?tab=categories`, `?tab=store`, `?new=1`. Se puede compartir, recargar y volver con Atrás.
+   - **Falla de MyShp:** al abrir "Producto nuevo" desde la lista, la dirección no cambia. Entonces Atrás saca de la página en lugar de cerrar la ventana. En Vidri, Atrás siempre cierra la ventana (ya lo hace la ficha del catálogo con `history.pushState`).
+3. **Después de guardar, uno se queda donde estaba.** Aparece un aviso breve ("Estado actualizado", "Categoría agregada") y no hay salto a otra pantalla.
+4. **Los números son atajos.** Las tarjetas de resumen son botones: "Sin categoría 1" filtra la lista, "Pendientes 0" filtra los pedidos y las celdas del Inicio llevan a su sección con ↗.
+5. **Lo frecuente se hace en la fila.** El estado y el pago de un pedido se cambian con un desplegable en la misma fila, sin abrir el detalle. El detalle es para lo que no entra en la fila.
+6. **El mismo acceso desde varios lados**: "Agregar producto" está en el Inicio (lleva a `products?new=1`), en la barra de Productos y en el botón del medio del menú del celular. Las tres abren la misma ventana.
+7. **Borrar está lejos.** Va al final, en rojo y como texto ("Borrar producto" abajo a la izquierda de la ventana; "Zona de peligro" al final de Ajustes), nunca como botón relleno ni al lado de Guardar.
+8. **Cada pantalla dice dónde estás:** título y bajada en la barra de arriba ("Productos · Productos y categorías, juntos").
+
+### Recorrido por recorrido (MyShp → Vidri hoy → qué tomar)
+
+**A. Entrar al panel**
+
+- MyShp: iniciar sesión → "Tus comercios" (tarjeta con inicial, nombre, link, rubro, "● En línea", moneda, ciudad y "Administrar →") → Inicio del comercio. Con un solo comercio también pasa por la lista.
+- Vidri hoy: `/panel` → comercio.
+- Tomar: si el usuario tiene un solo comercio, entrar directo. La tarjeta con estado sirve cuando tenga varios.
+
+**B. Cargar un producto**
+
+- MyShp: "+ Producto nuevo" → ventana sobre la lista → pestaña "Detalles" (la de "Variantes" dice "Guardá primero") → "Agregar producto" (mientras guarda, "Agregando…") → aviso → sigue en la lista. Esc o "Cancelar" cierran.
+- Vidri hoy: página `/productos/nuevo` → al crear, abre la edición (`?nuevo=1`) para sumar fotos y opciones.
+- Tomar: la idea de "primero lo básico, después fotos y opciones" ya la tenemos. Lo que suma MyShp es **no sacar al usuario de la lista**. Evaluar una hoja o ventana con estado en la dirección (`?nuevo=1`, `?producto={id}`) y dejar la página propia para el celular si la hoja queda incómoda.
+
+**C. Editar un producto**
+
+- MyShp: "Editar" en la fila → la misma ventana con "Borrar producto" (rojo, izquierda), "Cancelar" y "Guardar cambios" (derecha).
+- Vidri hoy: página `/productos/[id]` con bloques.
+- Tomar: el orden del pie (peligro solo a la izquierda, secundario y principal a la derecha) y el mismo formulario para crear y editar.
+
+**D. Categorías**
+
+- MyShp: control segmentado "Productos 1 | Categorías 1" dentro de Productos (`?tab=categories`). La tarjeta "Sin categoría" filtra la lista, y la franja amarilla lleva a "Revisar".
+- Vidri hoy: página aparte `/categorias`.
+- Tomar: unir las dos en Productos con el segmentado. El menú queda con menos ítems.
+
+**E. Atender un pedido**
+
+- MyShp: Pedidos → tarjetas de preparación (que filtran) y píldoras de estado con contador → en la fila: desplegable de estado, desplegable de pago, "Detalle", "Avisar" (verde suave) y WhatsApp → en el detalle: chips de estado → aviso "Estado actualizado" → "Enviar aviso" → elegir etapa → vista previa editable → "Abrir en WhatsApp".
+- Vidri hoy: "En curso / Terminados" → página `/pedidos/[id]` → cambiar estado.
+- Tomar: cambiar el estado desde la fila, las píldoras con contador y el "Avisar" que termina en WhatsApp con el texto armado. El pago no está en el diseño.
+
+**F. Ajustes**
+
+- MyShp: índice de tarjetas ("valor actual ›") → tocar una → la misma pantalla con `?tab=store` → arriba "← Todos los ajustes" e "Ir a sección", los chips de secciones (el actual en verde, "Peligro" en rojo) → formulario → barra de guardado arriba y abajo, con el botón apagado si no hay cambios.
+- Vidri hoy: una sola página larga (Marca, Contacto y entrega, Horarios, Accesos).
+- Tomar: el índice con el valor actual, una sección por vez con su dirección y el botón apagado sin cambios. Hoy tenemos pocas secciones: alcanza con el índice y la sección; los chips sirven cuando haya más de 5.
+
+**G. Comprar (catálogo)**
+
+- MyShp: tarjeta → ficha (si hay que elegir) → "Agregar" → carrito (hoja en el celular, panel lateral en escritorio) → 1 Carrito → 2 Datos → 3 Revisar → "Enviar pedido por WhatsApp" → "¡Pedido enviado!" en la misma hoja → recibo.
+- Vidri hoy: tarjeta → ficha → hoja de pedido en un solo paso → WhatsApp → "Pedido registrado".
+- Tomar: los pasos numerados con "← Volver al paso anterior" y la confirmación visible al agregar. El detalle está en la sección 6b.
+
+---
+
+## 10. Botones y controles del panel (medidos)
+
+Medidos el 2026-11-26 en el panel de escritorio. Los colores son los de MyShp: la traducción a Vidri está en la sección 11.
+
+**La regla de fondo:** **negro = "esto está elegido"** (menú, filtro, segmento) y **verde = "hacé esto"** (crear, guardar, compartir). Nunca se mezclan. El negro no es una acción.
+
+| Rol | Ejemplos | Fondo | Texto | Borde | Alto | Esquinas | Letra |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Principal en barra | "Producto nuevo", "Compartir" | verde `#0f7a55` | blanco | — | 40 | 14 | 14 / 600 |
+| Principal en ventana o barra de guardado | "Agregar producto", "Guardar cambios" | verde | blanco | — | 42–44 | píldora | 12 / 600 |
+| Principal dentro de una tarjeta | "Agregar producto" (primeros pasos) | verde | blanco | — | 40 | 12 | 11.5 / 600 |
+| Secundario | "Importar", "Copiar", "Ver", "Cancelar" | blanco | `#36332c` | 1 px `#c9c3b4` | 40 (44 en ventana) | 12–14 (píldora en ventana) | 12–14 / 500–600 |
+| Suave | "Historia", "Libreta", "Enviar difusión" | crema `#efede7` | `#36332c` | 1 px `#e2ded4` | 40 | 12 | 12 / 600 |
+| Texto | "Ocultar", "Elegir un tema →", "Editar estados" | — | gris `#4c473e` o verde | — | 32 | — | 11 / 600 |
+| Peligro | "Borrar producto"; chip "Peligro" | — o rosado suave | rojo | — | 40 | píldora | 12 / 600 |
+| Elegido | ítem del menú, filtro "Todos", segmento | negro `#14120e` | blanco | — | 44 menú y segmento, 30–36 filtro | 18 menú, 12–14 filtro, píldora segmento | 13–14 / 500–600 |
+| No elegido | los demás filtros y chips | blanco | `#4c473e` | 1 px suave | igual que el elegido | igual | igual |
+| Estado con color | "Pendiente", "Confirmado", "Avisar" | el color al **10 %** | el tono oscuro del color | el color al **30 %** | 30–36 | píldora | 12 / 600 |
+| WhatsApp | "Venta rápida", "Probar WhatsApp", soporte | verde WhatsApp | blanco | — | 36–56 | 16–18, redondo el flotante | 12 / 600 |
+| Tarjeta tocable | resumen "Sin categoría 1", "Pendientes 0" | blanco o el color suave | negro | 1 px | 93–123 | 16 | — |
+| Campo | formulario | crema `#f4f2ec` | negro | 1 px `#e2ded4` | 43 | 12 | 15 / 400 |
+| Buscador | barra de la lista | blanco | negro | 1 px `#e2ded4` | 38 | 14 | 14 / 400 |
+| Zona para soltar fotos | formulario | crema al 70 % | negro | **2 px punteado** `#c9c3b4` | 119 | 18 | — |
+
+**Reglas que se repiten:**
+
+- **Un solo verde por zona**: uno en la barra, uno en la ventana y uno por tarjeta de primeros pasos. En la tabla, cada fila es una zona y puede tener su "Editar" verde.
+- **Orden:** el secundario a la izquierda y el principal a la derecha. El peligro va solo, en el otro extremo.
+- **Mientras guarda:** el texto cambia ("Agregando…"), aparece un spinner y los dos botones se apagan.
+- **Sin cambios, sin botón:** "Guardar" aparece apagado hasta que se toca algo.
+- **Pestañas dentro de una ventana:** subrayado y texto verde en la activa. Una pestaña que todavía no se puede usar lleva una etiqueta ("Guardá primero") en lugar de esconderse.
+- **Fondo de las ventanas:** casi negro al 60 %. Ventana de radio 28 (las tarjetas, 16–18).
+- **Tamaños:** 30–36 px en chips y acciones de fila es poco para el dedo. En Vidri, 44 px en el celular siempre (regla de `/diseno-interfaz`).
+
+---
+
+## 11. De MyShp a Vidri: colores y decisiones
+
+Cómo se traduce cada valor de MyShp a los tokens de Sobremesa (`docs/design/sistema-visual.md`). **Lo que falta** se crea en la etapa de fundaciones (orden sugerido, paso 1) y se documenta primero en `sistema-visual.md`.
+
+| Rol | MyShp | Vidri (Sobremesa) | Estado |
+| --- | --- | --- | --- |
+| Fondo de página | `#f7f6f3` crema | `background` `#FBFBF9` | Ya está |
+| Superficie (tarjetas, ventanas) | blanco | `surface` | Ya está |
+| Texto | `#14120e` | `foreground` `#22261F` | Ya está |
+| Texto secundario | `#6b6558` | `muted` `#5F6659` | Ya está |
+| Borde fino | `#e2ded4` | `line` `#E3E6DF` | Ya está |
+| Fondo suave (botón suave, esqueleto) | `#efede7` | `surface-muted` `#E8EFE7` | Ya está |
+| **Acción principal** | verde `#0f7a55` | `accent` verde yerba `#3D6B47` | Ya está: coincide con el panel de MyShp |
+| **Elegido** (menú, filtro, segmento) | negro `#14120e` | `foreground` de fondo y `surface` de texto | Nuevo uso, sin token nuevo |
+| Borde de botón secundario | `#c9c3b4` (más oscuro que el borde fino) | falta `line-strong` | A crear: contraste 3:1 sobre `surface` |
+| Fondo de campo | `#f4f2ec` | falta `field` (apenas más oscuro que `background`) | A crear |
+| Verde suave ("Ver comercio", avisos de ayuda) | `#eef7f1` | falta `accent-soft` | A crear |
+| Error y borrar | `#b42318` | `danger` / `danger-soft` | Ya está |
+| Aviso (pendiente, sin categoría) | amarillo `#9a5b12` | falta `warning` / `warning-soft` | A crear |
+| Estados del pedido | 4 colores al 10 % / 30 % | `new` aviso; `confirmed` y `preparing` informativo; `ready` y `completed` `accent`; `cancelled` `danger` | A crear `info` / `info-soft`; cubre los 6 estados de `orders.status` |
+| WhatsApp | `#25d366` | solo en lo que abre WhatsApp | Token `whatsapp` a crear, con texto que cumpla AA |
+| Títulos | Plus Jakarta 800, interletrado −4 % | `font-display` Young Serif | **Mantener la nuestra** |
+| Texto | Inter | `font-sans` Hanken Grotesk | Mantener |
+| Botones | 12–14 en barras, píldora en ventanas | píldora siempre (`sistema-visual.md`) | **Mantener la píldora**: es más coherente |
+| Sombras | casi ninguna; una "lift" para lo que flota | — | Tomar: sin sombras salvo hojas, avisos y botones flotantes |
+
+**Lo que queda decidido con esto:**
+
+- El botón principal del panel **sigue siendo el verde yerba**. Lo negro de MyShp es de su página principal y de lo "elegido", no de las acciones. La página principal de Vidri tiene su propio estilo ("Noche", con violeta).
+- El catálogo no usa estos colores: usa la paleta teñida del color del comercio (sección 3).
+
+**Falta decidir con el usuario:** si lo elegido (menú, filtros) va en negro (`foreground`) o en verde claro con texto verde, como el panel de PPW (`referencia-ppw.md`, sección 6, que al usuario le pareció más limpio), y los valores exactos de los tokens nuevos. Se proponen con una maqueta al empezar la etapa de fundaciones.

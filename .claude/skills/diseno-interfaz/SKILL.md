@@ -24,6 +24,13 @@ La fuente de verdad visual es `docs/design/sistema-visual.md`.
 
 **Referencia de calidad:** `docs/design/referencia-myshp.md` reúne lo que el usuario tomó como modelo (2026-11-25): tokens medidos, estructura del panel, editor de diseño, asistente y catálogo, más una tabla de ideas y el orden sugerido. Consultalo antes de rediseñar una pantalla: tomá los **patrones** (jerarquía, medidas, comportamiento), nunca la marca, los textos ni el código, y aplicalos con los colores de Vidri. Lo que se adopte pasa primero a `sistema-visual.md`.
 
+Al usuario le gustan tanto el aspecto como **el flujo de pantallas y los botones**. Antes de tocar una pantalla, leé también:
+- **Sección 9 (recorridos):** página para los lugares y ventana u hoja para las tareas; todo estado en la dirección (Atrás cierra la ventana); después de guardar uno se queda donde estaba, con un aviso breve; los números son atajos; lo frecuente se hace en la fila; borrar va lejos y en rojo.
+- **Sección 10 (botones):** negro = elegido, verde = hacer; un solo principal por zona; secundario a la izquierda y principal a la derecha; "Guardar" apagado sin cambios; "Guardando…" mientras guarda.
+- **Sección 11 (de MyShp a Vidri):** qué token nuestro reemplaza cada color suyo y qué tokens faltan crear. El principal del panel sigue siendo `accent` (verde yerba) y los títulos siguen en `font-display`.
+
+**Referencia del catálogo público:** `docs/design/referencia-ppw.md` (2026-11-26), un catálogo tipo "carta de restaurante" que al usuario le gustó mucho. Tiene la tarjeta de estado, el buscador fijo, la tarjeta "Carta" (foto a la derecha), el segundo color de marca, el carrito y una tabla de ideas. Leela antes de tocar el catálogo, con las mismas reglas: patrones sí, marca y textos no. Su sección 6 es el **panel de PPW**, que al usuario le pareció muy limpio: cabecera igual en todas las pantallas (sobretítulo + título + bajada + una acción), ítem activo en verde claro, estados en píldoras de color y pocos elementos por pantalla. En el panel: **la calma visual de PPW con los recorridos de MyShp**.
+
 El catálogo público no usa la identidad de la plataforma: usa la del comercio (`tenant_settings.theme`, logo, portada) sobre plantillas por rubro (`business_templates`). Diseñá las plantillas para que el comercio se reconozca: una hamburguesería no se ve como una tienda de ropa.
 
 ## 2. Tokens, no valores sueltos
