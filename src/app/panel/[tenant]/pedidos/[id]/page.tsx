@@ -52,7 +52,7 @@ async function Order({ params }: Pick<PageProps<"/panel/[tenant]/pedidos/[id]">,
         <p className="text-[15px] text-muted">Recibido el {dayAndTime(order.createdAt, timeZone)}</p>
       </header>
 
-      <StatusActions status={order.status} action={setOrderStatusAction.bind(null, access.slug, order.id)} />
+      <StatusActions status={order.status} orderNumber={order.number} action={setOrderStatusAction.bind(null, access.slug, order.id)} />
 
       <section aria-labelledby="cliente" className="flex flex-col gap-1 rounded-2xl bg-surface p-4">
         <h2 id="cliente" className="text-[13px] font-semibold uppercase tracking-wide text-muted">

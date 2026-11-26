@@ -2,23 +2,32 @@
 
 import { useActionState, useState } from "react";
 import { buttonClasses } from "@/ui/button-classes";
-import { canCancel, NEXT_STEP, type OrderStatus } from "../status";
+import { useToast } from "@/ui/toast";
+import { canCancel, NEXT_STEP, statusToast, type OrderStatus } from "../status";
 import type { StatusActionState } from "../actions";
 
 /**
  * Botón del paso siguiente (la acción principal) y "Cancelar pedido" con confirmación
  * dentro de la misma pantalla. La acción vuelve a verificar el acceso en el servidor.
+ * Si sale bien, avisa "Pedido #N confirmado" (en la lista la fila cambia de grupo).
  */
 export function StatusActions({
   status,
+  orderNumber,
   action,
   compact = false,
 }: {
   status: OrderStatus;
+  orderNumber: number;
   action: (status: OrderStatus) => Promise<StatusActionState>;
   compact?: boolean;
 }) {
-  const [state, run, pending] = useActionState(async (_: StatusActionState, next: OrderStatus) => action(next), {});
+  const { show } = useToast();
+  const [state, run, pending] = useActionState(async (_: StatusActionState, next: OrderStatus) => {
+    const result = await action(next);
+    if (!result.error) show(statusToast(orderNumber, next));
+    return result;
+  }, {});
   const [confirmCancel, setConfirmCancel] = useState(false);
   const next = NEXT_STEP[status];
 

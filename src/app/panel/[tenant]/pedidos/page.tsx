@@ -68,7 +68,7 @@ async function Orders({ params, searchParams }: PageProps<"/panel/[tenant]/pedid
       now={now}
       actions={
         withActions ? (
-          <StatusActions status={order.status} action={setOrderStatusAction.bind(null, access.slug, order.id)} compact />
+          <StatusActions status={order.status} orderNumber={order.number} action={setOrderStatusAction.bind(null, access.slug, order.id)} compact />
         ) : null
       }
     />

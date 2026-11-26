@@ -47,3 +47,8 @@ export const CLOSED_STATUSES: OrderStatus[] = ["completed", "cancelled"];
 export function canCancel(status: OrderStatus): boolean {
   return OPEN_STATUSES.includes(status);
 }
+
+/** Aviso breve después de cambiar el estado: la fila cambia de grupo y puede desorientar. */
+export function statusToast(orderNumber: number, status: OrderStatus): string {
+  return `Pedido #${orderNumber} ${STATUS_LABEL[status].toLowerCase()}`;
+}
