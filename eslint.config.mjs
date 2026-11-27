@@ -21,7 +21,7 @@ const MODULES = ["catalog", "orders", "settings"];
  */
 const SERVICE_KEY_ALLOWED = [
   "src/modules/orders/create.ts", // creación de pedidos
-  "src/core/tenancy/provision.ts", // alta de comercios
+  "src/core/tenancy/provision.ts", // publicación de comercios (el alta es del panel central)
   "src/core/admin/service.ts", // panel central y tarea diaria
 ];
 
