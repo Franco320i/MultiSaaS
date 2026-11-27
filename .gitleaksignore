@@ -1,0 +1,8 @@
+# Falsos positivos de gitleaks (regla generic-api-key), revisados el 2026-11-27.
+# Formato: commit:archivo:regla:línea. Ninguno es un secreto real:
+# contraseña de prueba del E2E, que solo existe en el Supabase local de cada corrida
+124ba8ae55fce55c00c855f7d2e2fbd8cba9e5df:e2e/alta-a-pedido.spec.ts:generic-api-key:13
+# contraseña inventada para comprobar que el registro directo está cerrado (la cuenta nunca se crea)
+f5393bc0235c02224bee670aa7dfa647148a588f:tests/integration/provision.test.ts:generic-api-key:41
+# abecedario del generador de contraseñas (src/lib/password.ts), no una contraseña
+b9058c1891944f1adcdc522edccaeac416accadf:src/lib/password.ts:generic-api-key:7
