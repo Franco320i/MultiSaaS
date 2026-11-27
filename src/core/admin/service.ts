@@ -264,6 +264,7 @@ export async function provisionAssisted(
 
   let ownerId = existing as string | null;
   let password: string | undefined;
+  let created = false;
   if (!ownerId) {
     password = generatePassword();
     const { data, error } = await supabase.auth.admin.createUser({ email: input.ownerEmail, password, email_confirm: true });
@@ -272,6 +273,17 @@ export async function provisionAssisted(
       return { ok: false, code: "create_user_failed" };
     }
     ownerId = data.user.id;
+    created = true;
+  } else if (await isUnclaimedAccount(ownerId)) {
+    // Una cuenta que nadie usó (sin confirmar, o que nunca entró y no tiene comercios) no
+    // se respeta: pudo crearla un tercero con el correo del dueño, eligiendo él la
+    // contraseña, mientras el registro estuvo abierto. Se confirma y recibe una nueva.
+    password = generatePassword();
+    const { error } = await supabase.auth.admin.updateUserById(ownerId, { password, email_confirm: true });
+    if (error) {
+      console.error("updateUserById falló en el alta", { code: error.code, status: error.status });
+      return { ok: false, code: "create_user_failed" };
+    }
   }
 
   const { data, error } = await supabase.rpc("admin_provision_tenant", {
@@ -281,30 +293,51 @@ export async function provisionAssisted(
     p_root_domain: rootDomain,
   });
   if (error) {
-    // Si la cuenta se creó recién, se borra: si no, el reintento la encontraría "existente"
-    // y nadie tendría su contraseña.
-    if (password) await supabase.auth.admin.deleteUser(ownerId);
+    // Si la cuenta se creó recién, se borra. Si el borrado falla, el reintento la toma
+    // igual como cuenta sin usar (isUnclaimedAccount) y le da otra contraseña.
+    if (created) {
+      const { error: deleteError } = await supabase.auth.admin.deleteUser(ownerId);
+      if (deleteError) console.error("deleteUser falló tras un alta fallida", { code: deleteError.code, status: deleteError.status });
+    }
     return { ok: false, code: error.code === "P0001" ? error.message : "unknown" };
   }
   const result = data as { tenant_id: string; slug: string };
   return { ok: true, tenantId: result.tenant_id, slug: result.slug, password };
 }
 
+/** Cuenta que nadie usó: sin confirmar, o que nunca inició sesión y no es miembro de ningún comercio. */
+async function isUnclaimedAccount(userId: string): Promise<boolean> {
+  const supabase = createSupabaseServiceClient();
+  const { data, error } = await supabase.auth.admin.getUserById(userId);
+  if (error || !data.user) return false;
+  if (!data.user.email_confirmed_at) return true;
+  if (data.user.last_sign_in_at) return false;
+  const { count } = await supabase.from("tenant_members").select("tenant_id", { count: "exact", head: true }).eq("user_id", userId);
+  return count === 0;
+}
+
 /**
- * "Nueva contraseña" para el dueño de un comercio (solo superadmin). Primero la base
- * verifica al actor, busca al dueño y lo deja en la auditoría (sin la contraseña);
- * después Auth cambia la contraseña. La nueva vuelve una sola vez.
+ * "Nueva contraseña" para el dueño de un comercio (solo superadmin, con motivo). Primero la
+ * base verifica al actor, busca al dueño (nunca un administrador) y lo deja en la
+ * auditoría, sin la contraseña: como la entrada del modo soporte, no puede haber un cambio
+ * sin su registro. Después Auth cambia la contraseña y confirma el correo (una cuenta sin
+ * confirmar no podría entrar). La nueva vuelve una sola vez.
  */
 export async function resetOwnerPassword(
   actor: string,
   tenantId: string,
+  reason: string,
 ): Promise<{ ok: true; email: string; password: string } | { ok: false; code: string }> {
   const supabase = createSupabaseServiceClient();
-  const { data: ownerId, error } = await supabase.rpc("admin_log_owner_password_reset", { p_actor: actor, p_tenant_id: tenantId });
+  const { data: ownerId, error } = await supabase.rpc("admin_log_owner_password_reset", {
+    p_actor: actor,
+    p_tenant_id: tenantId,
+    p_reason: reason,
+  });
   if (error) return { ok: false, code: error.code === "P0001" ? error.message : "unknown" };
 
   const password = generatePassword();
-  const { data, error: authError } = await supabase.auth.admin.updateUserById(ownerId, { password });
+  const { data, error: authError } = await supabase.auth.admin.updateUserById(ownerId, { password, email_confirm: true });
   if (authError || !data.user?.email) {
     console.error("updateUserById falló", { code: authError?.code, status: authError?.status });
     return { ok: false, code: "unknown" };

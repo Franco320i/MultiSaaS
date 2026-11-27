@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useId, useState } from "react";
+import { useActionState, useEffect, useId, useRef, useState } from "react";
 import { slugify } from "@/lib/slugify";
 import { provisionAssistedAction, type AssistedState } from "@/app/admin/(panel)/actions";
 import { adminInput } from "@/app/admin/(panel)/admin-form";
@@ -16,10 +16,15 @@ export function AssistedForm({ templates, domainSuffix }: { templates: { key: st
   const [touched, setTouched] = useState(false);
   const effectiveSlug = touched ? slug : slugify(name, 40).replace(/^item$/, "");
   const label = "flex flex-col gap-1 text-[13px] font-semibold text-muted";
+  // Al crear el comercio, el foco pasa al resultado (lo anuncia el lector de pantalla).
+  const successRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (state.tenantId) successRef.current?.focus();
+  }, [state.tenantId]);
 
   if (state.tenantId) {
     return (
-      <div role="status" className="flex flex-col gap-3 rounded-xl border border-accent/40 bg-surface p-5">
+      <div ref={successRef} tabIndex={-1} className="flex flex-col gap-3 rounded-xl border border-accent/40 bg-surface p-5 outline-none">
         <p className="font-semibold text-accent">{state.saved}</p>
         <p className="text-[14px] text-muted">El comercio quedó en prueba por 14 días. Cuando termines de armarlo, mandale al dueño estos datos por WhatsApp.</p>
         {state.credentials ? <CredentialsCard credentials={state.credentials} /> : null}

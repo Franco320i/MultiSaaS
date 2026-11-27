@@ -550,7 +550,7 @@ isOneToOne: false
 { Args: { "p_actor": string,"p_days": number,"p_reason": string,"p_tenant_id": string }; Returns: string
                            },
 "admin_log_owner_password_reset":
-{ Args: { "p_actor": string,"p_tenant_id": string }; Returns: string
+{ Args: { "p_actor": string,"p_reason": string,"p_tenant_id": string }; Returns: string
                            },
 "admin_log_support_view":
 { Args: { "p_actor": string,"p_tenant_id": string }; Returns: undefined
@@ -580,9 +580,6 @@ isOneToOne: false
                            },
 "daily_maintenance":
 { Args: Record<PropertyKey, never>; Returns: Json
-                           },
-"provision_tenant":
-{ Args: { "p_input": Json,"p_root_domain": string,"p_user_id": string }; Returns: Json
                            },
 "rate_limit_hit":
 { Args: { "p_key": string,"p_limit": number,"p_window_seconds": number }; Returns: boolean

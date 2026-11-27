@@ -169,19 +169,23 @@ const RESET_MESSAGES: Record<string, string> = {
   ...MESSAGES,
   tenant_cancelled: "El comercio está cancelado.",
   owner_not_found: "El comercio no tiene dueño.",
+  owner_is_admin: "El dueño es un administrador de la plataforma: su contraseña se cambia desde Supabase.",
 };
 
-/** "Nueva contraseña" para el dueño (solo superadmin). Queda en la auditoría, sin la contraseña. */
-export async function resetOwnerPasswordAction(tenantId: string): Promise<ResetPasswordState> {
+/**
+ * "Nueva contraseña" para el dueño (solo superadmin, con motivo). Queda en la auditoría,
+ * sin la contraseña, y cierra las sesiones abiertas del dueño.
+ */
+export async function resetOwnerPasswordAction(tenantId: string, _prev: ResetPasswordState, formData: FormData): Promise<ResetPasswordState> {
   const access = await superadmin(tenantId);
-  const id = idSchema.safeParse(tenantId);
-  if (!id.success) return { error: MESSAGES.tenant_not_found };
+  const parsed = z.object({ tenantId: idSchema, reason: reasonSchema }).safeParse({ tenantId, reason: formData.get("reason") });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message };
 
-  const result = await admin.resetOwnerPassword(access.userId, id.data);
+  const result = await admin.resetOwnerPassword(access.userId, parsed.data.tenantId, parsed.data.reason);
   if (!result.ok) return { error: RESET_MESSAGES[result.code] ?? "No pudimos cambiar la contraseña. Probá de nuevo." };
   refresh();
   return {
-    saved: "Listo: la contraseña anterior ya no sirve.",
+    saved: "Listo: la contraseña anterior ya no sirve y se cerraron las sesiones abiertas del dueño.",
     credentials: { panelUrl: platformUrl(env.ROOT_DOMAIN, "app"), email: result.email, password: result.password },
   };
 }

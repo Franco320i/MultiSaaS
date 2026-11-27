@@ -14,20 +14,35 @@ const tag = Date.now().toString(36);
 const createdSlugs: string[] = [];
 const invitedEmail = `dueno.${tag}@example.com`;
 
+const pendingUsers: string[] = [];
+
 afterAll(async () => {
   const service = createSupabaseServiceClient();
   if (createdSlugs.length) await service.from("tenants").delete().in("slug", createdSlugs);
-  const { data } = await service.rpc("admin_user_id_by_email", { p_email: invitedEmail });
-  if (data) await service.auth.admin.deleteUser(data as string);
+  for (const email of [invitedEmail, ...pendingUsers]) {
+    const { data } = await service.rpc("admin_user_id_by_email", { p_email: email });
+    if (data) await service.auth.admin.deleteUser(data as string);
+  }
 });
+
+function publicClient() {
+  return createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
 
 /** Inicia sesión como lo haría el dueño en el panel (devuelve el error de Auth, si hay). */
 async function signInWith(email: string, password: string) {
-  const client = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-  const { error } = await client.auth.signInWithPassword({ email, password, options: { captchaToken: "XXXX.DUMMY.TOKEN.XXXX" } });
+  const { error } = await publicClient().auth.signInWithPassword({ email, password, options: { captchaToken: "XXXX.DUMMY.TOKEN.XXXX" } });
   return error;
+}
+
+/** Cliente con una sesión abierta (para ver si después se cierra). */
+async function sessionFor(email: string, password: string) {
+  const client = publicClient();
+  const { error } = await client.auth.signInWithPassword({ email, password, options: { captchaToken: "XXXX.DUMMY.TOKEN.XXXX" } });
+  if (error) throw new Error(error.message);
+  return client;
 }
 
 describe("panel central (base real, clave secreta local)", () => {
@@ -98,31 +113,82 @@ describe("panel central (base real, clave secreta local)", () => {
     expect(data?.map((t) => t.slug)).toContain(slug);
   });
 
-  it("nueva contraseña: el dueño entra con la nueva y no con la vieja, y queda auditado sin la contraseña", async () => {
+  it("nueva contraseña: el dueño entra con la nueva, se cierran sus sesiones y queda auditado sin la contraseña", async () => {
     const slug = createdSlugs[0];
     const service = createSupabaseServiceClient();
     const { data: tenant } = await service.from("tenants").select("id").eq("slug", slug).single();
     const first = await signInWith(invitedEmail, "no-es-esta");
     expect(first).not.toBeNull();
 
-    const result = await admin.resetOwnerPassword(ADMIN, tenant!.id);
+    // Una sesión abierta antes del cambio (por ejemplo, de quien vio la contraseña vieja).
+    const before = await admin.resetOwnerPassword(ADMIN, tenant!.id, "prueba de sesiones");
+    if (!before.ok) throw new Error(before.code);
+    const opened = await sessionFor(invitedEmail, before.password);
+
+    const result = await admin.resetOwnerPassword(ADMIN, tenant!.id, "se olvidó la contraseña");
     expect(result.ok).toBe(true);
     if (!result.ok) return;
     expect(result.email).toBe(invitedEmail);
     expect(await signInWith(invitedEmail, result.password)).toBeNull();
+    expect(await signInWith(invitedEmail, before.password)).not.toBeNull();
+    const { error: refreshError } = await opened.auth.refreshSession();
+    expect(refreshError).not.toBeNull();
 
     const { data: audit } = await service
       .from("audit_log")
       .select("changes, reason")
       .eq("tenant_id", tenant!.id)
       .eq("action", "owner.password_reset");
-    expect(audit).toHaveLength(1);
+    expect(audit?.map((a) => a.reason)).toEqual(expect.arrayContaining(["se olvidó la contraseña"]));
     expect(JSON.stringify(audit)).not.toContain(result.password);
   });
 
-  it("nueva contraseña: solo un superadmin", async () => {
-    const result = await admin.resetOwnerPassword(SEED.users.ownerAlfa.id, SEED.tenants.alfa);
-    expect(result).toEqual({ ok: false, code: "not_superadmin" });
+  it("nueva contraseña: solo un superadmin y con motivo", async () => {
+    expect(await admin.resetOwnerPassword(SEED.users.ownerAlfa.id, SEED.tenants.alfa, "motivo")).toEqual({
+      ok: false,
+      code: "not_superadmin",
+    });
+    expect(await admin.resetOwnerPassword(ADMIN, SEED.tenants.alfa, " ")).toEqual({ ok: false, code: "reason_required" });
+  });
+
+  it("alta asistida con una cuenta que nunca confirmó su correo: la toma, la confirma y le pone contraseña nueva", async () => {
+    // Por ejemplo, alguien que se registró antes del rediseño, o un tercero que creó la cuenta
+    // con el correo del dueño eligiendo él la contraseña: esa contraseña deja de servir.
+    const email = `sin.confirmar.${tag}@example.com`;
+    pendingUsers.push(email);
+    const service = createSupabaseServiceClient();
+    await service.auth.admin.createUser({ email, password: "La-del-tercero-2026", email_confirm: false });
+
+    const slug = `sinconf-${tag}`;
+    createdSlugs.push(slug);
+    const result = await admin.provisionAssisted(
+      ADMIN,
+      { ownerEmail: email, name: "Comercio Sin Confirmar", slug, businessType: "general", whatsappPhone: "+5492954000046" },
+      "localhost",
+    );
+    expect(result.ok).toBe(true);
+    const password = (result as { password?: string }).password;
+    expect(password).toBeDefined();
+    expect(await signInWith(email, password!)).toBeNull();
+    expect(await signInWith(email, "La-del-tercero-2026")).not.toBeNull();
+  });
+
+  it("alta asistida con una cuenta confirmada que nunca entró y no tiene comercios: también le da contraseña nueva", async () => {
+    const email = `huerfana.${tag}@example.com`;
+    pendingUsers.push(email);
+    const service = createSupabaseServiceClient();
+    await service.auth.admin.createUser({ email, password: "Nadie-la-sabe-2026", email_confirm: true });
+
+    const slug = `huerfana-${tag}`;
+    createdSlugs.push(slug);
+    const result = await admin.provisionAssisted(
+      ADMIN,
+      { ownerEmail: email, name: "Comercio Huérfano", slug, businessType: "general", whatsappPhone: "+5492954000047" },
+      "localhost",
+    );
+    const password = (result as { password?: string }).password;
+    expect(password).toBeDefined();
+    expect(await signInWith(email, password!)).toBeNull();
   });
 
   it("el barrido de fotos no borra fotos que siguen en uso ni archivos recientes", async () => {

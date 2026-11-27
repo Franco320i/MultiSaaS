@@ -1,8 +1,10 @@
 -- =============================================================================
 -- Capa 2 · Alta de comercios y publicación (diseño, sección 10)
---   public.slug_available · private.provision_tenant · private.set_tenant_published
+--   public.slug_available · private.admin_provision_tenant (alta asistida; el autoservicio
+--   se quitó en el rediseño 11e) · private.set_tenant_published
 -- Usa supabase/seed.sql: sin.comercio@example.com (4444…) es un usuario confirmado
--- sin comercio. En la prueba se crean además un usuario confirmado y uno sin confirmar.
+-- sin comercio y admin@example.com (5555…) es superadmin. En la prueba se crea además otro
+-- usuario confirmado.
 -- =============================================================================
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -13,9 +15,7 @@ insert into auth.users (instance_id, id, aud, role, email, encrypted_password, e
                         confirmation_token, recovery_token, email_change, email_change_token_new)
 values
   ('00000000-0000-0000-0000-000000000000', '66666666-6666-4666-8666-666666666661', 'authenticated', 'authenticated',
-   'otra.persona@example.com', '', now(), '{}', '{}', now(), now(), '', '', '', ''),
-  ('00000000-0000-0000-0000-000000000000', '66666666-6666-4666-8666-666666666662', 'authenticated', 'authenticated',
-   'sin.confirmar@example.com', '', null, '{}', '{}', now(), now(), '', '', '', '');
+   'otra.persona@example.com', '', now(), '{}', '{}', now(), now(), '', '', '', '');
 
 create function pg_temp.input(p_slug text, p_extra jsonb default '{}') returns jsonb language sql as $$
   select jsonb_build_object('name', 'Nuevo Local', 'slug', p_slug, 'business_type', 'gastronomia',
@@ -31,7 +31,7 @@ select is(private.slugify('Panadería & Café'), 'panaderia-cafe', 'slugify: ace
 select set_config('request.jwt.claims', '{"role":"anon"}', true);
 set local role anon;
 select throws_ok($$ select public.slug_available('nuevo-local') $$, '42501', null, 'anon: no consulta slugs');
-select throws_ok($$ select public.provision_tenant('44444444-4444-4444-8444-444444444444', '{}', 'localhost') $$,
+select throws_ok($$ select public.admin_provision_tenant('55555555-5555-4555-8555-555555555555', '44444444-4444-4444-8444-444444444444', '{}', 'localhost') $$,
                  '42501', null, 'anon: no crea comercios');
 
 reset role;
@@ -46,7 +46,7 @@ select ok(not public.slug_available('Mal Slug'), 'slug con formato inválido');
 select ok(not public.slug_available('xn--abc'), 'slug punycode');
 select ok(not public.slug_available('ab'), 'slug demasiado corto');
 select throws_ok(
-  $$ select public.provision_tenant('44444444-4444-4444-8444-444444444444', pg_temp.input('nuevo-local'), 'localhost') $$,
+  $$ select public.admin_provision_tenant('55555555-5555-4555-8555-555555555555', '44444444-4444-4444-8444-444444444444', pg_temp.input('nuevo-local'), 'localhost') $$,
   '42501', null, 'authenticated: no puede crear comercios salteando el servidor'
 );
 select throws_ok(
@@ -55,13 +55,13 @@ select throws_ok(
 );
 
 -- =============================================================================
--- provision_tenant (como el servidor)
+-- admin_provision_tenant (como el servidor del panel central)
 -- =============================================================================
 reset role;
 set local role service_role;
 
 select is(
-  public.provision_tenant('44444444-4444-4444-8444-444444444444', pg_temp.input('nuevo-local'), 'localhost') - 'tenant_id',
+  public.admin_provision_tenant('55555555-5555-4555-8555-555555555555', '44444444-4444-4444-8444-444444444444', pg_temp.input('nuevo-local'), 'localhost') - 'tenant_id',
   '{"slug": "nuevo-local", "created": true}'::jsonb,
   'crea el comercio'
 );
@@ -111,24 +111,13 @@ select is(
 );
 select is(
   (select count(*)::int from public.audit_log where tenant_id = (select id from nuevo) and action = 'tenant.created'
-   and actor_user_id = '44444444-4444-4444-8444-444444444444'),
-  1, 'audit_log: alta registrada con el usuario'
+   and actor_user_id = '55555555-5555-4555-8555-555555555555' and actor_kind = 'platform_admin'),
+  1, 'audit_log: alta registrada con el superadmin'
 );
 select is(
   public.storefront_by_host('nuevo-local.localhost'), '{"available": false}'::jsonb,
   'sin publicar, el catálogo no está disponible'
 );
-
--- Retomar: el mismo usuario no crea un segundo comercio.
-set local role service_role;
-select is(
-  public.provision_tenant('44444444-4444-4444-8444-444444444444', pg_temp.input('otro-slug'), 'localhost')
-    ->> 'slug',
-  'nuevo-local',
-  'un segundo envío retoma el comercio existente'
-);
-reset role;
-select is((select count(*)::int from public.tenants where slug = 'otro-slug'), 0, 'y no crea otro');
 
 -- El dueño nuevo ve su comercio con su sesión (RLS).
 select set_config('request.jwt.claims',
@@ -141,42 +130,46 @@ select ok(not public.slug_available('nuevo-local'), 'el slug ya no está disponi
 reset role;
 set local role service_role;
 select throws_ok(
-  $$ select public.provision_tenant('66666666-6666-4666-8666-666666666661', pg_temp.input('alfa'), 'localhost') $$,
+  $$ select public.admin_provision_tenant('55555555-5555-4555-8555-555555555555', '66666666-6666-4666-8666-666666666661', pg_temp.input('alfa'), 'localhost') $$,
   'P0001', 'slug_taken', 'slug de otro comercio'
 );
 select throws_ok(
-  $$ select public.provision_tenant('66666666-6666-4666-8666-666666666661', pg_temp.input('admin'), 'localhost') $$,
+  $$ select public.admin_provision_tenant('55555555-5555-4555-8555-555555555555', '66666666-6666-4666-8666-666666666661', pg_temp.input('admin'), 'localhost') $$,
   'P0001', 'invalid_slug', 'slug reservado'
 );
 select throws_ok(
-  $$ select public.provision_tenant('66666666-6666-4666-8666-666666666661', pg_temp.input('Mal Slug'), 'localhost') $$,
+  $$ select public.admin_provision_tenant('55555555-5555-4555-8555-555555555555', '66666666-6666-4666-8666-666666666661', pg_temp.input('Mal Slug'), 'localhost') $$,
   'P0001', 'invalid_slug', 'slug con formato inválido'
 );
 select throws_ok(
-  $$ select public.provision_tenant('66666666-6666-4666-8666-666666666661',
+  $$ select public.admin_provision_tenant('55555555-5555-4555-8555-555555555555', '66666666-6666-4666-8666-666666666661',
        pg_temp.input('otra-cosa', '{"whatsapp_phone": "2954 1234"}'), 'localhost') $$,
   'P0001', 'invalid_whatsapp', 'WhatsApp sin formato internacional'
 );
 select throws_ok(
-  $$ select public.provision_tenant('66666666-6666-4666-8666-666666666661',
+  $$ select public.admin_provision_tenant('55555555-5555-4555-8555-555555555555', '66666666-6666-4666-8666-666666666661',
        pg_temp.input('otra-cosa', '{"business_type": "casino"}'), 'localhost') $$,
   'P0001', 'invalid_business_type', 'rubro inexistente'
 );
 select throws_ok(
-  $$ select public.provision_tenant('66666666-6666-4666-8666-666666666661',
+  $$ select public.admin_provision_tenant('55555555-5555-4555-8555-555555555555', '66666666-6666-4666-8666-666666666661',
        pg_temp.input('otra-cosa', '{"name": "X"}'), 'localhost') $$,
   'P0001', 'invalid_name', 'nombre demasiado corto'
 );
 select throws_ok(
-  $$ select public.provision_tenant('66666666-6666-4666-8666-666666666662', pg_temp.input('otra-cosa'), 'localhost') $$,
-  'P0001', 'user_not_confirmed', 'usuario sin confirmar el email'
+  $$ select public.admin_provision_tenant('55555555-5555-4555-8555-555555555555', '9a000000-0000-4000-8000-000000000000', pg_temp.input('otra-cosa'), 'localhost') $$,
+  'P0001', 'owner_not_found', 'dueño inexistente'
 );
 select throws_ok(
-  $$ select public.provision_tenant('9a000000-0000-4000-8000-000000000000', pg_temp.input('otra-cosa'), 'localhost') $$,
-  'P0001', 'user_not_confirmed', 'usuario inexistente'
+  $$ select public.admin_provision_tenant('44444444-4444-4444-8444-444444444444', '66666666-6666-4666-8666-666666666661', pg_temp.input('otra-cosa'), 'localhost') $$,
+  'P0001', 'not_superadmin', 'solo un superadmin da de alta comercios'
+);
+select is(
+  (select count(*)::int from pg_proc where proname = 'provision_tenant'), 0,
+  'el alta por autoservicio ya no existe en la base'
 );
 select throws_ok(
-  $$ select public.provision_tenant('66666666-6666-4666-8666-666666666661', pg_temp.input('otra-cosa'), 'local host') $$,
+  $$ select public.admin_provision_tenant('55555555-5555-4555-8555-555555555555', '66666666-6666-4666-8666-666666666661', pg_temp.input('otra-cosa'), 'local host') $$,
   'P0001', 'invalid_root_domain', 'dominio raíz inválido'
 );
 

@@ -14,3 +14,14 @@ describe("generatePassword", () => {
     expect(passwords.size).toBe(50);
   });
 });
+
+describe("generatePassword con los requisitos que puede exigir Supabase", () => {
+  it("siempre trae minúscula, mayúscula y número", () => {
+    for (let i = 0; i < 300; i++) {
+      const password = generatePassword();
+      expect(password).toMatch(/[a-z]/);
+      expect(password).toMatch(/[A-Z]/);
+      expect(password).toMatch(/[0-9]/);
+    }
+  });
+});

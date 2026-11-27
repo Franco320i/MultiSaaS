@@ -246,46 +246,51 @@ select is(
   'platform_admin 55555555-5555-4555-8555-555555555555', 'alta asistida: auditada con el actor del panel central'
 );
 
--- El autoservicio sigue igual: retoma el comercio existente.
-set local role service_role;
-select is(
-  public.provision_tenant(pg_temp.k('owner'), '{"name":"Otro","slug":"otro-mas","business_type":"general","whatsapp_phone":"+5492954000057"}', 'localhost') ->> 'created',
-  'false', 'autoservicio: un dueño existente retoma su comercio (no crea otro)'
-);
-reset role;
-
 -- =============================================================================
 -- Nueva contraseña del dueño (rediseño 11e): solo superadmin y solo desde el servidor
 -- =============================================================================
 select set_config('request.jwt.claims', '{"role":"anon"}', true);
 set local role anon;
-select throws_ok($$ select public.admin_log_owner_password_reset(pg_temp.k('admin'), pg_temp.k('alfa')) $$,
+select throws_ok($$ select public.admin_log_owner_password_reset(pg_temp.k('admin'), pg_temp.k('alfa'), 'se olvidó la contraseña') $$,
                  '42501', null, 'anon: no pide contraseñas nuevas');
 reset role;
 select set_config('request.jwt.claims',
   json_build_object('sub', '55555555-5555-4555-8555-555555555555', 'role', 'authenticated')::text, true);
 set local role authenticated;
-select throws_ok($$ select public.admin_log_owner_password_reset(pg_temp.k('admin'), pg_temp.k('alfa')) $$,
+select throws_ok($$ select public.admin_log_owner_password_reset(pg_temp.k('admin'), pg_temp.k('alfa'), 'se olvidó la contraseña') $$,
                  '42501', null, 'superadmin con su sesión: tampoco (solo el servidor)');
 reset role;
 
 set local role service_role;
-select throws_ok($$ select public.admin_log_owner_password_reset(pg_temp.k('owner'), pg_temp.k('alfa')) $$,
+select throws_ok($$ select public.admin_log_owner_password_reset(pg_temp.k('owner'), pg_temp.k('alfa'), 'se olvidó la contraseña') $$,
                  'P0001', 'not_superadmin', 'un dueño no pide contraseñas nuevas');
-select throws_ok($$ select public.admin_log_owner_password_reset(pg_temp.k('admin'), gen_random_uuid()) $$,
+select throws_ok($$ select public.admin_log_owner_password_reset(pg_temp.k('admin'), gen_random_uuid(), 'se olvidó la contraseña') $$,
                  'P0001', 'tenant_not_found', 'un comercio que no existe: error claro');
-select is(public.admin_log_owner_password_reset(pg_temp.k('admin'), pg_temp.k('alfa')), pg_temp.k('owner'),
+select is(public.admin_log_owner_password_reset(pg_temp.k('admin'), pg_temp.k('alfa'), 'se olvidó la contraseña'), pg_temp.k('owner'),
           'devuelve al dueño del comercio');
 reset role;
 select is((select count(*)::int from public.audit_log
            where tenant_id = pg_temp.k('alfa') and action = 'owner.password_reset'
-             and target_id = pg_temp.k('owner')::text and changes = '{}'::jsonb), 1,
-          'queda en la auditoría del comercio, sin datos de la contraseña');
+             and target_id = pg_temp.k('owner')::text and changes = '{}'::jsonb
+             and reason = 'se olvidó la contraseña'), 1,
+          'queda en la auditoría del comercio con el motivo y sin datos de la contraseña');
+
+set local role service_role;
+select throws_ok($$ select public.admin_log_owner_password_reset(pg_temp.k('admin'), pg_temp.k('alfa'), ' ') $$,
+                 'P0001', 'reason_required', 'sin motivo no hay contraseña nueva');
+reset role;
+
+-- La cuenta de un administrador no se toca desde acá, aunque sea dueña de un comercio.
+update public.tenant_members set user_id = pg_temp.k('admin') where tenant_id = pg_temp.k('alfa') and role = 'owner';
+set local role service_role;
+select throws_ok($$ select public.admin_log_owner_password_reset(pg_temp.k('admin'), pg_temp.k('alfa'), 'prueba') $$,
+                 'P0001', 'owner_is_admin', 'no cambia la contraseña de un administrador');
+reset role;
 
 -- Un comercio cancelado no recibe contraseñas nuevas.
 update public.tenants set status = 'cancelled' where id = pg_temp.k('gamma');
 set local role service_role;
-select throws_ok($$ select public.admin_log_owner_password_reset(pg_temp.k('admin'), pg_temp.k('gamma')) $$,
+select throws_ok($$ select public.admin_log_owner_password_reset(pg_temp.k('admin'), pg_temp.k('gamma'), 'se olvidó la contraseña') $$,
                  'P0001', 'tenant_cancelled', 'un comercio cancelado: error claro');
 reset role;
 
