@@ -430,6 +430,8 @@ Un cron de Vercel llama una vez por día a `/api/cron/daily`, protegido con `CRO
 
 **Un comercio queda operativo en una sola transacción de base de datos (`private.provision_tenant`) y se publica cuando tiene WhatsApp y al menos un producto publicado; el mismo camino sirve para el alta por autoservicio y para el alta asistida que hacés vos.**
 
+> **Actualizado el 2026-11-26 (rediseño 11e, `docs/superpowers/specs/2026-11-26-pedi-tu-demo-design.md`):** el alta por autoservicio se quitó. No hay `/registro` ni `/nuevo`, Supabase Auth tiene el registro cerrado y la app no manda correos de alta. Los comercios los crea la plataforma con la **alta asistida** (cuenta del dueño con contraseña generada, que se pasa por WhatsApp; ver `docs/decisions/0004-panel-central.md`, puntos 9 y 12). La página principal invita a "Pedí tu demo" por WhatsApp. Lo que sigue queda como historia.
+
 ### Alta por autoservicio
 
 1. **Registro** en `tuapp.com.ar/registro`: solo email, contraseña y Turnstile. Supabase envía el correo de confirmación por Resend.

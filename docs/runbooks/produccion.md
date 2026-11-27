@@ -129,10 +129,15 @@ Hacé los pasos en orden. Las claves secretas las copiás directo de cada panel 
 
 29. [x] (Hecho y probado el 2026-11-25.) Publicar en producción (paso 19) el commit que pasa el token de Turnstile a Supabase y, enseguida, activar el captcha en Supabase (sección 1.3). Probar: crear una cuenta, entrar a `app.vidri.ar` y a `admin.vidri.ar`, y pedir "Olvidé mi contraseña". Si algo falla, apagar el captcha en Supabase (vuelve a andar al instante) y avisar. Antes hacer lo mismo en staging (guía de staging, paso 13).
 
+### Sin registro automático (rediseño 11e)
+
+30. [ ] Publicar en producción (paso 19) el commit de "Pedí tu demo" y, **después**, Supabase → Authentication → Sign In / Providers → apagar **Allow new users to sign up**. Las cuentas de los dueños las crea el panel central (Alta asistida) con la API de administración, que sigue andando. Probar: un alta asistida nueva muestra la contraseña, el dueño entra con ella y la cambia en Mi local → Tu contraseña; "Nueva contraseña" en la ficha genera otra. Antes hacer lo mismo en staging (guía de staging, paso 14).
+31. [ ] Cargar `SALES_WHATSAPP` (tu WhatsApp con código de país, por ejemplo `+5492954123456`) y publicar de nuevo con el paso 19: sin él no aparecen los botones "Pedí tu demo". Va al armar la página, así que un cambio de número pide publicar de nuevo.
+
 ### Antes de abrir al público
 
 27. [ ] Legales: completar los `[PENDIENTE]`, revisión de un abogado y sacar el `noindex`.
-28. [ ] Comercio de ejemplo: crearlo desde la app y cargar `DEMO_CATALOG_SLUG` y `DEMO_TENANT_ID` en Vercel (y publicar de nuevo con el paso 19).
+28. [ ] Comercio de ejemplo: crearlo con el Alta asistida del panel central (con tu propio correo como dueño), armarlo y publicarlo, y cargar `DEMO_CATALOG_SLUG` (su dirección) y `DEMO_TENANT_ID` (el id de su ficha) en Vercel. Después publicar de nuevo con el paso 19.
 
 ## Variables de entorno en Vercel (proyecto `vidri`, entorno Production)
 
@@ -150,6 +155,7 @@ Hacé los pasos en orden. Las claves secretas las copiás directo de cada panel 
 | `NEXT_PUBLIC_SENTRY_DSN` | El mismo DSN de staging |
 | `NEXT_PUBLIC_SENTRY_ENVIRONMENT` | `production` |
 | `DEMO_CATALOG_SLUG` / `DEMO_TENANT_ID` | Opcionales, paso 28 |
+| `SALES_WHATSAPP` | Tu WhatsApp para "Pedí tu demo" (`+549…`), paso 31 |
 
 ```bash
 node -e "console.log(require('crypto').randomBytes(24).toString('base64url'))"

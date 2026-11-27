@@ -1,4 +1,6 @@
-import { expect, type Page } from "@playwright/test";
+import { readFileSync } from "node:fs";
+import { type Page } from "@playwright/test";
+import { createClient } from "@supabase/supabase-js";
 
 /** Hosts locales (diseño, sección 7). Chromium resuelve *.localhost sin tocar el archivo hosts. */
 export const ROOT = "http://localhost:3000";
@@ -17,7 +19,8 @@ export const SEED = {
   betaProducts: ["Remera negra", "Gorra"],
 } as const;
 
-const MAILPIT = "http://127.0.0.1:54324";
+/** Superadmin del seed (admin@example.com): el actor del alta asistida. */
+const SEED_SUPERADMIN_ID = "55555555-5555-4555-8555-555555555555";
 
 /**
  * Espera a que la página esté lista para enviar un formulario con Turnstile: React
@@ -41,27 +44,36 @@ export async function login(page: Page, email: string, next: string, password = 
   await page.waitForLoadState("load");
 }
 
+/** Lee una variable de .env.local (Playwright no lo carga solo). */
+function localEnv(name: string): string {
+  const line = readFileSync(".env.local", "utf8")
+    .split(/\r?\n/)
+    .find((l) => l.startsWith(`${name}=`));
+  const value = line?.slice(name.length + 1).trim();
+  if (!value) throw new Error(`Falta ${name} en .env.local para las pruebas E2E.`);
+  return value;
+}
+
 /**
- * Busca en Mailpit (Supabase local) el correo de confirmación y devuelve el enlace
- * a /auth/callback. Reintenta unos segundos porque el correo tarda en llegar.
+ * Hace lo mismo que la alta asistida del panel central (rediseño 11e: sin registro
+ * automático): crea la cuenta del dueño, confirmada y con contraseña, y su comercio en
+ * prueba. El panel central pide MFA, así que la prueba usa la API de administración local.
  */
-export async function confirmationLink(email: string): Promise<string> {
-  let link: string | undefined;
-  await expect
-    .poll(
-      async () => {
-        const search = await fetch(`${MAILPIT}/api/v1/search?query=${encodeURIComponent(`to:"${email}"`)}`);
-        if (!search.ok) return undefined;
-        const { messages } = (await search.json()) as { messages: { ID: string }[] };
-        if (!messages?.length) return undefined;
-        const message = await fetch(`${MAILPIT}/api/v1/message/${messages[0].ID}`);
-        const { HTML } = (await message.json()) as { HTML: string };
-        const href = HTML.match(/href="([^"]*\/auth\/callback[^"]*)"/)?.[1];
-        link = href?.replaceAll("&amp;", "&");
-        return link;
-      },
-      { message: `no llegó el correo de confirmación a ${email}`, timeout: 20_000 },
-    )
-    .toBeTruthy();
-  return link!;
+export async function createOwnerAndTenant(input: { email: string; password: string; name: string; slug: string; whatsapp: string }) {
+  const service = createClient(localEnv("NEXT_PUBLIC_SUPABASE_URL"), localEnv("SUPABASE_SECRET_KEY"), {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const { data: user, error: userError } = await service.auth.admin.createUser({
+    email: input.email,
+    password: input.password,
+    email_confirm: true,
+  });
+  if (userError || !user.user) throw new Error(`No se pudo crear el dueño: ${userError?.message}`);
+  const { error } = await service.rpc("admin_provision_tenant", {
+    p_actor: SEED_SUPERADMIN_ID,
+    p_owner_id: user.user.id,
+    p_input: { name: input.name, slug: input.slug, business_type: "gastronomia", whatsapp_phone: input.whatsapp },
+    p_root_domain: "localhost",
+  });
+  if (error) throw new Error(`No se pudo crear el comercio: ${error.message}`);
 }
