@@ -8,7 +8,6 @@ export { HoursForm } from "./components/hours-form";
 export { PublishPanel } from "./components/publish-panel";
 export { SetupChecklist } from "./components/setup-checklist";
 export {
-  findOwnedTenantSlug,
   getHours,
   getSettings,
   getSetupStatus,
@@ -20,6 +19,7 @@ export {
 export {
   BRAND_PALETTE,
   parseSettingsSection,
+  provisionSchema,
   SETTINGS_SECTIONS,
   STEP_LABEL,
   WIZARD_STEPS,

@@ -50,6 +50,7 @@ const optionalText = (max: number) =>
 /** Colores de marca que puede elegir el comercio: todos con texto blanco legible (AA). */
 export { BRAND_PALETTE } from "@/lib/brand-palette";
 
+/** Datos del comercio en la alta asistida del panel central (el autoservicio se quitó en el rediseño 11e). */
 export const provisionSchema = z.object({
   name: z.string().trim().min(2, "Escribí el nombre del comercio.").max(80),
   slug: z

@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { type Page } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 
@@ -44,9 +45,9 @@ export async function login(page: Page, email: string, next: string, password = 
   await page.waitForLoadState("load");
 }
 
-/** Lee una variable de .env.local (Playwright no lo carga solo). */
+/** Lee una variable del .env.local del repo (Playwright no lo carga solo). */
 function localEnv(name: string): string {
-  const line = readFileSync(".env.local", "utf8")
+  const line = readFileSync(join(__dirname, "..", ".env.local"), "utf8")
     .split(/\r?\n/)
     .find((l) => l.startsWith(`${name}=`));
   const value = line?.slice(name.length + 1).trim();
@@ -60,7 +61,13 @@ function localEnv(name: string): string {
  * prueba. El panel central pide MFA, así que la prueba usa la API de administración local.
  */
 export async function createOwnerAndTenant(input: { email: string; password: string; name: string; slug: string; whatsapp: string }) {
-  const service = createClient(localEnv("NEXT_PUBLIC_SUPABASE_URL"), localEnv("SUPABASE_SECRET_KEY"), {
+  // Solo contra el Supabase local: si .env.local apuntara a staging o producción, la prueba
+  // crearía usuarios de verdad con su clave secreta.
+  const url = localEnv("NEXT_PUBLIC_SUPABASE_URL");
+  if (!["127.0.0.1", "localhost"].includes(new URL(url).hostname)) {
+    throw new Error(`Las pruebas E2E solo corren contra Supabase local, no contra ${new URL(url).hostname}.`);
+  }
+  const service = createClient(url, localEnv("SUPABASE_SECRET_KEY"), {
     auth: { persistSession: false, autoRefreshToken: false },
   });
   const { data: user, error: userError } = await service.auth.admin.createUser({

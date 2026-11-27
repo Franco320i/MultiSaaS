@@ -3,8 +3,8 @@
  * El slug es el subdominio: `[slug].tuapp.com.ar`.
  *
  * La fuente de verdad será la base (CHECK + tabla `reserved_slugs`, etapa 2).
- * Esta copia sirve para descartar hosts imposibles en el proxy sin consultar la base,
- * y más adelante para validar el formulario de registro.
+ * Esta copia sirve para descartar hosts imposibles en el proxy sin consultar la base
+ * y para validar la alta asistida del panel central.
  */
 
 /** 3 a 40 caracteres: minúsculas, dígitos y guiones, sin guion al principio ni al final. */
@@ -25,7 +25,8 @@ export const RESERVED_SLUGS: ReadonlySet<string> = new Set([
   "blog",
   "status",
   "docs",
-  // Ruta del asistente de alta en el panel (app.{dominio}/nuevo).
+  // Fue la ruta del alta propia (app.{dominio}/nuevo, quitada en el rediseño 11e). Sigue
+  // reservada para no confundir con rutas del panel; está también en `reserved_slugs`.
   "nuevo",
 ]);
 

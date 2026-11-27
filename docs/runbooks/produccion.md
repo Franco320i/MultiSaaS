@@ -131,7 +131,14 @@ Hacé los pasos en orden. Las claves secretas las copiás directo de cada panel 
 
 ### Sin registro automático (rediseño 11e)
 
-30. [ ] Publicar en producción (paso 19) el commit de "Pedí tu demo" y, **después**, Supabase → Authentication → Sign In / Providers → apagar **Allow new users to sign up**. Las cuentas de los dueños las crea el panel central (Alta asistida) con la API de administración, que sigue andando. Probar: un alta asistida nueva muestra la contraseña, el dueño entra con ella y la cambia en Mi local → Tu contraseña; "Nueva contraseña" en la ficha genera otra. Antes hacer lo mismo en staging (guía de staging, paso 14).
+30. [ ] **Primero**, Supabase → Authentication → Sign In / Providers → apagar **Allow new users to sign up**, y **recién después** publicar en producción (paso 19) el commit de "Pedí tu demo". En ese orden no queda ningún rato con el registro abierto (con el código viejo, la página de registro solo muestra un error hasta publicar). Las cuentas de los dueños las crea el panel central (Alta asistida) con la API de administración, que no depende de ese interruptor. Probar:
+    - que el registro directo esté cerrado: pedile a Claude que intente crear una cuenta llamando directo a la API de Supabase de producción (con la clave publicable); tiene que fallar;
+    - un alta asistida nueva muestra la contraseña, el dueño entra con ella y la cambia en Mi local → Tu contraseña;
+    - "Nueva contraseña" en la ficha (con motivo) genera otra y la anterior deja de servir.
+
+    Antes hacer lo mismo en staging (guía de staging, paso 14).
+32. [ ] (Opcional.) Supabase → Authentication → Rate Limits → bajar al mínimo los correos por hora. La app ya no manda correos, pero la API de Auth todavía acepta pedidos de "recuperar contraseña" o "link mágico" para cuentas que existen (con captcha). Solo los recibe el dueño de la casilla: no es un riesgo, es para que no salga ningún correo.
+33. [x] Si un **administrador** se olvida la contraseña: no hay recuperación por correo. Otro superadmin se la cambia desde Supabase → Authentication → Users → la cuenta → Reset password / Update user. "Nueva contraseña" del panel central no toca cuentas de administradores.
 31. [ ] Cargar `SALES_WHATSAPP` (tu WhatsApp con código de país, por ejemplo `+5492954123456`) y publicar de nuevo con el paso 19: sin él no aparecen los botones "Pedí tu demo". Va al armar la página, así que un cambio de número pide publicar de nuevo.
 
 ### Antes de abrir al público

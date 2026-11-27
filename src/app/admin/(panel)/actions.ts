@@ -4,11 +4,11 @@ import { refresh, updateTag } from "next/cache";
 import { z } from "zod";
 import { requirePlatformAdmin } from "@/core/admin/access";
 import * as admin from "@/core/admin/service";
-import { isValidSlug } from "@/core/tenancy/slug";
 import { cacheTags } from "@/lib/cache/tags";
 import { env } from "@/lib/env";
 import { parseAmountToCents } from "@/lib/money";
 import { platformUrl } from "@/lib/urls";
+import { provisionSchema } from "@/modules/settings";
 
 /**
  * Server Actions del panel central (diseño, sección 9). Endpoints públicos:
@@ -138,17 +138,8 @@ export async function provisionAssistedAction(_prev: AssistedState, formData: Fo
   const fields = Object.fromEntries(
     ["ownerEmail", "name", "slug", "businessType", "whatsappPhone"].map((k) => [k, String(formData.get(k) ?? "").slice(0, 200)]),
   );
-  const parsed = z
-    .object({
-      ownerEmail: z.email("Escribí el email del dueño.").max(254).transform((v) => v.trim().toLowerCase()),
-      name: z.string().trim().min(2, "Escribí el nombre del comercio.").max(80),
-      slug: z.string().trim().toLowerCase().refine(isValidSlug, "Usá de 3 a 40 letras, números o guiones."),
-      businessType: z.string().regex(/^[a-z_]{2,40}$/, "Elegí un rubro."),
-      whatsappPhone: z
-        .string()
-        .transform((v) => v.replace(/[\s()-]/g, ""))
-        .pipe(z.string().regex(/^\+[1-9][0-9]{7,14}$/, ASSISTED_MESSAGES.invalid_whatsapp)),
-    })
+  const parsed = provisionSchema
+    .extend({ ownerEmail: z.email("Escribí el email del dueño.").max(254).transform((v) => v.trim().toLowerCase()) })
     .safeParse(fields);
   if (!parsed.success) return { error: parsed.error.issues[0]?.message, fields };
 

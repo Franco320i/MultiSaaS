@@ -104,20 +104,6 @@ export async function listTenantHosts(supabase: Client, tenantId: string): Promi
   return (data ?? []).map((d) => d.hostname);
 }
 
-/** Dueño de algún comercio: el asistente de alta retoma ese comercio en vez de crear otro. */
-export async function findOwnedTenantSlug(supabase: Client, userId: string): Promise<string | null> {
-  const { data } = await supabase
-    .from("tenant_members")
-    .select("tenants(slug, status)")
-    .eq("user_id", userId)
-    .eq("role", "owner")
-    .limit(5);
-  const tenant = (data ?? [])
-    .map((m) => m.tenants as unknown as { slug: string; status: string } | null)
-    .find((t) => t && t.status !== "cancelled");
-  return tenant?.slug ?? null;
-}
-
 /**
  * Entradas del panel central en modo soporte (diseño, sección 9: el dueño ve cuándo
  * entró soporte). RLS de audit_log: solo el dueño lee lo de su comercio.
