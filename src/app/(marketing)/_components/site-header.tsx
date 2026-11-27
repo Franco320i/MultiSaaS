@@ -5,7 +5,7 @@ import { MobileMenu } from "./mobile-menu";
 import { NAV_LINKS } from "./nav-links";
 
 /** Menú fijo de la página principal. */
-export function SiteHeader({ loginUrl, demoRequest }: { loginUrl: string; demoRequest: string | null }) {
+export function SiteHeader({ demoRequest }: { demoRequest: string | null }) {
   return (
     <header className="sticky top-0 z-30 border-b border-line bg-background/80 backdrop-blur-md">
       <div className="relative mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 md:px-6">
@@ -24,15 +24,12 @@ export function SiteHeader({ loginUrl, demoRequest }: { loginUrl: string; demoRe
           </ul>
         </nav>
         <div className="flex items-center gap-2">
-          <a href={loginUrl} className="hidden min-h-11 items-center px-3 text-[15px] font-semibold md:flex">
-            Ingresar
-          </a>
           {demoRequest ? (
             <ButtonLink href={demoRequest} className="px-5">
               Pedí tu demo
             </ButtonLink>
           ) : null}
-          <MobileMenu loginUrl={loginUrl} />
+          <MobileMenu />
         </div>
       </div>
     </header>

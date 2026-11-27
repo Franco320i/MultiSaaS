@@ -11,7 +11,7 @@ async function currentYear(): Promise<number> {
 }
 
 /** Pie de la página principal y de las páginas legales. */
-export async function SiteFooter({ loginUrl }: { loginUrl: string }) {
+export async function SiteFooter() {
   const year = await currentYear();
   const link = "flex min-h-11 items-center text-muted transition-colors hover:text-foreground";
   return (
@@ -32,13 +32,8 @@ export async function SiteFooter({ loginUrl }: { loginUrl: string }) {
             ))}
           </ul>
         </nav>
-        <nav aria-label="Cuenta y legales">
+        <nav aria-label="Legales">
           <ul className="text-[15px]">
-            <li>
-              <a href={loginUrl} className={link}>
-                Ingresar
-              </a>
-            </li>
             <li>
               <Link href="/terminos" className={link}>
                 Términos y condiciones

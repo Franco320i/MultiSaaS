@@ -16,13 +16,12 @@ export const metadata: Metadata = {
 };
 
 export default function MarketingLayout({ children }: LayoutProps<"/">) {
-  // El login vive en el host del panel (app.).
-  const loginUrl = platformUrl(env.ROOT_DOMAIN, "app", "/auth/login");
+  // Sin link al login: los comercios entran al panel con el link que les manda la plataforma.
   return (
     <div data-surface="marketing" className="relative flex min-h-full flex-1 flex-col overflow-x-clip bg-background text-foreground">
-      <SiteHeader loginUrl={loginUrl} demoRequest={demoRequestUrl(env.SALES_WHATSAPP)} />
+      <SiteHeader demoRequest={demoRequestUrl(env.SALES_WHATSAPP)} />
       <div className="flex flex-1 flex-col">{children}</div>
-      <SiteFooter loginUrl={loginUrl} />
+      <SiteFooter />
     </div>
   );
 }

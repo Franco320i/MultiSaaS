@@ -19,10 +19,12 @@ test("la página principal vende y lleva al registro", async ({ page }) => {
   await expect(planes.getByText("Productos ilimitados")).toBeVisible();
   await expect(planes.getByText("Recomendado")).toBeVisible();
 
-  // En el celular, "Ingresar" está en el menú y va al host del panel.
+  // Sin login en la página principal: los comercios entran con el link que les manda la
+  // plataforma (docs/superpowers/specs/2026-11-27-pagina-principal-sin-login-design.md).
   const menuButton = page.getByRole("button", { name: "Abrir menú" });
   await menuButton.click();
-  await expect(page.getByRole("link", { name: "Ingresar" }).first()).toHaveAttribute("href", /\/\/app\./);
+  await expect(page.getByRole("link", { name: "Ingresar" })).toHaveCount(0);
+  await expect(page.locator('a[href*="/auth/login"]')).toHaveCount(0);
   await page.keyboard.press("Escape");
   await expect(menuButton).toBeFocused();
 

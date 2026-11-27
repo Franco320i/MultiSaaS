@@ -23,7 +23,7 @@ const serverEnvSchema = z.object({
   CRON_SECRET: z.string().min(16, "CRON_SECRET debe tener al menos 16 caracteres"),
   /**
    * Catálogo de ejemplo de la página principal (opcional, los dos juntos). Sin ellos no
-   * aparece el botón "Mirá un catálogo de ejemplo". El id ata el ejemplo a un comercio de
+   * aparecen "Ver ejemplo" (hero) ni la sección del ejemplo. El id ata el ejemplo a un comercio de
    * la plataforma: otro que registre el mismo slug no queda anunciado.
    */
   DEMO_CATALOG_SLUG: z.string().trim().regex(/^[a-z0-9-]{2,40}$/).optional(),

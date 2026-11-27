@@ -4,7 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { NAV_LINKS } from "./nav-links";
 
 /** Menú desplegable del celular: se abre con el botón, se cierra con Escape o al elegir una sección. */
-export function MobileMenu({ loginUrl }: { loginUrl: string }) {
+export function MobileMenu() {
   const [open, setOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
   const panelId = useId();
@@ -49,11 +49,6 @@ export function MobileMenu({ loginUrl }: { loginUrl: string }) {
               </a>
             </li>
           ))}
-          <li className="mt-1 border-t border-line pt-1">
-            <a href={loginUrl} className="flex min-h-11 items-center rounded-xl px-4 text-[16px] font-semibold">
-              Ingresar
-            </a>
-          </li>
         </ul>
       </div>
     </div>

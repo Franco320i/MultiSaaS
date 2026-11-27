@@ -6,12 +6,15 @@ import { WhatsAppBubble } from "./whatsapp-bubble";
 
 export const RISK_LINE = "14 días gratis · Sin tarjeta · Sin comisiones por venta";
 
-/** Botón al catálogo de ejemplo; la página lo pasa dentro de su propio <Suspense>. */
+/**
+ * "Ver ejemplo": abre el catálogo de ejemplo en otra pestaña (así no se pierde la página).
+ * La página lo pasa dentro de su propio <Suspense>; sin catálogo de ejemplo publicado no aparece.
+ */
 export function DemoButton({ url }: { url: string | null }) {
   if (!url) return null;
   return (
-    <ButtonLink href={url} variant="ghost">
-      Mirá un catálogo de ejemplo
+    <ButtonLink href={url} variant="ghost" newTab>
+      Ver ejemplo
     </ButtonLink>
   );
 }

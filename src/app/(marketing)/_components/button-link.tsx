@@ -14,17 +14,20 @@ export function ButtonLink({
   href,
   variant = "primary",
   className = "",
+  newTab = false,
   children,
 }: {
   href: string;
   variant?: keyof typeof variants;
   className?: string;
+  /** Abre en pestaña nueva (solo links externos). */
+  newTab?: boolean;
   children: ReactNode;
 }) {
   const classes = `${base} ${variants[variant]} ${className}`;
   if (href.startsWith("http")) {
     return (
-      <a href={href} className={classes}>
+      <a href={href} className={classes} {...(newTab ? { target: "_blank", rel: "noopener noreferrer" } : {})}>
         {children}
       </a>
     );
